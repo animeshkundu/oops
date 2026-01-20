@@ -4,9 +4,7 @@
 
 use regex::Regex;
 
-use super::support::{
-    get_all_matched_commands, replace_command, Command, GitSupport, Rule,
-};
+use super::support::{get_all_matched_commands, replace_command, Command, GitSupport, Rule};
 
 /// Rule for handling unknown git commands.
 ///
@@ -32,7 +30,8 @@ impl Rule for GitNotCommand {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.output.contains(" is not a git command. See 'git --help'.")
+        cmd.output
+            .contains(" is not a git command. See 'git --help'.")
             && (cmd.output.contains("The most similar command")
                 || cmd.output.contains("Did you mean"))
     }
@@ -72,10 +71,35 @@ impl GitCommandTypo {
     /// List of common git subcommands
     fn common_commands() -> Vec<String> {
         vec![
-            "add", "bisect", "branch", "checkout", "cherry-pick", "clone", "commit", "config",
-            "diff", "fetch", "grep", "init", "log", "merge", "mv", "pull", "push", "rebase",
-            "remote", "reset", "restore", "revert", "rm", "show", "stash", "status", "switch",
-            "tag", "worktree",
+            "add",
+            "bisect",
+            "branch",
+            "checkout",
+            "cherry-pick",
+            "clone",
+            "commit",
+            "config",
+            "diff",
+            "fetch",
+            "grep",
+            "init",
+            "log",
+            "merge",
+            "mv",
+            "pull",
+            "push",
+            "rebase",
+            "remote",
+            "reset",
+            "restore",
+            "revert",
+            "rm",
+            "show",
+            "stash",
+            "status",
+            "switch",
+            "tag",
+            "worktree",
         ]
         .into_iter()
         .map(String::from)
@@ -273,30 +297,21 @@ mod tests {
     #[test]
     fn test_git_two_dashes_matches() {
         let rule = GitTwoDashes;
-        let cmd = Command::new(
-            "git log -oneline",
-            "error: unknown switch `o'\n",
-        );
+        let cmd = Command::new("git log -oneline", "error: unknown switch `o'\n");
         assert!(rule.is_match(&cmd));
     }
 
     #[test]
     fn test_git_two_dashes_no_match() {
         let rule = GitTwoDashes;
-        let cmd = Command::new(
-            "git log --oneline",
-            "abc1234 Initial commit\n",
-        );
+        let cmd = Command::new("git log --oneline", "abc1234 Initial commit\n");
         assert!(!rule.is_match(&cmd));
     }
 
     #[test]
     fn test_git_two_dashes_get_new_command() {
         let rule = GitTwoDashes;
-        let cmd = Command::new(
-            "git log -oneline",
-            "error: unknown switch `o'\n",
-        );
+        let cmd = Command::new("git log -oneline", "error: unknown switch `o'\n");
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["git log --oneline"]);
     }
@@ -304,10 +319,7 @@ mod tests {
     #[test]
     fn test_git_two_dashes_multiple_options() {
         let rule = GitTwoDashes;
-        let cmd = Command::new(
-            "git log -oneline -graph",
-            "error: unknown switch `o'\n",
-        );
+        let cmd = Command::new("git log -oneline -graph", "error: unknown switch `o'\n");
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["git log --oneline --graph"]);
     }

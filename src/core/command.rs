@@ -95,10 +95,7 @@ impl Command {
             // Use shlex for proper shell-style parsing
             shlex::split(&self.script).unwrap_or_else(|| {
                 // Fallback to simple whitespace split if shlex fails
-                self.script
-                    .split_whitespace()
-                    .map(String::from)
-                    .collect()
+                self.script.split_whitespace().map(String::from).collect()
             })
         })
     }

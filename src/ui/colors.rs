@@ -6,7 +6,7 @@ use std::io::{self, Write};
 
 use crossterm::{
     execute,
-    style::{Color, Print, ResetColor, SetAttribute, SetForegroundColor, Attribute},
+    style::{Attribute, Color, Print, ResetColor, SetAttribute, SetForegroundColor},
 };
 
 /// Print a command script with syntax highlighting.

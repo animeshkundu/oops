@@ -97,9 +97,7 @@ impl Rule for GemUnknownCommand {
             return false;
         }
 
-        command
-            .output
-            .contains("ERROR:  While executing gem")
+        command.output.contains("ERROR:  While executing gem")
             && command.output.contains("Gem::CommandLineError")
             && command.output.contains("Unknown command")
     }

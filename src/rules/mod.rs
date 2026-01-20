@@ -133,11 +133,7 @@ mod tests {
         let original_len = names.len();
         names.sort();
         names.dedup();
-        assert_eq!(
-            names.len(),
-            original_len,
-            "Rule names should be unique"
-        );
+        assert_eq!(names.len(), original_len, "Rule names should be unique");
     }
 
     #[test]

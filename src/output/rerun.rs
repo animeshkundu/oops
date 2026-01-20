@@ -339,7 +339,10 @@ mod tests {
         let slow_commands = vec!["apt".to_string(), "pip".to_string()];
 
         assert!(is_slow_command("sudo apt install vim", &slow_commands));
-        assert!(is_slow_command("sudo -E pip install requests", &slow_commands));
+        assert!(is_slow_command(
+            "sudo -E pip install requests",
+            &slow_commands
+        ));
     }
 
     #[test]

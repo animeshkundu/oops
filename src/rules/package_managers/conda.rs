@@ -36,7 +36,8 @@ impl CondaMistype {
         // Match pattern like: 'conda broken' ... 'conda correct'
         let re = Regex::new(r"'conda ([^']*)'").ok()?;
 
-        let matches: Vec<_> = re.captures_iter(output)
+        let matches: Vec<_> = re
+            .captures_iter(output)
             .filter_map(|caps| caps.get(1).map(|m| m.as_str().to_string()))
             .collect();
 
@@ -97,23 +98,22 @@ mod tests {
 
     #[test]
     fn test_no_match_other_command() {
-        let cmd = Command::new(
-            "pip actiavte myenv",
-            "Did you mean 'conda activate'?",
-        );
+        let cmd = Command::new("pip actiavte myenv", "Did you mean 'conda activate'?");
         assert!(!CondaMistype.is_match(&cmd));
     }
 
     #[test]
     fn test_get_commands() {
-        let output = "CommandNotFoundError: No command 'conda actiavte'.\nDid you mean 'conda activate'?";
+        let output =
+            "CommandNotFoundError: No command 'conda actiavte'.\nDid you mean 'conda activate'?";
         let cmds = CondaMistype::get_commands(output);
         assert_eq!(cmds, Some(("actiavte".to_string(), "activate".to_string())));
     }
 
     #[test]
     fn test_get_commands_install() {
-        let output = "CommandNotFoundError: No command 'conda instal'.\nDid you mean 'conda install'?";
+        let output =
+            "CommandNotFoundError: No command 'conda instal'.\nDid you mean 'conda install'?";
         let cmds = CondaMistype::get_commands(output);
         assert_eq!(cmds, Some(("instal".to_string(), "install".to_string())));
     }
