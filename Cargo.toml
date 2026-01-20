@@ -1,0 +1,92 @@
+[package]
+name = "oops"
+version = "0.1.0"
+edition = "2021"
+authors = ["oops Contributors"]
+description = "A blazingly fast command-line typo corrector - oops, I made a mistake!"
+license = "MIT"
+repository = "https://github.com/oops-cli/oops"
+homepage = "https://github.com/oops-cli/oops"
+readme = "README.md"
+keywords = ["cli", "shell", "command-line", "productivity", "typo-correction"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "oops"
+path = "src/main.rs"
+
+[lib]
+name = "oops"
+path = "src/lib.rs"
+
+[dependencies]
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+
+# Regex
+regex = "1"
+fancy-regex = "0.13"
+
+# Fuzzy matching
+strsim = "0.11"
+
+# Terminal
+crossterm = "0.27"
+
+# Paths and directories
+dirs = "5"
+
+# Error handling
+anyhow = "1"
+thiserror = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Caching
+cached = "0.52"
+once_cell = "1"
+
+# Shell lexing
+shlex = "1"
+
+# Process handling
+which = "6"
+
+# URL parsing
+url = "2"
+
+[target.'cfg(unix)'.dependencies]
+portable-pty = "0.8"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.52", features = ["Win32_System_Console"] }
+
+[features]
+default = []
+python = ["pyo3"]
+
+[dependencies.pyo3]
+version = "0.20"
+optional = true
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"
+insta = "1"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmarks"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
