@@ -20,35 +20,75 @@ git push [enter/up/down/ctrl+c]
 
 ## Installation
 
-### From Source (Recommended)
-
-```bash
-cargo install --git https://github.com/oops-cli/oops
-```
-
 ### Pre-built Binaries
 
-Download from [GitHub Releases](https://github.com/oops-cli/oops/releases).
+Download the appropriate binary for your system from [GitHub Releases](https://github.com/animeshkundu/oops/releases/latest):
+
+| Platform | Architecture | Binary |
+|----------|--------------|--------|
+| Linux | x86_64 | `oops-linux-x86_64` |
+| Linux | x86_64 (static) | `oops-linux-x86_64-musl` |
+| Linux | ARM64 | `oops-linux-aarch64` |
+| macOS | Intel | `oops-darwin-x86_64` |
+| macOS | Apple Silicon | `oops-darwin-aarch64` |
+| Windows | x86_64 | `oops-windows-x86_64.exe` |
+
+#### Linux/macOS
+
+```bash
+# Download (example for Linux x86_64)
+curl -LO https://github.com/animeshkundu/oops/releases/latest/download/oops-linux-x86_64
+
+# Make executable
+chmod +x oops-linux-x86_64
+
+# Move to PATH
+sudo mv oops-linux-x86_64 /usr/local/bin/oops
+
+# Verify installation
+oops --version
+```
+
+#### Windows
+
+```powershell
+# Download using PowerShell
+Invoke-WebRequest -Uri "https://github.com/animeshkundu/oops/releases/latest/download/oops-windows-x86_64.exe" -OutFile "oops.exe"
+
+# Move to a directory in your PATH, or add to PATH
+mkdir -Force "$env:USERPROFILE\bin"
+Move-Item oops.exe "$env:USERPROFILE\bin\oops.exe"
+
+# Add to PATH (run once)
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\bin", "User")
+```
+
+### From Source
+
+```bash
+cargo install --git https://github.com/animeshkundu/oops
+```
 
 ### Package Managers
 
 ```bash
 # Homebrew (macOS/Linux)
-brew install oops-cli/tap/oops
+brew install animeshkundu/tap/oops
 
-# Cargo
+# Cargo (from crates.io when published)
 cargo install oops
 
 # Arch Linux (AUR)
 yay -S oops
 
 # Windows (Scoop)
+scoop bucket add extras
 scoop install oops
 ```
 
-## Quick Start
+## Shell Integration
 
-After installation, add the shell integration to your config:
+After installing `oops`, add the shell integration to your config file:
 
 ### Bash
 
@@ -57,12 +97,16 @@ Add to `~/.bashrc`:
 eval "$(oops --alias)"
 ```
 
+Reload: `source ~/.bashrc`
+
 ### Zsh
 
 Add to `~/.zshrc`:
 ```zsh
 eval "$(oops --alias)"
 ```
+
+Reload: `source ~/.zshrc`
 
 ### Fish
 
@@ -71,14 +115,55 @@ Add to `~/.config/fish/config.fish`:
 oops --alias | source
 ```
 
+Reload: `source ~/.config/fish/config.fish`
+
 ### PowerShell
 
-Add to your `$PROFILE`:
+Add to your PowerShell profile (`$PROFILE`):
 ```powershell
 Invoke-Expression (oops --alias | Out-String)
 ```
 
-Then restart your shell or source your config file.
+To find your profile location: `echo $PROFILE`
+
+Reload: `. $PROFILE`
+
+### Tcsh
+
+Add to `~/.tcshrc`:
+```tcsh
+eval `oops --alias`
+```
+
+Reload: `source ~/.tcshrc`
+
+### Custom Alias Name
+
+To use a different alias (e.g., `fuck` for thefuck compatibility):
+
+```bash
+# Bash/Zsh
+eval "$(TF_ALIAS=fuck oops --alias)"
+
+# Fish
+TF_ALIAS=fuck oops --alias | source
+
+# PowerShell
+$env:TF_ALIAS="fuck"; Invoke-Expression (oops --alias | Out-String)
+
+# Tcsh
+setenv TF_ALIAS fuck && eval `oops --alias`
+```
+
+## Shell Reference
+
+| Shell | Config File | Integration Command | Reload Command |
+|-------|-------------|---------------------|----------------|
+| Bash | `~/.bashrc` | `eval "$(oops --alias)"` | `source ~/.bashrc` |
+| Zsh | `~/.zshrc` | `eval "$(oops --alias)"` | `source ~/.zshrc` |
+| Fish | `~/.config/fish/config.fish` | `oops --alias \| source` | `source ~/.config/fish/config.fish` |
+| PowerShell | `$PROFILE` | `Invoke-Expression (oops --alias \| Out-String)` | `. $PROFILE` |
+| Tcsh | `~/.tcshrc` | `` eval `oops --alias` `` | `source ~/.tcshrc` |
 
 ## Usage
 
@@ -177,7 +262,7 @@ See the [full rules list](docs/guides/rules.md) for details.
 
 If you're coming from the Python `thefuck`:
 
-1. **Shell alias**: Change `fuck` to `oops` in your shell config
+1. **Shell alias**: Change `fuck` to `oops` in your shell config (or use `TF_ALIAS=fuck`)
 2. **Config format**: Use TOML instead of Python (`config.toml` instead of `settings.py`)
 3. **Environment variables**: Same names, fully compatible
 

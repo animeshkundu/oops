@@ -85,3 +85,50 @@ jobs:
         with:
           files: lcov.info
           fail_ci_if_error: false
+
+  shell-tests:
+    name: Shell Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-shell-tests-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Test --version
+        run: ./target/release/oops --version
+
+      - name: Test --help
+        run: ./target/release/oops --help
+
+      - name: Test Bash alias generation
+        run: |
+          TF_SHELL=bash ./target/release/oops --alias | grep -q "eval"
+
+      - name: Test Zsh alias generation
+        run: |
+          TF_SHELL=zsh ./target/release/oops --alias | grep -q "eval"
+
+      - name: Test Fish alias generation
+        run: |
+          TF_SHELL=fish ./target/release/oops --alias | grep -q "function"
+
+      - name: Test PowerShell alias generation
+        run: |
+          TF_SHELL=powershell ./target/release/oops --alias | grep -q "function"
+
+      - name: Test Tcsh alias generation
+        run: |
+          TF_SHELL=tcsh ./target/release/oops --alias | grep -q "alias"
