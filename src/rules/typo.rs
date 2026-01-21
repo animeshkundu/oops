@@ -47,7 +47,7 @@ impl Rule for SlLs {
             return false;
         }
 
-        // Check that it's "sl" followed by nothing, space, or end of line
+        // Check that it's "sl" followed by nothing, space, or tab
         let after_sl = &script[2..];
         if !after_sl.is_empty() && !after_sl.starts_with(' ') && !after_sl.starts_with('\t') {
             return false;
@@ -65,12 +65,14 @@ impl Rule for SlLs {
         let script = cmd.script.trim();
 
         // Replace "sl" with "ls" at the beginning
-        if script.starts_with("sl ") {
-            vec![format!("ls {}", &script[3..])]
+        if let Some(rest) = script.strip_prefix("sl ") {
+            vec![format!("ls {}", rest)]
         } else if script == "sl" {
             vec!["ls".to_string()]
+        } else if let Some(rest) = script.strip_prefix("sl") {
+            vec![format!("ls{}", rest)]
         } else {
-            vec![format!("ls{}", &script[2..])]
+            vec![]
         }
     }
 
@@ -294,7 +296,7 @@ impl Rule for Systemctl {
         // Must be a systemctl command
         if !is_app(cmd, &["systemctl"]) {
             let script = cmd.script.trim();
-            if !script.starts_with("systemctl ") && script != "systemctl" {
+            if script != "systemctl" && !script.starts_with("systemctl ") {
                 return false;
             }
         }
@@ -330,7 +332,7 @@ impl Rule for Systemctl {
                 let mut fixed_parts = vec!["systemctl".to_string()];
                 fixed_parts.push(parts[2].clone()); // The command
                 fixed_parts.push(parts[1].clone()); // The service
-                fixed_parts.extend(parts[3..].iter().cloned());
+                fixed_parts.extend_from_slice(&parts[3..]);
                 return vec![fixed_parts.join(" ")];
             }
         }
@@ -345,7 +347,7 @@ impl Rule for Systemctl {
                 .into_iter()
                 .map(|correct_cmd| {
                     let mut new_parts = vec!["systemctl".to_string(), correct_cmd];
-                    new_parts.extend(parts[2..].iter().cloned());
+                    new_parts.extend_from_slice(&parts[2..]);
                     new_parts.join(" ")
                 })
                 .collect();

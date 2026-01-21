@@ -625,7 +625,7 @@ impl FabCommandNotFound {
             }
 
             if should_yield && !line.is_empty() {
-                if let Some(cmd) = line.trim().split_whitespace().next() {
+                if let Some(cmd) = line.split_whitespace().next() {
                     result.push(cmd);
                 }
             }

@@ -4,7 +4,6 @@
 //! It provides faster startup time while maintaining full feature parity.
 
 use anyhow::Result;
-use clap::Parser;
 use tracing::debug;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 

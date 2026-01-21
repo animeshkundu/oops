@@ -105,7 +105,7 @@ impl Rule for CdMkdir {
         if !is_app(cmd, &["cd"]) {
             // cd is usually a shell built-in, so check the script directly
             let script = cmd.script.trim();
-            if !script.starts_with("cd ") && script != "cd" {
+            if script != "cd" && !script.starts_with("cd ") {
                 return false;
             }
         }
@@ -196,6 +196,7 @@ impl CdCorrection {
     }
 
     /// Extract the typo directory name from the error output.
+    #[allow(dead_code)]
     fn extract_typo_from_output(output: &str) -> Option<String> {
         // Try common error message patterns
         let patterns = [
@@ -352,8 +353,8 @@ impl Rule for CdCs {
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         // Replace "cs" with "cd" at the beginning of the script
-        if cmd.script.len() >= 2 {
-            vec![format!("cd{}", &cmd.script[2..])]
+        if let Some(rest) = cmd.script.strip_prefix("cs") {
+            vec![format!("cd{}", rest)]
         } else {
             vec!["cd".to_string()]
         }

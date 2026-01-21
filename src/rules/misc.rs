@@ -313,7 +313,10 @@ impl Rule for MissingSpaceBeforeSubcommand {
 /// use oops::core::{Command, Rule};
 ///
 /// let rule = NoSuchFile;
-/// let cmd = Command::new("mv file.txt /path/to/dest/", "No such file or directory");
+/// let cmd = Command::new(
+///     "mv file.txt /path/to/dest/file.txt",
+///     "mv: cannot move 'file.txt' to '/path/to/dest/file.txt': No such file or directory"
+/// );
 /// assert!(rule.is_match(&cmd));
 /// ```
 #[derive(Debug, Clone, Copy, Default)]

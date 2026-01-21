@@ -146,9 +146,6 @@ impl CorrectedCommand {
             if let Some(ref side_effect) = self.side_effect {
                 side_effect(old_cmd, &self.script)?;
             }
-        }
-
-        if status.success() {
             Ok(())
         } else {
             anyhow::bail!(

@@ -302,11 +302,11 @@ impl Rule for GrepArgumentsOrder {
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         let parts = cmd.script_parts();
-        if let Some(actual_file) = Self::get_actual_file(&parts) {
+        if let Some(actual_file) = Self::get_actual_file(parts) {
             // Move file to the end
             let mut new_parts: Vec<String> = parts
                 .iter()
-                .filter(|p| *p != &actual_file)
+                .filter(|p| **p != actual_file)
                 .cloned()
                 .collect();
             new_parts.push(actual_file);
@@ -730,7 +730,7 @@ impl Rule for ProveRecursively {
 
         cmd.output.contains("NOTESTS")
             && !parts.iter().skip(1).any(|p| Self::is_recursive(p))
-            && Self::has_directory_arg(&parts)
+            && Self::has_directory_arg(parts)
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -961,7 +961,6 @@ impl Mercurial {
         if let Some(last_line) = lines.last() {
             if last_line.starts_with("    ") {
                 return last_line
-                    .trim()
                     .split_whitespace()
                     .map(|s| s.to_string())
                     .collect();

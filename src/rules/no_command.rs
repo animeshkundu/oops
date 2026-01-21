@@ -122,12 +122,7 @@ impl NoCommand {
         let mut commands: Vec<String> = get_all_executables().iter().cloned().collect();
 
         // Add commands from history
-        let history_commands = Self::get_history_commands();
-        for cmd in history_commands {
-            if !commands.contains(&cmd) {
-                commands.push(cmd);
-            }
-        }
+        commands.extend(Self::get_history_commands());
 
         commands
     }

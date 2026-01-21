@@ -113,7 +113,7 @@ pub fn get_corrected_commands(command: &Command, settings: &Settings) -> Vec<Cor
             }
 
             // Create correction with optional side effect
-            let correction = if has_side_effect(&*rule) {
+            let correction = if has_side_effect(rule.as_ref()) {
                 let rule_arc: Arc<dyn Rule> = Arc::from(rule_to_arc(rule.as_ref()));
                 let old_cmd = command.clone();
                 let _new_script = new_cmd.clone();

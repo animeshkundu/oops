@@ -5,6 +5,7 @@
 //! # Rules
 //!
 //! ## Push Rules (`push.rs`)
+//!
 //! - `GitPush` - Fixes "git push" when there's no upstream branch set
 //! - `GitPushPull` - Suggests pulling before pushing when remote has new commits
 //! - `GitPushForce` - Suggests force push when regular push is rejected
@@ -12,17 +13,20 @@
 //! - `GitPushDifferentBranchNames` - Handles push with different local/remote branch names
 //!
 //! ## Checkout Rules (`checkout.rs`)
+//!
 //! - `GitCheckout` - Suggests similar branch names when checkout fails
 //! - `GitCheckoutUncommittedChanges` - Suggests stashing when checkout fails due to changes
 //! - `GitMainMaster` - Handles main/master branch confusion
 //!
 //! ## Add Rules (`add.rs`)
+//!
 //! - `GitAdd` - Adds untracked files that need to be added
 //! - `GitAddForce` - Suggests -f flag for ignored files
 //! - `GitCommitAdd` - Suggests -a flag when committing without staged changes
 //! - `GitAddAll` - Suggests adding all files
 //!
 //! ## Branch Rules (`branch.rs`)
+//!
 //! - `GitBranchDelete` - Suggests -D when -d fails for unmerged branch
 //! - `GitBranchDeleteCheckedOut` - Handles deleting the currently checked out branch
 //! - `GitBranchExists` - Handles creating a branch that already exists
@@ -31,11 +35,13 @@
 //! - `GitBranchFlagPosition` - Fixes flag position in branch commands
 //!
 //! ## Not Command Rules (`not_command.rs`)
+//!
 //! - `GitNotCommand` - Fixes unknown git commands using git's suggestions
 //! - `GitCommandTypo` - Fixes typos when git doesn't provide suggestions
 //! - `GitTwoDashes` - Fixes single-dash long options
 //!
 //! ## Common Rules (`common.rs`)
+//!
 //! - `GitPull` - Fixes pull when there's no upstream
 //! - `GitPullUncommittedChanges` - Suggests stashing for pull
 //! - `GitStash` - Suggests stashing when needed

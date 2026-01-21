@@ -69,7 +69,7 @@ static ALL_EXECUTABLES: Lazy<HashSet<String>> = Lazy::new(|| {
     }
 
     // Filter out oops-related entries to avoid circular corrections
-    let tf_entries: HashSet<&str> = ["oops", "thefuck", "fuck", "tf"].iter().cloned().collect();
+    let tf_entries: HashSet<&str> = ["oops", "thefuck", "fuck", "tf"].iter().copied().collect();
     executables.retain(|name| !tf_entries.contains(name.as_str()));
 
     executables

@@ -200,15 +200,11 @@ pub fn get_branches() -> Vec<String> {
                     }
 
                     let line = line.trim();
-                    let line = if line.starts_with('*') {
-                        line[1..].trim()
-                    } else {
-                        line
-                    };
+                    let line = line.strip_prefix('*').map_or(line, |s| s.trim());
 
                     // Strip 'remotes/origin/' prefix for remote branches
-                    let line = if line.starts_with("remotes/") {
-                        line.split('/').skip(2).collect::<Vec<_>>().join("/")
+                    let line = if let Some(stripped) = line.strip_prefix("remotes/") {
+                        stripped.split('/').skip(1).collect::<Vec<_>>().join("/")
                     } else {
                         line.to_string()
                     };

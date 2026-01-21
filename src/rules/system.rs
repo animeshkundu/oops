@@ -280,11 +280,11 @@ impl Rule for DirtyUntar {
         is_app(cmd, &["tar"])
             && !cmd.script.contains("-C")
             && Self::is_tar_extract(&cmd.script)
-            && Self::tar_file(&cmd.script_parts()).is_some()
+            && Self::tar_file(cmd.script_parts()).is_some()
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
-        if let Some((_, base)) = Self::tar_file(&cmd.script_parts()) {
+        if let Some((_, base)) = Self::tar_file(cmd.script_parts()) {
             // Quote the directory name for shell safety
             let dir = shell_quote(&base);
             vec![format!("mkdir -p {} && {} -C {}", dir, cmd.script, dir)]
@@ -347,11 +347,11 @@ impl Rule for DirtyUnzip {
     fn is_match(&self, cmd: &Command) -> bool {
         is_app(cmd, &["unzip"])
             && !cmd.script.contains("-d")
-            && Self::zip_file(&cmd.script_parts()).is_some()
+            && Self::zip_file(cmd.script_parts()).is_some()
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
-        if let Some(zip_file) = Self::zip_file(&cmd.script_parts()) {
+        if let Some(zip_file) = Self::zip_file(cmd.script_parts()) {
             // Get base name without .zip extension
             let base = zip_file.strip_suffix(".zip").unwrap_or(&zip_file);
             let dir = shell_quote(base);
@@ -410,7 +410,7 @@ const FIX_FILE_PATTERNS: &[&str] = &[
 /// use oops::rules::system::FixFile;
 /// use oops::core::{Command, Rule};
 ///
-/// let rule = FixFile;
+/// let rule = FixFile::new();
 /// let cmd = Command::new("python script.py", "  File \"script.py\", line 10");
 /// // Requires EDITOR env var to be set
 /// ```
@@ -548,10 +548,8 @@ impl LnSOrder {
     /// Get the destination (existing path) from the command parts.
     fn get_destination(parts: &[String]) -> Option<String> {
         for part in parts {
-            if part != "ln" && part != "-s" && part != "--symbolic" {
-                if Path::new(part).exists() {
-                    return Some(part.clone());
-                }
+            if part != "ln" && part != "-s" && part != "--symbolic" && Path::new(part).exists() {
+                return Some(part.clone());
             }
         }
         None
@@ -568,16 +566,17 @@ impl Rule for LnSOrder {
         is_app(cmd, &["ln"])
             && (parts.contains(&"-s".to_string()) || parts.contains(&"--symbolic".to_string()))
             && cmd.output.contains("File exists")
-            && Self::get_destination(&parts).is_some()
+            && Self::get_destination(parts).is_some()
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         let parts = cmd.script_parts();
-        if let Some(dest) = Self::get_destination(&parts) {
-            let mut new_parts: Vec<String> =
-                parts.iter().filter(|p| *p != &dest).cloned().collect();
-            new_parts.push(dest);
-            vec![new_parts.join(" ")]
+        if let Some(dest) = Self::get_destination(parts) {
+            let new_parts: Vec<String> =
+                parts.iter().filter(|p| **p != dest).cloned().collect();
+            let mut result = new_parts;
+            result.push(dest);
+            vec![result.join(" ")]
         } else {
             vec![]
         }
@@ -917,17 +916,17 @@ impl Rule for Man {
         }
 
         // If command has section 3, try section 2
-        if cmd.script.contains(" 3 ") || cmd.script.contains("3") && parts.len() > 2 {
-            if parts.iter().any(|p| p == "3") {
-                return vec![cmd.script.replace(" 3 ", " 2 ").replace(" 3", " 2")];
-            }
+        if (cmd.script.contains(" 3 ") || (cmd.script.contains("3") && parts.len() > 2))
+            && parts.iter().any(|p| p == "3")
+        {
+            return vec![cmd.script.replace(" 3 ", " 2 ").replace(" 3", " 2")];
         }
 
         // If command has section 2, try section 3
-        if cmd.script.contains(" 2 ") || cmd.script.contains("2") && parts.len() > 2 {
-            if parts.iter().any(|p| p == "2") {
-                return vec![cmd.script.replace(" 2 ", " 3 ").replace(" 2", " 3")];
-            }
+        if (cmd.script.contains(" 2 ") || (cmd.script.contains("2") && parts.len() > 2))
+            && parts.iter().any(|p| p == "2")
+        {
+            return vec![cmd.script.replace(" 2 ", " 3 ").replace(" 2", " 3")];
         }
 
         let last_arg = &parts[parts.len() - 1];
@@ -943,12 +942,12 @@ impl Rule for Man {
         let mut results = Vec::new();
 
         // Build command with section 3
-        let mut cmd3_parts: Vec<String> = parts.iter().cloned().collect();
+        let mut cmd3_parts: Vec<String> = parts.to_vec();
         cmd3_parts.insert(1, "3".to_string());
         results.push(cmd3_parts.join(" "));
 
         // Build command with section 2
-        let mut cmd2_parts: Vec<String> = parts.iter().cloned().collect();
+        let mut cmd2_parts: Vec<String> = parts.to_vec();
         cmd2_parts.insert(1, "2".to_string());
         results.push(cmd2_parts.join(" "));
 
