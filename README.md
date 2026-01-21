@@ -232,7 +232,7 @@ All settings can be overridden via environment variables:
 
 ### Minimum Supported Rust Version
 
-Oops requires Rust 1.83 or newer to build.
+Oops requires Rust 1.88 or newer to build.
 
 ## Supported Rules
 

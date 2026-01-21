@@ -73,8 +73,8 @@ pub struct GoUnknownCommand;
 impl GoUnknownCommand {
     /// Common Go subcommands for fuzzy matching.
     const GO_COMMANDS: &'static [&'static str] = &[
-        "bug", "build", "clean", "doc", "env", "fix", "fmt", "generate", "get", "help",
-        "install", "list", "mod", "work", "run", "test", "tool", "version", "vet",
+        "bug", "build", "clean", "doc", "env", "fix", "fmt", "generate", "get", "help", "install",
+        "list", "mod", "work", "run", "test", "tool", "version", "vet",
     ];
 }
 
@@ -186,8 +186,7 @@ impl Rule for GradleNoTask {
             None => return vec![],
         };
 
-        let gradle_tasks: Vec<String> =
-            Self::GRADLE_TASKS.iter().map(|s| s.to_string()).collect();
+        let gradle_tasks: Vec<String> = Self::GRADLE_TASKS.iter().map(|s| s.to_string()).collect();
 
         let matches = get_close_matches(&wrong_task, &gradle_tasks, 3, 0.6);
         matches
@@ -286,7 +285,10 @@ impl Rule for Java {
 
     fn get_new_command(&self, command: &Command) -> Vec<String> {
         // Remove the .java extension
-        let fixed = command.script.strip_suffix(".java").unwrap_or(&command.script);
+        let fixed = command
+            .script
+            .strip_suffix(".java")
+            .unwrap_or(&command.script);
         vec![fixed.to_string()]
     }
 
@@ -623,7 +625,7 @@ impl FabCommandNotFound {
             }
 
             if should_yield && !line.is_empty() {
-                if let Some(cmd) = line.trim().split_whitespace().next() {
+                if let Some(cmd) = line.split_whitespace().next() {
                     result.push(cmd);
                 }
             }
@@ -697,9 +699,28 @@ pub struct GruntTaskNotFound;
 impl GruntTaskNotFound {
     /// Common Grunt tasks for fuzzy matching.
     const GRUNT_TASKS: &'static [&'static str] = &[
-        "build", "test", "default", "watch", "serve", "clean", "copy", "concat", "uglify",
-        "cssmin", "htmlmin", "jshint", "eslint", "sass", "less", "compass", "coffee", "typescript",
-        "imagemin", "connect", "concurrent", "newer",
+        "build",
+        "test",
+        "default",
+        "watch",
+        "serve",
+        "clean",
+        "copy",
+        "concat",
+        "uglify",
+        "cssmin",
+        "htmlmin",
+        "jshint",
+        "eslint",
+        "sass",
+        "less",
+        "compass",
+        "coffee",
+        "typescript",
+        "imagemin",
+        "connect",
+        "concurrent",
+        "newer",
     ];
 
     /// Extract the misspelled task from Grunt output.
@@ -1132,10 +1153,7 @@ mod tests {
 
         #[test]
         fn test_matches_task_not_found() {
-            let cmd = Command::new(
-                "gradle complie",
-                "Task 'complie' not found in root project",
-            );
+            let cmd = Command::new("gradle complie", "Task 'complie' not found in root project");
             assert!(GradleNoTask.is_match(&cmd));
         }
 
@@ -1153,10 +1171,7 @@ mod tests {
 
         #[test]
         fn test_get_new_command() {
-            let cmd = Command::new(
-                "gradle complie",
-                "Task 'complie' not found in root project",
-            );
+            let cmd = Command::new("gradle complie", "Task 'complie' not found in root project");
             let fixes = GradleNoTask.get_new_command(&cmd);
             // Should suggest compile-related tasks
             assert!(!fixes.is_empty());
@@ -1317,7 +1332,10 @@ mod tests {
 
         #[test]
         fn test_name() {
-            assert_eq!(MvnUnknownLifecyclePhase.name(), "mvn_unknown_lifecycle_phase");
+            assert_eq!(
+                MvnUnknownLifecyclePhase.name(),
+                "mvn_unknown_lifecycle_phase"
+            );
         }
 
         #[test]
@@ -1374,10 +1392,7 @@ Did you mean this?
 
         #[test]
         fn test_matches_install_to_require() {
-            let cmd = Command::new(
-                "composer install package",
-                "Did you mean composer require?",
-            );
+            let cmd = Command::new("composer install package", "Did you mean composer require?");
             assert!(ComposerNotCommand.is_match(&cmd));
         }
 

@@ -9,6 +9,6 @@ pub mod cache;
 pub mod executables;
 pub mod fuzzy;
 
-pub use cache::which as cached_which;
-pub use executables::{get_all_executables, replace_argument, which};
+pub use cache::which;
+pub use executables::{get_all_executables, replace_argument, which as uncached_which};
 pub use fuzzy::{get_close_matches, get_closest};

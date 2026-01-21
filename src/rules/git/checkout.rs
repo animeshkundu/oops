@@ -33,7 +33,8 @@ impl Rule for GitCheckout {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.output.contains("did not match any file(s) known to git")
+        cmd.output
+            .contains("did not match any file(s) known to git")
             && !cmd.output.contains("Did you forget to 'git add'?")
     }
 
@@ -67,8 +68,7 @@ impl Rule for GitCheckout {
 
         // If no suggestions found, offer to create the branch first
         if new_commands.is_empty() {
-            let create_and_checkout =
-                and_commands(&format!("git branch {}", missing), &cmd.script);
+            let create_and_checkout = and_commands(&format!("git branch {}", missing), &cmd.script);
             new_commands.push(create_and_checkout);
         }
 
@@ -101,8 +101,12 @@ impl Rule for GitCheckoutUncommittedChanges {
 
     fn is_match(&self, cmd: &Command) -> bool {
         (cmd.script.contains("checkout") || cmd.script.contains("switch"))
-            && (cmd.output.contains("Please commit your changes or stash them")
-                || cmd.output.contains("Your local changes to the following files would be overwritten"))
+            && (cmd
+                .output
+                .contains("Please commit your changes or stash them")
+                || cmd
+                    .output
+                    .contains("Your local changes to the following files would be overwritten"))
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -141,7 +145,10 @@ impl Rule for GitMainMaster {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        if !cmd.output.contains("did not match any file(s) known to git") {
+        if !cmd
+            .output
+            .contains("did not match any file(s) known to git")
+        {
             return false;
         }
 
@@ -192,10 +199,7 @@ mod tests {
     #[test]
     fn test_git_checkout_no_match_success() {
         let rule = GitCheckout;
-        let cmd = Command::new(
-            "git checkout main",
-            "Switched to branch 'main'\n",
-        );
+        let cmd = Command::new("git checkout main", "Switched to branch 'main'\n");
         assert!(!rule.is_match(&cmd));
     }
 

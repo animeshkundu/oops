@@ -12,23 +12,66 @@ use regex::Regex;
 
 /// Common APT operations for fuzzy matching.
 const APT_OPERATIONS: &[&str] = &[
-    "install", "remove", "purge", "autoremove", "update", "upgrade", "full-upgrade",
-    "search", "show", "list", "edit-sources", "satisfy", "source", "build-dep",
-    "download", "changelog", "depends", "rdepends", "policy",
+    "install",
+    "remove",
+    "purge",
+    "autoremove",
+    "update",
+    "upgrade",
+    "full-upgrade",
+    "search",
+    "show",
+    "list",
+    "edit-sources",
+    "satisfy",
+    "source",
+    "build-dep",
+    "download",
+    "changelog",
+    "depends",
+    "rdepends",
+    "policy",
 ];
 
 /// Common APT-GET operations for fuzzy matching.
 const APT_GET_OPERATIONS: &[&str] = &[
-    "install", "remove", "purge", "autoremove", "update", "upgrade", "dist-upgrade",
-    "dselect-upgrade", "source", "build-dep", "download", "clean", "autoclean",
-    "check", "changelog", "indextargets",
+    "install",
+    "remove",
+    "purge",
+    "autoremove",
+    "update",
+    "upgrade",
+    "dist-upgrade",
+    "dselect-upgrade",
+    "source",
+    "build-dep",
+    "download",
+    "clean",
+    "autoclean",
+    "check",
+    "changelog",
+    "indextargets",
 ];
 
 /// Common APT-CACHE operations for fuzzy matching.
 const APT_CACHE_OPERATIONS: &[&str] = &[
-    "add", "gencaches", "showpkg", "showsrc", "stats", "dump", "dumpavail",
-    "unmet", "search", "show", "depends", "rdepends", "pkgnames", "dotty",
-    "xvcg", "policy", "madison",
+    "add",
+    "gencaches",
+    "showpkg",
+    "showsrc",
+    "stats",
+    "dump",
+    "dumpavail",
+    "unmet",
+    "search",
+    "show",
+    "depends",
+    "rdepends",
+    "pkgnames",
+    "dotty",
+    "xvcg",
+    "policy",
+    "madison",
 ];
 
 /// Rule to suggest using sudo when apt-get/apt fails with permission denied.
@@ -382,10 +425,7 @@ mod tests {
 
         #[test]
         fn test_get_new_command_with_args() {
-            let cmd = Command::new(
-                "apt-get search python3",
-                "E: Invalid operation search",
-            );
+            let cmd = Command::new("apt-get search python3", "E: Invalid operation search");
             let fixes = AptGetSearch.get_new_command(&cmd);
             assert_eq!(fixes, vec!["apt-cache search python3"]);
         }
@@ -475,10 +515,7 @@ mod tests {
 
         #[test]
         fn test_no_match_other_command() {
-            let cmd = Command::new(
-                "dnf update",
-                "Run 'apt list --upgradable' to see them.",
-            );
+            let cmd = Command::new("dnf update", "Run 'apt list --upgradable' to see them.");
             assert!(!AptListUpgradable.is_match(&cmd));
         }
 

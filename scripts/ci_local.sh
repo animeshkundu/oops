@@ -6,7 +6,7 @@ cd "$repo_root"
 
 fmt_toolchain=${RUSTFMT_TOOLCHAIN:-}
 clippy_toolchain=${CLIPPY_TOOLCHAIN:-}
-msrv_toolchain=${MSRV_TOOLCHAIN:-}
+msrv_toolchain=${MSRV_TOOLCHAIN:-1.88}
 
 fmt_cmd=(cargo fmt --check)
 clippy_cmd=(cargo clippy -- -D warnings)

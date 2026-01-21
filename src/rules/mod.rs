@@ -54,22 +54,20 @@ pub use typo::{PythonCommand, SlLs, Systemctl};
 /// println!("Loaded {} rules", rules.len());
 /// ```
 pub fn get_all_rules() -> Vec<Box<dyn Rule>> {
-    let mut rules: Vec<Box<dyn Rule>> = vec![];
-
-    // High priority rules (quick fixes)
-    rules.push(Box::new(Sudo));
-    rules.push(Box::new(CdParent));
-    rules.push(Box::new(CdMkdir));
-    rules.push(Box::new(CdCorrection));
-    rules.push(Box::new(CdCs));
-
-    // Typo rules
-    rules.push(Box::new(SlLs));
-    rules.push(Box::new(PythonCommand));
-    rules.push(Box::new(Systemctl));
-
-    // Command not found (lower priority, does more work)
-    rules.push(Box::new(NoCommand));
+    let mut rules: Vec<Box<dyn Rule>> = vec![
+        // High priority rules (quick fixes)
+        Box::new(Sudo),
+        Box::new(CdParent),
+        Box::new(CdMkdir),
+        Box::new(CdCorrection),
+        Box::new(CdCs),
+        // Typo rules
+        Box::new(SlLs),
+        Box::new(PythonCommand),
+        Box::new(Systemctl),
+        // Command not found (lower priority, does more work)
+        Box::new(NoCommand),
+    ];
 
     // Add git rules (push, checkout, add, branch, common, not_command)
     rules.extend(git::all_rules());
@@ -133,11 +131,7 @@ mod tests {
         let original_len = names.len();
         names.sort();
         names.dedup();
-        assert_eq!(
-            names.len(),
-            original_len,
-            "Rule names should be unique"
-        );
+        assert_eq!(names.len(), original_len, "Rule names should be unique");
     }
 
     #[test]

@@ -399,20 +399,14 @@ mod tests {
     #[test]
     fn test_git_branch_list_matches() {
         let rule = GitBranchList;
-        let cmd = Command::new(
-            "git branch -l",
-            "error: unknown switch `l'\n",
-        );
+        let cmd = Command::new("git branch -l", "error: unknown switch `l'\n");
         assert!(rule.is_match(&cmd));
     }
 
     #[test]
     fn test_git_branch_list_get_new_command() {
         let rule = GitBranchList;
-        let cmd = Command::new(
-            "git branch -l feature*",
-            "error: unknown switch `l'\n",
-        );
+        let cmd = Command::new("git branch -l feature*", "error: unknown switch `l'\n");
         let new_commands = rule.get_new_command(&cmd);
         assert!(new_commands.iter().any(|c| c.contains("--list")));
     }

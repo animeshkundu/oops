@@ -64,7 +64,8 @@ impl PipUnknownCommand {
     /// Extract the broken command and suggested fix from pip error output.
     fn get_broken_and_fix(output: &str) -> Option<(String, String)> {
         // Pattern: ERROR: unknown command "broken", maybe you meant "fixed"
-        let re = Regex::new(r#"ERROR: unknown command "([^"]+)".*maybe you meant "([^"]+)""#).ok()?;
+        let re =
+            Regex::new(r#"ERROR: unknown command "([^"]+)".*maybe you meant "([^"]+)""#).ok()?;
         let caps = re.captures(output)?;
 
         let broken = caps.get(1)?.as_str().to_string();
@@ -264,10 +265,7 @@ mod tests {
         fn test_get_broken_and_fix() {
             let output = r#"ERROR: unknown command "instal", maybe you meant "install""#;
             let result = PipUnknownCommand::get_broken_and_fix(output);
-            assert_eq!(
-                result,
-                Some(("instal".to_string(), "install".to_string()))
-            );
+            assert_eq!(result, Some(("instal".to_string(), "install".to_string())));
         }
 
         #[test]
@@ -300,10 +298,7 @@ mod tests {
 
         #[test]
         fn test_matches_import_error() {
-            let cmd = Command::new(
-                "python3 app.py",
-                "ImportError: No module named 'flask'",
-            );
+            let cmd = Command::new("python3 app.py", "ImportError: No module named 'flask'");
             assert!(PipModuleNotFound.is_match(&cmd));
         }
 
@@ -344,10 +339,7 @@ mod tests {
                 PipModuleNotFound::module_to_package("sklearn"),
                 "scikit-learn"
             );
-            assert_eq!(
-                PipModuleNotFound::module_to_package("requests"),
-                "requests"
-            );
+            assert_eq!(PipModuleNotFound::module_to_package("requests"), "requests");
         }
 
         #[test]
@@ -367,10 +359,7 @@ mod tests {
                 "ModuleNotFoundError: No module named 'cv2'",
             );
             let fixes = PipModuleNotFound.get_new_command(&cmd);
-            assert_eq!(
-                fixes,
-                vec!["pip install opencv-python && python3 image.py"]
-            );
+            assert_eq!(fixes, vec!["pip install opencv-python && python3 image.py"]);
         }
 
         #[test]
