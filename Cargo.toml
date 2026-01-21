@@ -40,6 +40,8 @@ crossterm = "0.27"
 
 # Paths and directories
 dirs = "5"
+# Pin home to 0.5.11 for MSRV 1.82 compatibility (0.5.12+ requires Edition 2024/Rust 1.85+)
+home = "=0.5.11"
 
 # Error handling
 anyhow = "1"
