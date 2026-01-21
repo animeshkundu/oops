@@ -63,8 +63,7 @@ impl Rule for AwsCli {
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         // Pattern to extract the invalid choice: (?<=Invalid choice: ')(.*)(?=', maybe you meant:)
-        let invalid_choice_re =
-            Regex::new(r"Invalid choice: '([^']*)', maybe you meant:").unwrap();
+        let invalid_choice_re = Regex::new(r"Invalid choice: '([^']*)', maybe you meant:").unwrap();
         // Pattern to extract options: ^\s*\*\s(.*)
         let options_re = Regex::new(r"(?m)^\s*\*\s+(.+)$").unwrap();
 
@@ -490,7 +489,10 @@ impl Rule for Whois {
                 .trim_start_matches("http://")
                 .trim_start_matches("https://")
                 .trim_start_matches("ftp://");
-            let hostname = without_protocol.split('/').next().unwrap_or(without_protocol);
+            let hostname = without_protocol
+                .split('/')
+                .next()
+                .unwrap_or(without_protocol);
             if !hostname.is_empty() {
                 return vec![format!("whois {}", hostname)];
             }
@@ -1296,7 +1298,10 @@ mod tests {
         #[test]
         fn test_matches_no_such_command() {
             let rule = HostsCli::new();
-            let cmd = Command::new("hostscli blok facebook.com", "Error: No such command \"blok\"");
+            let cmd = Command::new(
+                "hostscli blok facebook.com",
+                "Error: No such command \"blok\"",
+            );
             assert!(rule.is_match(&cmd));
         }
 
@@ -1320,7 +1325,10 @@ mod tests {
         #[test]
         fn test_get_new_command_typo() {
             let rule = HostsCli::new();
-            let cmd = Command::new("hostscli blok facebook.com", "Error: No such command \"blok\"");
+            let cmd = Command::new(
+                "hostscli blok facebook.com",
+                "Error: No such command \"blok\"",
+            );
             let fixes = rule.get_new_command(&cmd);
             assert!(!fixes.is_empty());
             assert!(fixes[0].contains("block"));

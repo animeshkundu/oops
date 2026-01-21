@@ -78,9 +78,7 @@ fn test_alias_with_bash_shell() {
         .arg("--alias")
         .assert()
         .success()
-        .stdout(
-            predicate::str::contains("function").or(predicate::str::contains("alias")),
-        );
+        .stdout(predicate::str::contains("function").or(predicate::str::contains("alias")));
 }
 
 #[test]
@@ -92,7 +90,10 @@ fn test_alias_with_zsh_shell() {
 #[test]
 fn test_alias_with_fish_shell() {
     let mut cmd = oops_cmd();
-    cmd.env("TF_SHELL", "fish").arg("--alias").assert().success();
+    cmd.env("TF_SHELL", "fish")
+        .arg("--alias")
+        .assert()
+        .success();
 }
 
 #[test]
@@ -246,7 +247,10 @@ fn test_oops_debug_environment() {
 #[test]
 fn test_version_format() {
     let mut cmd = oops_cmd();
-    let output = cmd.arg("--version").output().expect("Failed to run command");
+    let output = cmd
+        .arg("--version")
+        .output()
+        .expect("Failed to run command");
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
         stdout.contains("0.") || stdout.contains("oops"),

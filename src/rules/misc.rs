@@ -1055,10 +1055,7 @@ mod tests {
                 "$: command not found",
             );
             let fixes = rule.get_new_command(&cmd);
-            assert_eq!(
-                fixes,
-                vec!["git clone https://github.com/nvbn/thefuck.git"]
-            );
+            assert_eq!(fixes, vec!["git clone https://github.com/nvbn/thefuck.git"]);
         }
     }
 
@@ -1085,10 +1082,7 @@ mod tests {
         #[test]
         fn test_no_match_without_sudo() {
             let rule = Unsudo;
-            let cmd = Command::new(
-                "npm install",
-                "you cannot perform this operation as root",
-            );
+            let cmd = Command::new("npm install", "you cannot perform this operation as root");
             assert!(!rule.is_match(&cmd));
         }
 
@@ -1295,20 +1289,14 @@ mod tests {
         #[test]
         fn test_no_match_different_command() {
             let rule = AptUpgrade;
-            let cmd = Command::new(
-                "apt list",
-                "package1/stable 1.0\npackage2/stable 2.0",
-            );
+            let cmd = Command::new("apt list", "package1/stable 1.0\npackage2/stable 2.0");
             assert!(!rule.is_match(&cmd));
         }
 
         #[test]
         fn test_get_new_command() {
             let rule = AptUpgrade;
-            let cmd = Command::new(
-                "apt list --upgradable",
-                "Listing...\npackage1/stable 1.0",
-            );
+            let cmd = Command::new("apt list --upgradable", "Listing...\npackage1/stable 1.0");
             let fixes = rule.get_new_command(&cmd);
             assert_eq!(fixes, vec!["apt upgrade"]);
         }

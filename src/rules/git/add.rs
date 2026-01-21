@@ -31,7 +31,10 @@ impl Rule for GitAdd {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        if !cmd.output.contains("did not match any file(s) known to git.") {
+        if !cmd
+            .output
+            .contains("did not match any file(s) known to git.")
+        {
             return false;
         }
 
@@ -90,7 +93,9 @@ impl Rule for GitAddForce {
     fn is_match(&self, cmd: &Command) -> bool {
         cmd.script.contains("add")
             && (cmd.output.contains("Use -f if you really want to add")
-                || cmd.output.contains("ignored by one of your .gitignore files"))
+                || cmd
+                    .output
+                    .contains("ignored by one of your .gitignore files"))
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -248,10 +253,7 @@ mod tests {
     #[test]
     fn test_git_commit_add_get_new_command() {
         let rule = GitCommitAdd;
-        let cmd = Command::new(
-            "git commit -m 'test'",
-            "no changes added to commit\n",
-        );
+        let cmd = Command::new("git commit -m 'test'", "no changes added to commit\n");
         let new_commands = rule.get_new_command(&cmd);
         assert!(new_commands.iter().any(|c| c.contains("commit -a")));
         assert!(new_commands.iter().any(|c| c.contains("commit -p")));
@@ -299,10 +301,7 @@ mod tests {
     #[test]
     fn test_git_add_all_get_new_command() {
         let rule = GitAddAll;
-        let cmd = Command::new(
-            "git status",
-            "Untracked files:\n\tnewfile.txt\n",
-        );
+        let cmd = Command::new("git status", "Untracked files:\n\tnewfile.txt\n");
         let new_commands = rule.get_new_command(&cmd);
         assert!(new_commands.contains(&"git add .".to_string()));
         assert!(new_commands.contains(&"git add -A".to_string()));

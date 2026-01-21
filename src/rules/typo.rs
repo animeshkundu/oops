@@ -390,7 +390,10 @@ mod tests {
         #[test]
         fn test_matches_not_recognized() {
             let rule = SlLs;
-            let cmd = Command::new("sl", "'sl' is not recognized as an internal or external command");
+            let cmd = Command::new(
+                "sl",
+                "'sl' is not recognized as an internal or external command",
+            );
             assert!(rule.is_match(&cmd));
         }
 
@@ -517,20 +520,14 @@ mod tests {
         #[test]
         fn test_matches_unknown_operation() {
             let rule = Systemctl;
-            let cmd = Command::new(
-                "systemctl statsu nginx",
-                "Unknown operation 'statsu'",
-            );
+            let cmd = Command::new("systemctl statsu nginx", "Unknown operation 'statsu'");
             assert!(rule.is_match(&cmd));
         }
 
         #[test]
         fn test_matches_unknown_command() {
             let rule = Systemctl;
-            let cmd = Command::new(
-                "systemctl stopp nginx",
-                "Unknown command verb 'stopp'",
-            );
+            let cmd = Command::new("systemctl stopp nginx", "Unknown command verb 'stopp'");
             assert!(rule.is_match(&cmd));
         }
 
@@ -547,10 +544,7 @@ mod tests {
         #[test]
         fn test_matches_too_few_arguments() {
             let rule = Systemctl;
-            let cmd = Command::new(
-                "systemctl start",
-                "Too few arguments",
-            );
+            let cmd = Command::new("systemctl start", "Too few arguments");
             assert!(rule.is_match(&cmd));
         }
 
@@ -574,10 +568,7 @@ mod tests {
         #[test]
         fn test_get_new_command_typo() {
             let rule = Systemctl;
-            let cmd = Command::new(
-                "systemctl statsu nginx",
-                "Unknown operation 'statsu'",
-            );
+            let cmd = Command::new("systemctl statsu nginx", "Unknown operation 'statsu'");
             let fixes = rule.get_new_command(&cmd);
             assert!(!fixes.is_empty());
             assert!(fixes[0].contains("status"));
@@ -587,10 +578,7 @@ mod tests {
         #[test]
         fn test_get_new_command_restart_typo() {
             let rule = Systemctl;
-            let cmd = Command::new(
-                "systemctl restar nginx",
-                "Unknown operation 'restar'",
-            );
+            let cmd = Command::new("systemctl restar nginx", "Unknown operation 'restar'");
             let fixes = rule.get_new_command(&cmd);
             assert!(!fixes.is_empty());
             assert!(fixes[0].contains("restart"));
@@ -599,10 +587,7 @@ mod tests {
         #[test]
         fn test_get_new_command_swapped_args() {
             let rule = Systemctl;
-            let cmd = Command::new(
-                "systemctl nginx restart",
-                "Unknown operation 'nginx'",
-            );
+            let cmd = Command::new("systemctl nginx restart", "Unknown operation 'nginx'");
             let fixes = rule.get_new_command(&cmd);
             assert!(!fixes.is_empty());
             assert_eq!(fixes[0], "systemctl restart nginx");

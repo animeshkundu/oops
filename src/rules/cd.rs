@@ -271,10 +271,12 @@ impl Rule for CdCorrection {
                 (None, path.to_string_lossy().to_string())
             } else {
                 // Has parent, search in parent directory
-                (Some(parent.to_path_buf()),
-                 path.file_name()
-                     .map(|s| s.to_string_lossy().to_string())
-                     .unwrap_or_default())
+                (
+                    Some(parent.to_path_buf()),
+                    path.file_name()
+                        .map(|s| s.to_string_lossy().to_string())
+                        .unwrap_or_default(),
+                )
             }
         } else {
             (None, dir_arg.to_string())
@@ -450,20 +452,14 @@ mod tests {
         #[test]
         fn test_matches_does_not_exist() {
             let rule = CdMkdir;
-            let cmd = Command::new(
-                "cd mydir",
-                "The directory 'mydir' does not exist",
-            );
+            let cmd = Command::new("cd mydir", "The directory 'mydir' does not exist");
             assert!(rule.is_match(&cmd));
         }
 
         #[test]
         fn test_matches_cannot_find_path() {
             let rule = CdMkdir;
-            let cmd = Command::new(
-                "cd mydir",
-                "Set-Location : Cannot find path 'mydir'",
-            );
+            let cmd = Command::new("cd mydir", "Set-Location : Cannot find path 'mydir'");
             assert!(rule.is_match(&cmd));
         }
 
@@ -494,7 +490,10 @@ mod tests {
             let rule = CdMkdir;
             let cmd = Command::new("cd project/src/lib", "no such file or directory");
             let fixes = rule.get_new_command(&cmd);
-            assert_eq!(fixes, vec!["mkdir -p project/src/lib && cd project/src/lib"]);
+            assert_eq!(
+                fixes,
+                vec!["mkdir -p project/src/lib && cd project/src/lib"]
+            );
         }
 
         #[test]
@@ -517,20 +516,14 @@ mod tests {
         #[test]
         fn test_matches_no_such_directory() {
             let rule = CdCorrection;
-            let cmd = Command::new(
-                "cd docuemnts",
-                "cd: no such file or directory: docuemnts",
-            );
+            let cmd = Command::new("cd docuemnts", "cd: no such file or directory: docuemnts");
             assert!(rule.is_match(&cmd));
         }
 
         #[test]
         fn test_matches_does_not_exist() {
             let rule = CdCorrection;
-            let cmd = Command::new(
-                "cd docuemnts",
-                "The directory 'docuemnts' does not exist",
-            );
+            let cmd = Command::new("cd docuemnts", "The directory 'docuemnts' does not exist");
             assert!(rule.is_match(&cmd));
         }
 

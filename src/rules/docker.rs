@@ -554,7 +554,10 @@ mod tests {
         #[test]
         fn test_matches_not_a_docker_command() {
             let rule = DockerNotCommand;
-            let cmd = Command::new("docker pus myimage", "docker: 'pus' is not a docker command.");
+            let cmd = Command::new(
+                "docker pus myimage",
+                "docker: 'pus' is not a docker command.",
+            );
             assert!(rule.is_match(&cmd));
         }
 
@@ -601,10 +604,7 @@ mod tests {
         #[test]
         fn test_get_new_command_rn_to_run() {
             let rule = DockerNotCommand;
-            let cmd = Command::new(
-                "docker rn ubuntu",
-                "docker: 'rn' is not a docker command.",
-            );
+            let cmd = Command::new("docker rn ubuntu", "docker: 'rn' is not a docker command.");
             let fixes = rule.get_new_command(&cmd);
             assert!(!fixes.is_empty());
             // Should suggest "run" or similar
@@ -618,10 +618,7 @@ mod tests {
         #[test]
         fn test_get_new_command_imag_to_image() {
             let rule = DockerNotCommand;
-            let cmd = Command::new(
-                "docker imag ls",
-                "docker: 'imag' is not a docker command.",
-            );
+            let cmd = Command::new("docker imag ls", "docker: 'imag' is not a docker command.");
             let fixes = rule.get_new_command(&cmd);
             // Should suggest "image"
             assert!(
@@ -651,10 +648,7 @@ mod tests {
         #[test]
         fn test_matches_run_vagrant_up() {
             let rule = VagrantUp;
-            let cmd = Command::new(
-                "vagrant ssh",
-                "VM must be running. Run `vagrant up` first.",
-            );
+            let cmd = Command::new("vagrant ssh", "VM must be running. Run `vagrant up` first.");
             assert!(rule.is_match(&cmd));
         }
 

@@ -94,8 +94,7 @@ impl Rule for ChmodX {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.script.starts_with("./")
-            && cmd.output.to_lowercase().contains("permission denied")
+        cmd.script.starts_with("./") && cmd.output.to_lowercase().contains("permission denied")
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -215,9 +214,21 @@ impl Rule for CpOmittingDirectory {
 
 /// Tar extensions that this rule handles.
 const TAR_EXTENSIONS: &[&str] = &[
-    ".tar", ".tar.Z", ".tar.bz2", ".tar.gz", ".tar.lz",
-    ".tar.lzma", ".tar.xz", ".taz", ".tb2", ".tbz", ".tbz2",
-    ".tgz", ".tlz", ".txz", ".tz",
+    ".tar",
+    ".tar.Z",
+    ".tar.bz2",
+    ".tar.gz",
+    ".tar.lz",
+    ".tar.lzma",
+    ".tar.xz",
+    ".taz",
+    ".tb2",
+    ".tbz",
+    ".tbz2",
+    ".tgz",
+    ".tlz",
+    ".txz",
+    ".tz",
 ];
 
 /// Rule that suggests extracting tar to a subdirectory to avoid polluting current dir.
@@ -424,7 +435,10 @@ impl FixFile {
                     let file = file_match.as_str().to_string();
                     // Check if file exists
                     if Path::new(&file).is_file() {
-                        let line = caps.name("line").map(|m| m.as_str().to_string()).unwrap_or_default();
+                        let line = caps
+                            .name("line")
+                            .map(|m| m.as_str().to_string())
+                            .unwrap_or_default();
                         let col = caps.name("col").map(|m| m.as_str().to_string());
                         return Some((file, line, col));
                     }
@@ -560,11 +574,8 @@ impl Rule for LnSOrder {
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         let parts = cmd.script_parts();
         if let Some(dest) = Self::get_destination(&parts) {
-            let mut new_parts: Vec<String> = parts
-                .iter()
-                .filter(|p| *p != &dest)
-                .cloned()
-                .collect();
+            let mut new_parts: Vec<String> =
+                parts.iter().filter(|p| *p != &dest).cloned().collect();
             new_parts.push(dest);
             vec![new_parts.join(" ")]
         } else {
@@ -1065,7 +1076,9 @@ impl Rule for Open {
 /// Simple shell quoting for safety.
 fn shell_quote(s: &str) -> String {
     // If the string has no special characters, return as-is
-    if s.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-' || c == '.') {
+    if s.chars()
+        .all(|c| c.is_alphanumeric() || c == '_' || c == '-' || c == '.')
+    {
         s.to_string()
     } else {
         format!("'{}'", s.replace('\'', "'\\''"))
@@ -1277,7 +1290,10 @@ mod tests {
         fn test_get_new_command() {
             let cmd = Command::new("tar xf archive.tar.gz", "");
             let fixes = DirtyUntar.get_new_command(&cmd);
-            assert_eq!(fixes, vec!["mkdir -p archive && tar xf archive.tar.gz -C archive"]);
+            assert_eq!(
+                fixes,
+                vec!["mkdir -p archive && tar xf archive.tar.gz -C archive"]
+            );
         }
 
         #[test]
@@ -1335,7 +1351,10 @@ mod tests {
 
         #[test]
         fn test_matches_hard_link_error() {
-            let cmd = Command::new("ln barDir barLink", "ln: 'barDir': hard link not allowed for directory");
+            let cmd = Command::new(
+                "ln barDir barLink",
+                "ln: 'barDir': hard link not allowed for directory",
+            );
             assert!(LnNoHardLink.is_match(&cmd));
         }
 
@@ -1440,7 +1459,10 @@ mod tests {
 
         #[test]
         fn test_matches_no_such_directory() {
-            let cmd = Command::new("mkdir a/b/c", "mkdir: cannot create directory 'a/b/c': No such file or directory");
+            let cmd = Command::new(
+                "mkdir a/b/c",
+                "mkdir: cannot create directory 'a/b/c': No such file or directory",
+            );
             assert!(MkdirP.is_match(&cmd));
         }
 
@@ -1540,7 +1562,10 @@ mod tests {
 
         #[test]
         fn test_matches_no_such_directory() {
-            let cmd = Command::new("touch /new/path/file.txt", "touch: cannot touch '/new/path/file.txt': No such file or directory");
+            let cmd = Command::new(
+                "touch /new/path/file.txt",
+                "touch: cannot touch '/new/path/file.txt': No such file or directory",
+            );
             assert!(Touch.is_match(&cmd));
         }
 
@@ -1552,7 +1577,10 @@ mod tests {
 
         #[test]
         fn test_get_new_command() {
-            let cmd = Command::new("touch /new/path/file.txt", "touch: cannot touch '/new/path/file.txt': No such file or directory");
+            let cmd = Command::new(
+                "touch /new/path/file.txt",
+                "touch: cannot touch '/new/path/file.txt': No such file or directory",
+            );
             let fixes = Touch.get_new_command(&cmd);
             assert!(fixes[0].contains("mkdir -p") && fixes[0].contains("touch"));
         }
