@@ -2,7 +2,7 @@
 name = "oops"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.82"
 authors = ["oops Contributors"]
 description = "A blazingly fast command-line typo corrector - oops, I made a mistake!"
 license = "MIT"
@@ -40,11 +40,6 @@ crossterm = "0.27"
 
 # Paths and directories
 dirs = "5"
-# Pin home to 0.5.11 for MSRV 1.70 compatibility (0.5.12+ requires Edition 2024)
-home = "=0.5.11"
-# Pin ICU crates for MSRV 1.70 compatibility (2.1.1+ requires Rust 1.83+)
-icu_normalizer_data = "=2.1.0"
-icu_properties_data = "=2.1.0"
 
 # Error handling
 anyhow = "1"

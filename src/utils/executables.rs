@@ -93,7 +93,7 @@ fn is_executable(path: &PathBuf) -> bool {
 }
 
 #[cfg(windows)]
-fn is_executable(path: &PathBuf) -> bool {
+fn is_executable(path: &Path) -> bool {
     // On Windows, check for common executable extensions
     const EXECUTABLE_EXTENSIONS: &[&str] = &["exe", "cmd", "bat", "com", "ps1", "vbs", "js", "msc"];
 
