@@ -572,8 +572,7 @@ impl Rule for LnSOrder {
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         let parts = cmd.script_parts();
         if let Some(dest) = Self::get_destination(parts) {
-            let new_parts: Vec<String> =
-                parts.iter().filter(|p| **p != dest).cloned().collect();
+            let new_parts: Vec<String> = parts.iter().filter(|p| **p != dest).cloned().collect();
             let mut result = new_parts;
             result.push(dest);
             vec![result.join(" ")]

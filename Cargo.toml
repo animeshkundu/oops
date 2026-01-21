@@ -40,6 +40,8 @@ crossterm = "0.27"
 
 # Paths and directories
 dirs = "5"
+# Pin home to 0.5.11 for MSRV 1.70 compatibility (0.5.12+ requires Edition 2024)
+home = "=0.5.11"
 
 # Error handling
 anyhow = "1"
@@ -91,8 +93,3 @@ harness = false
 lto = true
 codegen-units = 1
 strip = true
-
-# Pin home crate to maintain MSRV 1.70 compatibility
-# home 0.5.12+ requires Rust Edition 2024 (Rust 1.85+)
-[patch.crates-io]
-home = "=0.5.11"
