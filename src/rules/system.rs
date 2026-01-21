@@ -410,7 +410,7 @@ const FIX_FILE_PATTERNS: &[&str] = &[
 /// use oops::rules::system::FixFile;
 /// use oops::core::{Command, Rule};
 ///
-/// let rule = FixFile;
+/// let rule = FixFile::new();
 /// let cmd = Command::new("python script.py", "  File \"script.py\", line 10");
 /// // Requires EDITOR env var to be set
 /// ```
