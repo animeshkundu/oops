@@ -196,6 +196,7 @@ impl CdCorrection {
     }
 
     /// Extract the typo directory name from the error output.
+    #[allow(dead_code)]
     fn extract_typo_from_output(output: &str) -> Option<String> {
         // Try common error message patterns
         let patterns = [

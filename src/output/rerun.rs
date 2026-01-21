@@ -186,8 +186,7 @@ pub fn is_slow_command(script: &str, slow_commands: &[String]) -> bool {
 
         // Also check for commands after sudo, env, etc.
         for prefix in &["sudo ", "sudo -e ", "env ", "time "] {
-            if script_lower.starts_with(prefix) {
-                let after_prefix = &script_lower[prefix.len()..];
+            if let Some(after_prefix) = script_lower.strip_prefix(prefix) {
                 if after_prefix.starts_with(&slow_cmd_lower) {
                     let offset = prefix.len() + slow_cmd.len();
                     if offset >= script.len() {

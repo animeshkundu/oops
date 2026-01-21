@@ -200,8 +200,8 @@ pub fn get_branches() -> Vec<String> {
                     }
 
                     let line = line.trim();
-                    let line = if line.starts_with('*') {
-                        line[1..].trim()
+                    let line = if let Some(stripped) = line.strip_prefix('*') {
+                        stripped.trim()
                     } else {
                         line
                     };

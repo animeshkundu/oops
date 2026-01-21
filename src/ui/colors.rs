@@ -2,7 +2,7 @@
 //!
 //! Provides functions for printing colored text to the terminal using crossterm.
 
-use std::io::{self, Write};
+use std::io;
 
 use crossterm::{
     execute,

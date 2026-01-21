@@ -65,12 +65,14 @@ impl Rule for SlLs {
         let script = cmd.script.trim();
 
         // Replace "sl" with "ls" at the beginning
-        if script.starts_with("sl ") {
-            vec![format!("ls {}", &script[3..])]
+        if let Some(stripped) = script.strip_prefix("sl ") {
+            vec![format!("ls {}", stripped)]
         } else if script == "sl" {
             vec!["ls".to_string()]
+        } else if let Some(stripped) = script.strip_prefix("sl") {
+            vec![format!("ls{}", stripped)]
         } else {
-            vec![format!("ls{}", &script[2..])]
+            vec![]
         }
     }
 
