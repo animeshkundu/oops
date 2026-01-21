@@ -61,8 +61,7 @@ impl Rule for PythonExecute {
         }
 
         // Check for "No such file or directory" or "can't open file" error
-        cmd.output.contains("No such file or directory")
-            || cmd.output.contains("can't open file")
+        cmd.output.contains("No such file or directory") || cmd.output.contains("can't open file")
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -112,7 +111,8 @@ impl Rule for PythonModuleError {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.output.contains("ModuleNotFoundError: No module named '")
+        cmd.output
+            .contains("ModuleNotFoundError: No module named '")
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -254,8 +254,7 @@ impl Rule for ReactNativeCommandUnrecognized {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        is_app(cmd, &["react-native"])
-            && Self::extract_bad_command(&cmd.output).is_some()
+        is_app(cmd, &["react-native"]) && Self::extract_bad_command(&cmd.output).is_some()
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -315,8 +314,7 @@ impl NixosCmdNotFound {
     /// Check if NixOS is available on this system.
     fn is_nix_available() -> bool {
         // Check if /etc/nixos exists or if nix-env is available
-        PathBuf::from("/etc/nixos").exists()
-            || crate::utils::which("nix-env").is_some()
+        PathBuf::from("/etc/nixos").exists() || crate::utils::which("nix-env").is_some()
     }
 }
 
@@ -407,7 +405,9 @@ const OMNIENV_COMMANDS: &[&str] = &[
 impl OmnienvNoSuchCommand {
     /// Check if any omnienv tool is available.
     fn is_omnienv_available() -> bool {
-        OMNIENV_APPS.iter().any(|app| crate::utils::which(app).is_some())
+        OMNIENV_APPS
+            .iter()
+            .any(|app| crate::utils::which(app).is_some())
     }
 
     /// Extract the bad command from the error output.
@@ -549,7 +549,9 @@ impl Rule for DjangoSouthMerge {
     fn is_match(&self, cmd: &Command) -> bool {
         cmd.script.contains("manage.py")
             && cmd.script.contains("migrate")
-            && cmd.output.contains("--merge: will just attempt the migration")
+            && cmd
+                .output
+                .contains("--merge: will just attempt the migration")
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -1516,7 +1518,10 @@ mod tests {
             let output = "error or pass --delete-ghost-migrations to fix";
             let cmd = Command::new("python manage.py migrate", output);
             let fixes = rule.get_new_command(&cmd);
-            assert_eq!(fixes, vec!["python manage.py migrate --delete-ghost-migrations"]);
+            assert_eq!(
+                fixes,
+                vec!["python manage.py migrate --delete-ghost-migrations"]
+            );
         }
     }
 
@@ -1619,7 +1624,9 @@ mod tests {
             let cmd = Command::new("workon nonexistent_env_xyz", "");
             let fixes = rule.get_new_command(&cmd);
             // Should at least suggest creating the virtualenv
-            assert!(fixes.iter().any(|f| f.contains("mkvirtualenv nonexistent_env_xyz")));
+            assert!(fixes
+                .iter()
+                .any(|f| f.contains("mkvirtualenv nonexistent_env_xyz")));
         }
 
         #[test]
@@ -1707,7 +1714,10 @@ mod tests {
         #[test]
         fn test_no_match_not_yarn() {
             let rule = YarnCommandNotFound;
-            let cmd = Command::new("npm require express", "error Command \"require\" not found.");
+            let cmd = Command::new(
+                "npm require express",
+                "error Command \"require\" not found.",
+            );
             assert!(!rule.is_match(&cmd));
         }
 

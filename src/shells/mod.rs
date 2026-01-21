@@ -108,8 +108,11 @@ pub trait Shell: Send + Sync {
     }
 }
 
+/// Type alias for shell constructors.
+type ShellConstructor = fn() -> Box<dyn Shell>;
+
 /// Registry of known shells.
-static SHELLS: &[(&str, fn() -> Box<dyn Shell>)] = &[
+static SHELLS: &[(&str, ShellConstructor)] = &[
     ("bash", || Box::new(Bash::new())),
     ("zsh", || Box::new(Zsh::new())),
     ("fish", || Box::new(Fish::new())),

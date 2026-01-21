@@ -5,6 +5,7 @@
 //! # Rules
 //!
 //! ## Push Rules (`push.rs`)
+//!
 //! - `GitPush` - Fixes "git push" when there's no upstream branch set
 //! - `GitPushPull` - Suggests pulling before pushing when remote has new commits
 //! - `GitPushForce` - Suggests force push when regular push is rejected
@@ -12,17 +13,20 @@
 //! - `GitPushDifferentBranchNames` - Handles push with different local/remote branch names
 //!
 //! ## Checkout Rules (`checkout.rs`)
+//!
 //! - `GitCheckout` - Suggests similar branch names when checkout fails
 //! - `GitCheckoutUncommittedChanges` - Suggests stashing when checkout fails due to changes
 //! - `GitMainMaster` - Handles main/master branch confusion
 //!
 //! ## Add Rules (`add.rs`)
+//!
 //! - `GitAdd` - Adds untracked files that need to be added
 //! - `GitAddForce` - Suggests -f flag for ignored files
 //! - `GitCommitAdd` - Suggests -a flag when committing without staged changes
 //! - `GitAddAll` - Suggests adding all files
 //!
 //! ## Branch Rules (`branch.rs`)
+//!
 //! - `GitBranchDelete` - Suggests -D when -d fails for unmerged branch
 //! - `GitBranchDeleteCheckedOut` - Handles deleting the currently checked out branch
 //! - `GitBranchExists` - Handles creating a branch that already exists
@@ -31,11 +35,13 @@
 //! - `GitBranchFlagPosition` - Fixes flag position in branch commands
 //!
 //! ## Not Command Rules (`not_command.rs`)
+//!
 //! - `GitNotCommand` - Fixes unknown git commands using git's suggestions
 //! - `GitCommandTypo` - Fixes typos when git doesn't provide suggestions
 //! - `GitTwoDashes` - Fixes single-dash long options
 //!
 //! ## Common Rules (`common.rs`)
+//!
 //! - `GitPull` - Fixes pull when there's no upstream
 //! - `GitPullUncommittedChanges` - Suggests stashing for pull
 //! - `GitStash` - Suggests stashing when needed
@@ -55,21 +61,19 @@
 //! - `GitPullClone` - Suggests clone when pull fails in non-repo
 //! - `GitCloneGitClone` - Fixes "git clone git clone" typo
 
-pub mod support;
-pub mod push;
-pub mod checkout;
 pub mod add;
-pub mod not_command;
 pub mod branch;
+pub mod checkout;
 pub mod common;
+pub mod not_command;
+pub mod push;
+pub mod support;
 
 // Re-export support types and functions
 pub use support::{
+    and_commands, expand_git_alias, get_all_matched_commands, get_branches, get_close_matches,
+    get_closest, get_current_branch, is_app, is_git_command, replace_argument, replace_command,
     GitSupport,
-    is_git_command, is_app, expand_git_alias,
-    replace_argument, replace_command,
-    get_close_matches, get_closest, get_all_matched_commands,
-    get_branches, get_current_branch, and_commands,
 };
 
 // Re-export core types (Command and Rule come from crate::core via support)
@@ -77,42 +81,55 @@ pub use crate::core::{Command, Rule};
 
 // Re-export push rules
 pub use push::{
-    GitPush, GitPushPull, GitPushForce,
-    GitPushWithoutCommits, GitPushDifferentBranchNames,
+    GitPush, GitPushDifferentBranchNames, GitPushForce, GitPushPull, GitPushWithoutCommits,
 };
 
 // Re-export checkout rules
-pub use checkout::{
-    GitCheckout, GitCheckoutUncommittedChanges, GitMainMaster,
-};
+pub use checkout::{GitCheckout, GitCheckoutUncommittedChanges, GitMainMaster};
 
 // Re-export add rules
-pub use add::{
-    GitAdd, GitAddForce, GitCommitAdd, GitAddAll,
-};
+pub use add::{GitAdd, GitAddAll, GitAddForce, GitCommitAdd};
 
 // Re-export branch rules
 pub use branch::{
-    GitBranchDelete, GitBranchDeleteCheckedOut, GitBranchExists,
-    GitBranchNotFound, GitBranchList, GitBranchFlagPosition,
+    GitBranchDelete, GitBranchDeleteCheckedOut, GitBranchExists, GitBranchFlagPosition,
+    GitBranchList, GitBranchNotFound,
 };
 
 // Re-export not_command rules
-pub use not_command::{
-    GitNotCommand, GitCommandTypo, GitTwoDashes,
-};
+pub use not_command::{GitCommandTypo, GitNotCommand, GitTwoDashes};
 
 // Re-export common rules
 pub use common::{
-    GitPull, GitPullUncommittedChanges, GitStash, GitStashPop,
-    GitCommitAmend, GitCommitReset, GitDiffStaged,
-    GitMerge, GitMergeUnrelated, GitRebase, GitRebaseNoChanges,
-    GitRmLocalModifications, GitRmRecursive, GitRemoteDelete,
-    GitTagForce, GitHookBypass, GitPullClone, GitCloneGitClone,
     // New rules
-    GitBisectUsage, GitCloneMissing, GitDiffNoIndex, GitFixStash,
-    GitFlagAfterFilename, GitHelpAliased, GitLfsMistype,
-    GitRebaseMergeDir, GitRemoteSeturlAdd, GitRmStaged,
+    GitBisectUsage,
+    GitCloneGitClone,
+    GitCloneMissing,
+    GitCommitAmend,
+    GitCommitReset,
+    GitDiffNoIndex,
+    GitDiffStaged,
+    GitFixStash,
+    GitFlagAfterFilename,
+    GitHelpAliased,
+    GitHookBypass,
+    GitLfsMistype,
+    GitMerge,
+    GitMergeUnrelated,
+    GitPull,
+    GitPullClone,
+    GitPullUncommittedChanges,
+    GitRebase,
+    GitRebaseMergeDir,
+    GitRebaseNoChanges,
+    GitRemoteDelete,
+    GitRemoteSeturlAdd,
+    GitRmLocalModifications,
+    GitRmRecursive,
+    GitRmStaged,
+    GitStash,
+    GitStashPop,
+    GitTagForce,
 };
 
 /// Returns all git rules.
@@ -127,18 +144,15 @@ pub fn all_rules() -> Vec<Box<dyn Rule>> {
         Box::new(GitPushForce::new()),
         Box::new(GitPushWithoutCommits::new()),
         Box::new(GitPushDifferentBranchNames::new()),
-
         // Checkout rules
         Box::new(GitCheckout::new()),
         Box::new(GitCheckoutUncommittedChanges::new()),
         Box::new(GitMainMaster::new()),
-
         // Add rules
         Box::new(GitAdd::new()),
         Box::new(GitAddForce::new()),
         Box::new(GitCommitAdd::new()),
         Box::new(GitAddAll::new()),
-
         // Branch rules
         Box::new(GitBranchDelete::new()),
         Box::new(GitBranchDeleteCheckedOut::new()),
@@ -146,12 +160,10 @@ pub fn all_rules() -> Vec<Box<dyn Rule>> {
         Box::new(GitBranchNotFound::new()),
         Box::new(GitBranchList::new()),
         Box::new(GitBranchFlagPosition::new()),
-
         // Not command rules
         Box::new(GitNotCommand::new()),
         Box::new(GitCommandTypo::new()),
         Box::new(GitTwoDashes::new()),
-
         // Common rules
         Box::new(GitPull::new()),
         Box::new(GitPullUncommittedChanges::new()),
@@ -171,7 +183,6 @@ pub fn all_rules() -> Vec<Box<dyn Rule>> {
         Box::new(GitHookBypass::new()),
         Box::new(GitPullClone::new()),
         Box::new(GitCloneGitClone::new()),
-
         // New common rules
         Box::new(GitBisectUsage::new()),
         Box::new(GitCloneMissing::new()),
@@ -276,8 +287,11 @@ mod tests {
         for rule in rules.iter() {
             // Rules that don't require output might still match
             if rule.requires_output() {
-                assert!(!rule.is_match(&non_git_cmd),
-                    "Rule {} should not match non-git commands", rule.name());
+                assert!(
+                    !rule.is_match(&non_git_cmd),
+                    "Rule {} should not match non-git commands",
+                    rule.name()
+                );
             }
         }
     }
@@ -288,8 +302,16 @@ mod tests {
 
         for rule in rules.iter() {
             // Priority should be a reasonable value
-            assert!(rule.priority() > 0, "Rule {} has invalid priority", rule.name());
-            assert!(rule.priority() <= 2000, "Rule {} has too high priority", rule.name());
+            assert!(
+                rule.priority() > 0,
+                "Rule {} has invalid priority",
+                rule.name()
+            );
+            assert!(
+                rule.priority() <= 2000,
+                "Rule {} has too high priority",
+                rule.name()
+            );
         }
     }
 }

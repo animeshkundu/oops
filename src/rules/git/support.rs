@@ -50,7 +50,9 @@ pub fn expand_git_alias(cmd: &Command) -> Command {
         // Replace the alias in the script with the expansion
         let pattern = format!(r"\b{}\b", regex::escape(alias));
         if let Ok(alias_re) = Regex::new(&pattern) {
-            let new_script = alias_re.replace(&cmd.script, expansion.as_str()).to_string();
+            let new_script = alias_re
+                .replace(&cmd.script, expansion.as_str())
+                .to_string();
             return cmd.with_script(new_script);
         }
     }
@@ -131,7 +133,12 @@ pub fn replace_command(script: &str, broken: &str, matched: &[String]) -> Vec<St
 }
 
 /// Get close matches using string similarity.
-pub fn get_close_matches(word: &str, possibilities: &[String], n: usize, cutoff: f64) -> Vec<String> {
+pub fn get_close_matches(
+    word: &str,
+    possibilities: &[String],
+    n: usize,
+    cutoff: f64,
+) -> Vec<String> {
     let mut scored: Vec<(f64, &String)> = possibilities
         .iter()
         .map(|p| (strsim::jaro_winkler(word, p), p))
@@ -143,7 +150,11 @@ pub fn get_close_matches(word: &str, possibilities: &[String], n: usize, cutoff:
 }
 
 /// Get the closest match from a list of possibilities.
-pub fn get_closest(word: &str, possibilities: &[String], fallback_to_first: bool) -> Option<String> {
+pub fn get_closest(
+    word: &str,
+    possibilities: &[String],
+    fallback_to_first: bool,
+) -> Option<String> {
     let matches = get_close_matches(word, possibilities, 1, 0.6);
     if let Some(m) = matches.into_iter().next() {
         return Some(m);
@@ -189,15 +200,11 @@ pub fn get_branches() -> Vec<String> {
                     }
 
                     let line = line.trim();
-                    let line = if line.starts_with('*') {
-                        line[1..].trim()
-                    } else {
-                        line
-                    };
+                    let line = line.strip_prefix('*').map_or(line, |s| s.trim());
 
                     // Strip 'remotes/origin/' prefix for remote branches
-                    let line = if line.starts_with("remotes/") {
-                        line.split('/').skip(2).collect::<Vec<_>>().join("/")
+                    let line = if let Some(stripped) = line.strip_prefix("remotes/") {
+                        stripped.split('/').skip(1).collect::<Vec<_>>().join("/")
                     } else {
                         line.to_string()
                     };

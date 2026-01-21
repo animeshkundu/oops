@@ -37,12 +37,11 @@ impl Zsh {
         let mut value = alias_line[eq_pos + 1..].trim().to_string();
 
         // Remove surrounding quotes if present
-        if (value.starts_with('\'') && value.ends_with('\''))
-            || (value.starts_with('"') && value.ends_with('"'))
+        if value.len() >= 2
+            && ((value.starts_with('\'') && value.ends_with('\''))
+                || (value.starts_with('"') && value.ends_with('"')))
         {
-            if value.len() >= 2 {
-                value = value[1..value.len() - 1].to_string();
-            }
+            value = value[1..value.len() - 1].to_string();
         }
 
         if name.is_empty() {

@@ -16,17 +16,82 @@ use regex::Regex;
 
 /// Common brew commands for fuzzy matching.
 const BREW_COMMANDS: &[&str] = &[
-    "info", "home", "options", "install", "uninstall", "search", "list", "update", "upgrade",
-    "pin", "unpin", "doctor", "create", "edit", "cask", "tap", "untap", "link", "unlink",
-    "reinstall", "outdated", "deps", "uses", "leaves", "cleanup", "services", "bundle",
-    "analytics", "autoremove", "fetch", "formulae", "casks", "commands", "config", "desc",
-    "generate-cask-api", "generate-formula-api", "generate-man-completions", "gist-logs",
-    "homepage", "info", "irb", "leaves", "ln", "log", "migrate", "missing", "pr-automerge",
-    "pr-publish", "pr-pull", "pr-upload", "prof", "readall", "reinstall", "ruby", "sh",
-    "shellenv", "style", "tap-info", "tap-new", "tc", "test", "tests", "typecheck",
-    "unbottled", "uninstall", "unlink", "unpack", "untap", "update-license-data",
-    "update-maintainers", "update-python-resources", "update-sponsors", "upgrade",
-    "vendor-gems", "which-formula",
+    "info",
+    "home",
+    "options",
+    "install",
+    "uninstall",
+    "search",
+    "list",
+    "update",
+    "upgrade",
+    "pin",
+    "unpin",
+    "doctor",
+    "create",
+    "edit",
+    "cask",
+    "tap",
+    "untap",
+    "link",
+    "unlink",
+    "reinstall",
+    "outdated",
+    "deps",
+    "uses",
+    "leaves",
+    "cleanup",
+    "services",
+    "bundle",
+    "analytics",
+    "autoremove",
+    "fetch",
+    "formulae",
+    "casks",
+    "commands",
+    "config",
+    "desc",
+    "generate-cask-api",
+    "generate-formula-api",
+    "generate-man-completions",
+    "gist-logs",
+    "homepage",
+    "info",
+    "irb",
+    "leaves",
+    "ln",
+    "log",
+    "migrate",
+    "missing",
+    "pr-automerge",
+    "pr-publish",
+    "pr-pull",
+    "pr-upload",
+    "prof",
+    "readall",
+    "reinstall",
+    "ruby",
+    "sh",
+    "shellenv",
+    "style",
+    "tap-info",
+    "tap-new",
+    "tc",
+    "test",
+    "tests",
+    "typecheck",
+    "unbottled",
+    "uninstall",
+    "unlink",
+    "unpack",
+    "untap",
+    "update-license-data",
+    "update-maintainers",
+    "update-python-resources",
+    "update-sponsors",
+    "upgrade",
+    "vendor-gems",
+    "which-formula",
 ];
 
 /// Rule to suggest similar formula names when brew install fails.
@@ -88,8 +153,7 @@ impl Rule for BrewInstall {
         }
 
         // Check for the specific error pattern
-        command.output.contains("No available formula")
-            && command.output.contains("Did you mean")
+        command.output.contains("No available formula") && command.output.contains("Did you mean")
     }
 
     fn get_new_command(&self, command: &Command) -> Vec<String> {
@@ -275,7 +339,10 @@ impl Rule for BrewLink {
             return false;
         }
 
-        let is_link = parts.get(1).map(|s| s == "ln" || s == "link").unwrap_or(false);
+        let is_link = parts
+            .get(1)
+            .map(|s| s == "ln" || s == "link")
+            .unwrap_or(false);
 
         is_link && command.output.contains("brew link --overwrite --dry-run")
     }
@@ -326,12 +393,8 @@ impl BrewReinstall {
         let warning_re = Regex::new(r"Warning: .+ is already installed and up-to-date").ok();
         let message_re = Regex::new(r"To reinstall .+, run `brew reinstall").ok();
 
-        let has_warning = warning_re
-            .map(|re| re.is_match(output))
-            .unwrap_or(false);
-        let has_message = message_re
-            .map(|re| re.is_match(output))
-            .unwrap_or(false);
+        let has_warning = warning_re.map(|re| re.is_match(output)).unwrap_or(false);
+        let has_message = message_re.map(|re| re.is_match(output)).unwrap_or(false);
 
         has_warning && has_message
     }
@@ -392,7 +455,8 @@ impl Rule for BrewUninstall {
             return false;
         }
 
-        let is_uninstall = parts.get(1)
+        let is_uninstall = parts
+            .get(1)
             .map(|s| s == "uninstall" || s == "rm" || s == "remove")
             .unwrap_or(false);
 
@@ -531,8 +595,7 @@ mod tests {
 
         #[test]
         fn test_get_suggestions_multiple() {
-            let output =
-                r#"Warning: No available formula with the name "vim-foo". Did you mean vim, neovim or macvim?"#;
+            let output = r#"Warning: No available formula with the name "vim-foo". Did you mean vim, neovim or macvim?"#;
             let suggestions = BrewInstall::get_suggestions(output);
             assert_eq!(suggestions, vec!["vim", "neovim", "macvim"]);
         }
@@ -601,10 +664,7 @@ mod tests {
 
         #[test]
         fn test_no_match_if_already_updating() {
-            let cmd = Command::new(
-                "brew update",
-                "Error: No such file or directory",
-            );
+            let cmd = Command::new("brew update", "Error: No such file or directory");
             assert!(!BrewUpdate.is_match(&cmd));
         }
 
@@ -701,9 +761,13 @@ mod tests {
 
         #[test]
         fn test_get_cask_install_lines() {
-            let output = "Error: foo requires bar.\n  brew cask install bar\n  brew cask install baz";
+            let output =
+                "Error: foo requires bar.\n  brew cask install bar\n  brew cask install baz";
             let lines = BrewCaskDependency::get_cask_install_lines(output);
-            assert_eq!(lines, vec!["brew cask install bar", "brew cask install baz"]);
+            assert_eq!(
+                lines,
+                vec!["brew cask install bar", "brew cask install baz"]
+            );
         }
 
         #[test]
@@ -845,19 +909,13 @@ mod tests {
 
         #[test]
         fn test_matches_rm() {
-            let cmd = Command::new(
-                "brew rm vim",
-                "Error:\n  brew uninstall --force vim",
-            );
+            let cmd = Command::new("brew rm vim", "Error:\n  brew uninstall --force vim");
             assert!(BrewUninstall.is_match(&cmd));
         }
 
         #[test]
         fn test_matches_remove() {
-            let cmd = Command::new(
-                "brew remove vim",
-                "Error:\n  brew uninstall --force vim",
-            );
+            let cmd = Command::new("brew remove vim", "Error:\n  brew uninstall --force vim");
             assert!(BrewUninstall.is_match(&cmd));
         }
 
@@ -869,20 +927,14 @@ mod tests {
 
         #[test]
         fn test_get_new_command() {
-            let cmd = Command::new(
-                "brew uninstall vim",
-                "Error:\n  brew uninstall --force vim",
-            );
+            let cmd = Command::new("brew uninstall vim", "Error:\n  brew uninstall --force vim");
             let fixes = BrewUninstall.get_new_command(&cmd);
             assert_eq!(fixes, vec!["brew uninstall --force vim"]);
         }
 
         #[test]
         fn test_get_new_command_rm() {
-            let cmd = Command::new(
-                "brew rm vim",
-                "Error:\n  brew uninstall --force vim",
-            );
+            let cmd = Command::new("brew rm vim", "Error:\n  brew uninstall --force vim");
             let fixes = BrewUninstall.get_new_command(&cmd);
             assert_eq!(fixes, vec!["brew uninstall --force vim"]);
         }

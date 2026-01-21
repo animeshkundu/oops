@@ -105,7 +105,7 @@ impl Rule for CdMkdir {
         if !is_app(cmd, &["cd"]) {
             // cd is usually a shell built-in, so check the script directly
             let script = cmd.script.trim();
-            if !script.starts_with("cd ") && script != "cd" {
+            if script != "cd" && !script.starts_with("cd ") {
                 return false;
             }
         }
@@ -196,6 +196,7 @@ impl CdCorrection {
     }
 
     /// Extract the typo directory name from the error output.
+    #[allow(dead_code)]
     fn extract_typo_from_output(output: &str) -> Option<String> {
         // Try common error message patterns
         let patterns = [
@@ -271,10 +272,12 @@ impl Rule for CdCorrection {
                 (None, path.to_string_lossy().to_string())
             } else {
                 // Has parent, search in parent directory
-                (Some(parent.to_path_buf()),
-                 path.file_name()
-                     .map(|s| s.to_string_lossy().to_string())
-                     .unwrap_or_default())
+                (
+                    Some(parent.to_path_buf()),
+                    path.file_name()
+                        .map(|s| s.to_string_lossy().to_string())
+                        .unwrap_or_default(),
+                )
             }
         } else {
             (None, dir_arg.to_string())
@@ -350,8 +353,8 @@ impl Rule for CdCs {
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         // Replace "cs" with "cd" at the beginning of the script
-        if cmd.script.len() >= 2 {
-            vec![format!("cd{}", &cmd.script[2..])]
+        if let Some(rest) = cmd.script.strip_prefix("cs") {
+            vec![format!("cd{}", rest)]
         } else {
             vec!["cd".to_string()]
         }
@@ -450,20 +453,14 @@ mod tests {
         #[test]
         fn test_matches_does_not_exist() {
             let rule = CdMkdir;
-            let cmd = Command::new(
-                "cd mydir",
-                "The directory 'mydir' does not exist",
-            );
+            let cmd = Command::new("cd mydir", "The directory 'mydir' does not exist");
             assert!(rule.is_match(&cmd));
         }
 
         #[test]
         fn test_matches_cannot_find_path() {
             let rule = CdMkdir;
-            let cmd = Command::new(
-                "cd mydir",
-                "Set-Location : Cannot find path 'mydir'",
-            );
+            let cmd = Command::new("cd mydir", "Set-Location : Cannot find path 'mydir'");
             assert!(rule.is_match(&cmd));
         }
 
@@ -494,7 +491,10 @@ mod tests {
             let rule = CdMkdir;
             let cmd = Command::new("cd project/src/lib", "no such file or directory");
             let fixes = rule.get_new_command(&cmd);
-            assert_eq!(fixes, vec!["mkdir -p project/src/lib && cd project/src/lib"]);
+            assert_eq!(
+                fixes,
+                vec!["mkdir -p project/src/lib && cd project/src/lib"]
+            );
         }
 
         #[test]
@@ -517,20 +517,14 @@ mod tests {
         #[test]
         fn test_matches_no_such_directory() {
             let rule = CdCorrection;
-            let cmd = Command::new(
-                "cd docuemnts",
-                "cd: no such file or directory: docuemnts",
-            );
+            let cmd = Command::new("cd docuemnts", "cd: no such file or directory: docuemnts");
             assert!(rule.is_match(&cmd));
         }
 
         #[test]
         fn test_matches_does_not_exist() {
             let rule = CdCorrection;
-            let cmd = Command::new(
-                "cd docuemnts",
-                "The directory 'docuemnts' does not exist",
-            );
+            let cmd = Command::new("cd docuemnts", "The directory 'docuemnts' does not exist");
             assert!(rule.is_match(&cmd));
         }
 

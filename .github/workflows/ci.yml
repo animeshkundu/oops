@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'feature/**']
   pull_request:
-    branches: [main, master]
+    branches: ['**']
 
 env:
   CARGO_TERM_COLOR: always
@@ -57,8 +57,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust 1.70
-        uses: dtolnay/rust-toolchain@1.70
+      # MSRV is set to 1.82 to accommodate modern dependency requirements
+      - name: Install Rust 1.82
+        uses: dtolnay/rust-toolchain@1.82
 
       - name: Build
         run: cargo build

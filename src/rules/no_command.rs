@@ -58,7 +58,9 @@ fn extract_command_from_output(output: &str) -> Option<String> {
                     if let Some(m) = caps.get(1) {
                         let cmd = m.as_str().trim();
                         // Skip shell names
-                        if !["bash", "zsh", "fish", "sh", "powershell", "pwsh", "cmd"].contains(&cmd) {
+                        if !["bash", "zsh", "fish", "sh", "powershell", "pwsh", "cmd"]
+                            .contains(&cmd)
+                        {
                             return Some(cmd.to_string());
                         }
                     }
@@ -117,18 +119,10 @@ impl NoCommand {
 
     /// Build list of all possible command suggestions.
     fn get_all_possible_commands() -> Vec<String> {
-        let mut commands: Vec<String> = get_all_executables()
-            .iter()
-            .cloned()
-            .collect();
+        let mut commands: Vec<String> = get_all_executables().iter().cloned().collect();
 
         // Add commands from history
-        let history_commands = Self::get_history_commands();
-        for cmd in history_commands {
-            if !commands.contains(&cmd) {
-                commands.push(cmd);
-            }
-        }
+        commands.extend(Self::get_history_commands());
 
         commands
     }
@@ -164,8 +158,8 @@ impl Rule for NoCommand {
         let misspelled = &parts[0];
 
         // Try to extract from output first (more reliable)
-        let cmd_to_match = extract_command_from_output(&cmd.output)
-            .unwrap_or_else(|| misspelled.clone());
+        let cmd_to_match =
+            extract_command_from_output(&cmd.output).unwrap_or_else(|| misspelled.clone());
 
         // Get all possible commands
         let all_commands = Self::get_all_possible_commands();

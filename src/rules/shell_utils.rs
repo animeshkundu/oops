@@ -302,11 +302,11 @@ impl Rule for GrepArgumentsOrder {
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         let parts = cmd.script_parts();
-        if let Some(actual_file) = Self::get_actual_file(&parts) {
+        if let Some(actual_file) = Self::get_actual_file(parts) {
             // Move file to the end
             let mut new_parts: Vec<String> = parts
                 .iter()
-                .filter(|p| *p != &actual_file)
+                .filter(|p| **p != actual_file)
                 .cloned()
                 .collect();
             new_parts.push(actual_file);
@@ -569,7 +569,9 @@ impl Rule for IfconfigDeviceNotFound {
 
     fn is_match(&self, cmd: &Command) -> bool {
         is_app(cmd, &["ifconfig"])
-            && cmd.output.contains("error fetching interface information: Device not found")
+            && cmd
+                .output
+                .contains("error fetching interface information: Device not found")
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -626,7 +628,10 @@ impl Rule for LongFormHelp {
 
     fn is_match(&self, cmd: &Command) -> bool {
         // Check for suggested help command pattern
-        let help_regex = Regex::new(r"(?i)(?:Run|Try) '([^']+)'(?: or '[^']+')? for (?:details|more information)\.?").ok();
+        let help_regex = Regex::new(
+            r"(?i)(?:Run|Try) '([^']+)'(?: or '[^']+')? for (?:details|more information)\.?",
+        )
+        .ok();
 
         if let Some(re) = help_regex {
             if re.is_match(&cmd.output) {
@@ -640,7 +645,10 @@ impl Rule for LongFormHelp {
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         // Try to extract suggested command from output
-        let help_regex = Regex::new(r"(?i)(?:Run|Try) '([^']+)'(?: or '[^']+')? for (?:details|more information)\.?").ok();
+        let help_regex = Regex::new(
+            r"(?i)(?:Run|Try) '([^']+)'(?: or '[^']+')? for (?:details|more information)\.?",
+        )
+        .ok();
 
         if let Some(re) = help_regex {
             if let Some(captures) = re.captures(&cmd.output) {
@@ -697,9 +705,10 @@ impl ProveRecursively {
     }
 
     fn has_directory_arg(parts: &[String]) -> bool {
-        parts.iter().skip(1).any(|p| {
-            !p.starts_with('-') && Path::new(p).is_dir()
-        })
+        parts
+            .iter()
+            .skip(1)
+            .any(|p| !p.starts_with('-') && Path::new(p).is_dir())
     }
 }
 
@@ -721,7 +730,7 @@ impl Rule for ProveRecursively {
 
         cmd.output.contains("NOTESTS")
             && !parts.iter().skip(1).any(|p| Self::is_recursive(p))
-            && Self::has_directory_arg(&parts)
+            && Self::has_directory_arg(parts)
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -843,9 +852,8 @@ impl SwitchLang {
 
         for layout in layouts {
             let all_match = script.split_whitespace().all(|word| {
-                word.chars().all(|ch| {
-                    layout.contains(ch) || ch == '-' || ch == '_'
-                })
+                word.chars()
+                    .all(|ch| layout.contains(ch) || ch == '-' || ch == '_')
             });
 
             if all_match {
@@ -953,7 +961,6 @@ impl Mercurial {
         if let Some(last_line) = lines.last() {
             if last_line.starts_with("    ") {
                 return last_line
-                    .trim()
                     .split_whitespace()
                     .map(|s| s.to_string())
                     .collect();
@@ -977,8 +984,7 @@ impl Rule for Mercurial {
         is_app(cmd, &["hg"])
             && (cmd.output.contains("hg: unknown command")
                 && cmd.output.contains("(did you mean one of ")
-                || cmd.output.contains("hg: command '")
-                    && cmd.output.contains("' is ambiguous:"))
+                || cmd.output.contains("hg: command '") && cmd.output.contains("' is ambiguous:"))
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -1147,7 +1153,8 @@ impl Rule for UnknownCommand {
                         .map(|m| m.as_str().to_string())
                         .collect();
 
-                    if let Some(closest) = get_closest(broken_cmd.as_str(), &suggestions, 0.6, true) {
+                    if let Some(closest) = get_closest(broken_cmd.as_str(), &suggestions, 0.6, true)
+                    {
                         return vec![replace_argument(&cmd.script, broken_cmd.as_str(), &closest)];
                     }
                 }
@@ -1224,10 +1231,7 @@ mod tests {
         #[test]
         fn test_get_new_command() {
             let rule = AdbUnknownCommand::new();
-            let cmd = Command::new(
-                "adb devics",
-                "Android Debug Bridge version 1.0.41",
-            );
+            let cmd = Command::new("adb devics", "Android Debug Bridge version 1.0.41");
             let fixes = rule.get_new_command(&cmd);
             assert!(!fixes.is_empty());
             assert!(fixes[0].contains("devices"));
@@ -1389,10 +1393,7 @@ mod tests {
         #[test]
         fn test_get_new_command() {
             let rule = SedUnterminatedS::new();
-            let cmd = Command::new(
-                "sed s/foo/bar file.txt",
-                "unterminated `s' command",
-            );
+            let cmd = Command::new("sed s/foo/bar file.txt", "unterminated `s' command");
             let fixes = rule.get_new_command(&cmd);
             assert!(!fixes.is_empty());
             assert!(fixes[0].contains("s/foo/bar/"));
@@ -1447,10 +1448,7 @@ mod tests {
         #[test]
         fn test_matches_ambiguous() {
             let rule = Mercurial::new();
-            let cmd = Command::new(
-                "hg st",
-                "hg: command 'st' is ambiguous:\n    status stash",
-            );
+            let cmd = Command::new("hg st", "hg: command 'st' is ambiguous:\n    status stash");
             assert!(rule.is_match(&cmd));
         }
 
@@ -1500,10 +1498,7 @@ mod tests {
         #[test]
         fn test_matches() {
             let rule = UnknownCommand::new();
-            let cmd = Command::new(
-                "foo bar",
-                "bar: Unknown command. Did you mean baz?",
-            );
+            let cmd = Command::new("foo bar", "bar: Unknown command. Did you mean baz?");
             assert!(rule.is_match(&cmd));
         }
 
@@ -1534,30 +1529,21 @@ mod tests {
         #[test]
         fn test_matches_try_help() {
             let rule = LongFormHelp::new();
-            let cmd = Command::new(
-                "command -h",
-                "Try 'command --help' for more information.",
-            );
+            let cmd = Command::new("command -h", "Try 'command --help' for more information.");
             assert!(rule.is_match(&cmd));
         }
 
         #[test]
         fn test_matches_run_help() {
             let rule = LongFormHelp::new();
-            let cmd = Command::new(
-                "command -h",
-                "Run 'command --help' for details.",
-            );
+            let cmd = Command::new("command -h", "Run 'command --help' for details.");
             assert!(rule.is_match(&cmd));
         }
 
         #[test]
         fn test_matches_contains_help() {
             let rule = LongFormHelp::new();
-            let cmd = Command::new(
-                "command -h",
-                "Use --help to see all options",
-            );
+            let cmd = Command::new("command -h", "Use --help to see all options");
             assert!(rule.is_match(&cmd));
         }
 
@@ -1571,10 +1557,7 @@ mod tests {
         #[test]
         fn test_get_new_command_with_suggestion() {
             let rule = LongFormHelp::new();
-            let cmd = Command::new(
-                "command -h",
-                "Try 'command --help' for more information.",
-            );
+            let cmd = Command::new("command -h", "Try 'command --help' for more information.");
             let fixes = rule.get_new_command(&cmd);
             assert_eq!(fixes, vec!["command --help"]);
         }
