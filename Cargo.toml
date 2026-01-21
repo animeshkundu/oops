@@ -42,6 +42,9 @@ crossterm = "0.27"
 dirs = "5"
 # Pin home to 0.5.11 for MSRV 1.70 compatibility (0.5.12+ requires Edition 2024)
 home = "=0.5.11"
+# Pin ICU crates for MSRV 1.70 compatibility (2.1.1+ requires Rust 1.83+)
+icu_normalizer_data = "=2.1.0"
+icu_properties_data = "=2.1.0"
 
 # Error handling
 anyhow = "1"
