@@ -2,6 +2,7 @@
 name = "oops"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.70"
 authors = ["oops Contributors"]
 description = "A blazingly fast command-line typo corrector - oops, I made a mistake!"
 license = "MIT"
@@ -90,3 +91,8 @@ harness = false
 lto = true
 codegen-units = 1
 strip = true
+
+# Pin home crate to maintain MSRV 1.70 compatibility
+# home 0.5.12+ requires Rust Edition 2024 (Rust 1.85+)
+[patch.crates-io]
+home = "=0.5.11"
