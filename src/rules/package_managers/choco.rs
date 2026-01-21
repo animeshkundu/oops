@@ -118,10 +118,7 @@ mod tests {
 
     #[test]
     fn test_no_match_other_command() {
-        let cmd = Command::new(
-            "npm install python",
-            "Installing the following packages:",
-        );
+        let cmd = Command::new("npm install python", "Installing the following packages:");
         assert!(!ChocoInstall.is_match(&cmd));
     }
 

@@ -90,7 +90,9 @@ impl Rule for NpmMissingScript {
 
         // Check if command has "run" or similar script-running part
         let parts = command.script_parts();
-        let has_run_like = parts.iter().any(|p| p.starts_with("ru") || p == "run-script");
+        let has_run_like = parts
+            .iter()
+            .any(|p| p.starts_with("ru") || p == "run-script");
 
         has_run_like && command.output.contains("npm ERR! missing script:")
     }
@@ -129,11 +131,7 @@ impl NpmWrongCommand {
     /// Extract the wrong command from script parts.
     fn get_wrong_command(parts: &[String]) -> Option<String> {
         // Find the first non-flag argument after "npm"
-        parts
-            .iter()
-            .skip(1)
-            .find(|p| !p.starts_with('-'))
-            .cloned()
+        parts.iter().skip(1).find(|p| !p.starts_with('-')).cloned()
     }
 
     /// Extract available commands from npm error output.
@@ -248,10 +246,7 @@ mod tests {
 
         #[test]
         fn test_matches_run_script() {
-            let cmd = Command::new(
-                "npm run-script tset",
-                "npm ERR! missing script: tset",
-            );
+            let cmd = Command::new("npm run-script tset", "npm ERR! missing script: tset");
             assert!(NpmMissingScript.is_match(&cmd));
         }
 
@@ -288,10 +283,7 @@ mod tests {
 
         #[test]
         fn test_get_new_command_with_fallback_scripts() {
-            let cmd = Command::new(
-                "npm run tset",
-                "npm ERR! missing script: tset",
-            );
+            let cmd = Command::new("npm run tset", "npm ERR! missing script: tset");
             let fixes = NpmMissingScript.get_new_command(&cmd);
             // Should use fallback scripts and find "test"
             assert!(fixes.iter().any(|f| f.contains("test")));
@@ -371,10 +363,7 @@ mod tests {
 
         #[test]
         fn test_get_new_command_with_fallback() {
-            let cmd = Command::new(
-                "npm pubish package",
-                "'pubish' is not a npm command.",
-            );
+            let cmd = Command::new("npm pubish package", "'pubish' is not a npm command.");
             let fixes = NpmWrongCommand.get_new_command(&cmd);
             assert_eq!(fixes, vec!["npm publish package"]);
         }

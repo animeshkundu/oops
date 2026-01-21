@@ -37,11 +37,11 @@ const PERMISSION_PATTERNS: &[&str] = &[
 
 /// Commands that should not be prefixed with sudo.
 const EXCLUDED_COMMANDS: &[&str] = &[
-    "sudo",  // Already has sudo
-    "su",    // Switching user
+    "sudo",   // Already has sudo
+    "su",     // Switching user
     "pkexec", // PolicyKit
-    "doas",  // OpenBSD/Alpine sudo alternative
-    "runas", // Windows equivalent
+    "doas",   // OpenBSD/Alpine sudo alternative
+    "runas",  // Windows equivalent
 ];
 
 /// Rule that suggests adding `sudo` to commands that fail with permission errors.
@@ -135,7 +135,10 @@ mod tests {
     #[test]
     fn test_matches_permission_denied() {
         let rule = Sudo;
-        let cmd = Command::new("apt install vim", "E: Could not open lock file - Permission denied");
+        let cmd = Command::new(
+            "apt install vim",
+            "E: Could not open lock file - Permission denied",
+        );
         assert!(rule.is_match(&cmd));
     }
 
@@ -159,14 +162,20 @@ mod tests {
     #[test]
     fn test_matches_must_be_root() {
         let rule = Sudo;
-        let cmd = Command::new("systemctl restart nginx", "Error: you must be root to run this command");
+        let cmd = Command::new(
+            "systemctl restart nginx",
+            "Error: you must be root to run this command",
+        );
         assert!(rule.is_match(&cmd));
     }
 
     #[test]
     fn test_matches_are_you_root() {
         let rule = Sudo;
-        let cmd = Command::new("dnf install package", "Error: This command has to be run under the root user - are you root?");
+        let cmd = Command::new(
+            "dnf install package",
+            "Error: This command has to be run under the root user - are you root?",
+        );
         assert!(rule.is_match(&cmd));
     }
 
@@ -234,10 +243,7 @@ mod tests {
         let rule = Sudo;
         let cmd = Command::new("echo ${PATH} > /etc/profile.d/path.sh", "Permission denied");
         let fixes = rule.get_new_command(&cmd);
-        assert_eq!(
-            fixes,
-            vec!["sudo -E echo ${PATH} > /etc/profile.d/path.sh"]
-        );
+        assert_eq!(fixes, vec!["sudo -E echo ${PATH} > /etc/profile.d/path.sh"]);
     }
 
     #[test]
@@ -263,7 +269,10 @@ mod tests {
     #[test]
     fn test_access_denied() {
         let rule = Sudo;
-        let cmd = Command::new("docker ps", "Got permission denied while trying to connect to the Docker daemon");
+        let cmd = Command::new(
+            "docker ps",
+            "Got permission denied while trying to connect to the Docker daemon",
+        );
         assert!(rule.is_match(&cmd));
     }
 }

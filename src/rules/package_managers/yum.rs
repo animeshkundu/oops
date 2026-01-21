@@ -114,7 +114,10 @@ mod tests {
 
     #[test]
     fn test_matches_no_such_command() {
-        let cmd = Command::new("yum uninstall vim", "No such command: uninstall. Please use /usr/bin/yum --help");
+        let cmd = Command::new(
+            "yum uninstall vim",
+            "No such command: uninstall. Please use /usr/bin/yum --help",
+        );
         assert!(YumInvalidOperation.is_match(&cmd));
     }
 

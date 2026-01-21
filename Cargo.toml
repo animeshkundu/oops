@@ -2,6 +2,7 @@
 name = "oops"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.82"
 authors = ["oops Contributors"]
 description = "A blazingly fast command-line typo corrector - oops, I made a mistake!"
 license = "MIT"

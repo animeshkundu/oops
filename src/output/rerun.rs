@@ -35,8 +35,11 @@ const SLOW_COMMAND_TIMEOUT_MULTIPLIER: u32 = 15;
 /// use std::time::Duration;
 /// use oops::output::rerun::get_output;
 ///
-/// let output = get_output("ls -la", Duration::from_secs(5))?;
-/// println!("Output: {}", output);
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let output = get_output("ls -la", Duration::from_secs(5))?;
+///     println!("Output: {}", output);
+///     Ok(())
+/// }
 /// ```
 pub fn get_output(script: &str, timeout: Duration) -> Result<String> {
     let shell = get_shell();
@@ -186,8 +189,7 @@ pub fn is_slow_command(script: &str, slow_commands: &[String]) -> bool {
 
         // Also check for commands after sudo, env, etc.
         for prefix in &["sudo ", "sudo -e ", "env ", "time "] {
-            if script_lower.starts_with(prefix) {
-                let after_prefix = &script_lower[prefix.len()..];
+            if let Some(after_prefix) = script_lower.strip_prefix(prefix) {
                 if after_prefix.starts_with(&slow_cmd_lower) {
                     let offset = prefix.len() + slow_cmd.len();
                     if offset >= script.len() {
@@ -339,7 +341,10 @@ mod tests {
         let slow_commands = vec!["apt".to_string(), "pip".to_string()];
 
         assert!(is_slow_command("sudo apt install vim", &slow_commands));
-        assert!(is_slow_command("sudo -E pip install requests", &slow_commands));
+        assert!(is_slow_command(
+            "sudo -E pip install requests",
+            &slow_commands
+        ));
     }
 
     #[test]

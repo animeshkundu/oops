@@ -51,7 +51,8 @@ impl Rule for GitPull {
                 // Extract branch name from context
                 if let Some(branch_line) = lines.get(i + 1) {
                     let branch = branch_line.split_whitespace().last().unwrap_or("main");
-                    let set_upstream = format!("git branch --set-upstream-to=origin/{} {}", branch, branch);
+                    let set_upstream =
+                        format!("git branch --set-upstream-to=origin/{} {}", branch, branch);
                     return vec![and_commands(&set_upstream, &cmd.script)];
                 }
             }
@@ -91,12 +92,19 @@ impl Rule for GitPullUncommittedChanges {
     fn is_match(&self, cmd: &Command) -> bool {
         cmd.script.contains("pull")
             && (cmd.output.contains("You have unstaged changes")
-                || cmd.output.contains("Your local changes to the following files would be overwritten")
-                || cmd.output.contains("Please commit your changes or stash them"))
+                || cmd
+                    .output
+                    .contains("Your local changes to the following files would be overwritten")
+                || cmd
+                    .output
+                    .contains("Please commit your changes or stash them"))
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
-        vec![and_commands("git stash", &format!("{} && git stash pop", cmd.script))]
+        vec![and_commands(
+            "git stash",
+            &format!("{} && git stash pop", cmd.script),
+        )]
     }
 }
 
@@ -196,8 +204,7 @@ impl Rule for GitCommitAmend {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.script.contains("commit")
-            && cmd.output.contains("empty commit message")
+        cmd.script.contains("commit") && cmd.output.contains("empty commit message")
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -229,8 +236,7 @@ impl Rule for GitCommitReset {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.script.contains("commit")
-            && cmd.output.contains("nothing to commit")
+        cmd.script.contains("commit") && cmd.output.contains("nothing to commit")
     }
 
     fn get_new_command(&self, _cmd: &Command) -> Vec<String> {
@@ -266,10 +272,7 @@ impl Rule for GitDiffStaged {
     }
 
     fn get_new_command(&self, _cmd: &Command) -> Vec<String> {
-        vec![
-            "git diff --staged".to_string(),
-            "git diff HEAD".to_string(),
-        ]
+        vec!["git diff --staged".to_string(), "git diff HEAD".to_string()]
     }
 
     fn requires_output(&self) -> bool {
@@ -405,7 +408,8 @@ impl Rule for GitRebaseNoChanges {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.output.contains("No changes - did you forget to use 'git add'")
+        cmd.output
+            .contains("No changes - did you forget to use 'git add'")
     }
 
     fn get_new_command(&self, _cmd: &Command) -> Vec<String> {
@@ -609,8 +613,7 @@ impl Rule for GitPullClone {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.script.contains("pull")
-            && cmd.output.contains("not a git repository")
+        cmd.script.contains("pull") && cmd.output.contains("not a git repository")
     }
 
     fn get_new_command(&self, _cmd: &Command) -> Vec<String> {
@@ -687,9 +690,10 @@ impl Rule for GitBisectUsage {
         let broken_re = Regex::new(r"git bisect ([^ $]*)").unwrap();
         let usage_re = Regex::new(r"usage: git bisect \[([^\]]+)\]").unwrap();
 
-        if let (Some(broken_cap), Some(usage_cap)) =
-            (broken_re.captures(&cmd.script), usage_re.captures(&cmd.output))
-        {
+        if let (Some(broken_cap), Some(usage_cap)) = (
+            broken_re.captures(&cmd.script),
+            usage_re.captures(&cmd.output),
+        ) {
             let broken = broken_cap.get(1).map(|m| m.as_str()).unwrap_or("");
             let usage = usage_cap.get(1).map(|m| m.as_str()).unwrap_or("");
             let options: Vec<String> = usage.split('|').map(|s| s.trim().to_string()).collect();
@@ -890,10 +894,11 @@ impl Rule for GitFlagAfterFilename {
     }
 
     fn is_match(&self, cmd: &Command) -> bool {
-        cmd.output.contains("fatal: bad flag '")
-            && cmd.output.contains("' used after filename")
+        cmd.output.contains("fatal: bad flag '") && cmd.output.contains("' used after filename")
             || cmd.output.contains("fatal: option '")
-                && cmd.output.contains("' must come before non-option arguments")
+                && cmd
+                    .output
+                    .contains("' must come before non-option arguments")
     }
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
@@ -1261,7 +1266,10 @@ mod tests {
             "fatal: refusing to merge unrelated histories\n",
         );
         let new_commands = rule.get_new_command(&cmd);
-        assert_eq!(new_commands, vec!["git merge origin/main --allow-unrelated-histories"]);
+        assert_eq!(
+            new_commands,
+            vec!["git merge origin/main --allow-unrelated-histories"]
+        );
     }
 
     #[test]
@@ -1309,20 +1317,14 @@ mod tests {
     #[test]
     fn test_git_tag_force_matches() {
         let rule = GitTagForce;
-        let cmd = Command::new(
-            "git tag v1.0",
-            "fatal: tag 'v1.0' already exists\n",
-        );
+        let cmd = Command::new("git tag v1.0", "fatal: tag 'v1.0' already exists\n");
         assert!(rule.is_match(&cmd));
     }
 
     #[test]
     fn test_git_tag_force_get_new_command() {
         let rule = GitTagForce;
-        let cmd = Command::new(
-            "git tag v1.0",
-            "fatal: tag 'v1.0' already exists\n",
-        );
+        let cmd = Command::new("git tag v1.0", "fatal: tag 'v1.0' already exists\n");
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["git tag -f v1.0"]);
     }
@@ -1330,22 +1332,19 @@ mod tests {
     #[test]
     fn test_git_clone_git_clone_matches() {
         let rule = GitCloneGitClone;
-        let cmd = Command::new(
-            "git clone git clone https://github.com/user/repo.git",
-            "",
-        );
+        let cmd = Command::new("git clone git clone https://github.com/user/repo.git", "");
         assert!(rule.is_match(&cmd));
     }
 
     #[test]
     fn test_git_clone_git_clone_get_new_command() {
         let rule = GitCloneGitClone;
-        let cmd = Command::new(
-            "git clone git clone https://github.com/user/repo.git",
-            "",
-        );
+        let cmd = Command::new("git clone git clone https://github.com/user/repo.git", "");
         let new_commands = rule.get_new_command(&cmd);
-        assert_eq!(new_commands, vec!["git clone https://github.com/user/repo.git"]);
+        assert_eq!(
+            new_commands,
+            vec!["git clone https://github.com/user/repo.git"]
+        );
     }
 
     #[test]
@@ -1361,10 +1360,7 @@ mod tests {
     #[test]
     fn test_git_hook_bypass_get_new_command() {
         let rule = GitHookBypass;
-        let cmd = Command::new(
-            "git commit -m 'test'",
-            "pre-commit hook failed\n",
-        );
+        let cmd = Command::new("git commit -m 'test'", "pre-commit hook failed\n");
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["git commit -m 'test' --no-verify"]);
     }
@@ -1471,7 +1467,10 @@ mod tests {
             "No such file or directory",
         );
         let new_commands = rule.get_new_command(&cmd);
-        assert_eq!(new_commands, vec!["git clone https://github.com/nvbn/thefuck.git"]);
+        assert_eq!(
+            new_commands,
+            vec!["git clone https://github.com/nvbn/thefuck.git"]
+        );
     }
 
     #[test]
@@ -1493,7 +1492,10 @@ mod tests {
         let rule = GitDiffNoIndex;
         let cmd = Command::new("git diff file1.txt file2.txt", "");
         let new_commands = rule.get_new_command(&cmd);
-        assert_eq!(new_commands, vec!["git diff --no-index file1.txt file2.txt"]);
+        assert_eq!(
+            new_commands,
+            vec!["git diff --no-index file1.txt file2.txt"]
+        );
     }
 
     #[test]
@@ -1516,10 +1518,7 @@ mod tests {
     #[test]
     fn test_git_fix_stash_get_new_command() {
         let rule = GitFixStash;
-        let cmd = Command::new(
-            "git stash lst",
-            "usage: git stash list [<options>]\n",
-        );
+        let cmd = Command::new("git stash lst", "usage: git stash list [<options>]\n");
         let new_commands = rule.get_new_command(&cmd);
         assert!(!new_commands.is_empty());
         assert!(new_commands[0].contains("list"));
@@ -1572,27 +1571,24 @@ mod tests {
     #[test]
     fn test_git_help_aliased_matches() {
         let rule = GitHelpAliased;
-        let cmd = Command::new(
-            "git help ci",
-            "`ci` is aliased to `commit`",
-        );
+        let cmd = Command::new("git help ci", "`ci` is aliased to `commit`");
         assert!(rule.is_match(&cmd));
     }
 
     #[test]
     fn test_git_help_aliased_no_match() {
         let rule = GitHelpAliased;
-        let cmd = Command::new("git help commit", "NAME\n       git-commit - Record changes to the repository");
+        let cmd = Command::new(
+            "git help commit",
+            "NAME\n       git-commit - Record changes to the repository",
+        );
         assert!(!rule.is_match(&cmd));
     }
 
     #[test]
     fn test_git_help_aliased_get_new_command() {
         let rule = GitHelpAliased;
-        let cmd = Command::new(
-            "git help ci",
-            "`ci` is aliased to `commit`",
-        );
+        let cmd = Command::new("git help ci", "`ci` is aliased to `commit`");
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["git help commit"]);
     }
@@ -1644,7 +1640,10 @@ mod tests {
     #[test]
     fn test_git_rebase_merge_dir_no_match() {
         let rule = GitRebaseMergeDir;
-        let cmd = Command::new("git rebase master", "Successfully rebased and updated refs/heads/feature.\n");
+        let cmd = Command::new(
+            "git rebase master",
+            "Successfully rebased and updated refs/heads/feature.\n",
+        );
         assert!(!rule.is_match(&cmd));
     }
 
@@ -1694,7 +1693,10 @@ mod tests {
             "fatal: No such remote 'origin'\n",
         );
         let new_commands = rule.get_new_command(&cmd);
-        assert_eq!(new_commands, vec!["git remote add origin https://github.com/user/repo.git"]);
+        assert_eq!(
+            new_commands,
+            vec!["git remote add origin https://github.com/user/repo.git"]
+        );
     }
 
     #[test]

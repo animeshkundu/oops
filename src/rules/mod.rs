@@ -53,6 +53,7 @@ pub use typo::{PythonCommand, SlLs, Systemctl};
 /// let rules = get_all_rules();
 /// println!("Loaded {} rules", rules.len());
 /// ```
+#[allow(clippy::vec_init_then_push)]
 pub fn get_all_rules() -> Vec<Box<dyn Rule>> {
     let mut rules: Vec<Box<dyn Rule>> = vec![];
 
@@ -133,11 +134,7 @@ mod tests {
         let original_len = names.len();
         names.sort();
         names.dedup();
-        assert_eq!(
-            names.len(),
-            original_len,
-            "Rule names should be unique"
-        );
+        assert_eq!(names.len(), original_len, "Rule names should be unique");
     }
 
     #[test]

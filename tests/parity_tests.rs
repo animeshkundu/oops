@@ -286,7 +286,10 @@ fn test_rule_priority_ordering() {
         .map(|r| r.priority());
 
     assert!(sudo_priority.is_some(), "sudo rule should exist");
-    assert!(sudo_priority.unwrap() <= 100, "sudo should have high priority");
+    assert!(
+        sudo_priority.unwrap() <= 100,
+        "sudo should have high priority"
+    );
 }
 
 #[test]
@@ -354,7 +357,10 @@ impl RuleTestData {
         expected.insert(("cd...", "command not found"), vec!["cd ..."]);
 
         RuleTestData {
-            matching_cases: vec![("cd..", "command not found"), ("cd...", "command not found")],
+            matching_cases: vec![
+                ("cd..", "command not found"),
+                ("cd...", "command not found"),
+            ],
             non_matching_cases: vec![("cd ..", ""), ("cd /home", ""), ("cd Documents", "")],
             expected_corrections: expected,
         }
