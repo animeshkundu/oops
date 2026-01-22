@@ -204,8 +204,6 @@ outputs:
 - This causes "mapping values are not allowed here" errors
 - Solution: Use Unicode escape sequence `\u003a` which represents the literal colon character
 
-Reason: YAML interprets `:` as mapping separator.
-
 ### Context Availability
 
 | Context | `push` | `pull_request` |
