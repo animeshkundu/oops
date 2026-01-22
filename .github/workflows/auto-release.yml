@@ -1,0 +1,146 @@
+name: Auto Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main, master]
+
+permissions:
+  contents: write
+
+jobs:
+  # Run comprehensive tests before releasing
+  test:
+    name: Pre-release Tests
+    if: github.event.pull_request.merged == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ matrix.rust }}-
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Run tests
+        run: cargo test
+
+  auto-release:
+    name: Automatic Release on Merge
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if release needed
+        id: check_release
+        run: |
+          # Skip if PR title contains [skip release] or [no release]
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if echo "$PR_TITLE" | grep -qiE "\[(skip|no).?release\]"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Skipping release due to [skip release] in PR title"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install Rust
+        if: steps.check_release.outputs.skip == 'false'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-edit
+        if: steps.check_release.outputs.skip == 'false'
+        run: cargo install cargo-edit
+
+      - name: Determine version bump type
+        if: steps.check_release.outputs.skip == 'false'
+        id: bump_type
+        run: |
+          # Extract PR title and labels to determine bump type
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
+          
+          # Default to patch bump
+          BUMP_TYPE="patch"
+          
+          # Check for breaking change indicators (major bump)
+          if echo "$PR_TITLE" | grep -qiE "^(feat!|fix!):" || echo "$PR_TITLE" | grep -qiE "breaking" || echo "$PR_LABELS" | grep -qi "breaking"; then
+            BUMP_TYPE="major"
+          # Check for feature indicators (minor bump)
+          elif echo "$PR_TITLE" | grep -qiE "^feat:" || echo "$PR_LABELS" | grep -qiE "(feature|enhancement)"; then
+            BUMP_TYPE="minor"
+          fi
+          
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "Version bump type: $BUMP_TYPE"
+
+      - name: Bump version in Cargo.toml
+        if: steps.check_release.outputs.skip == 'false'
+        id: version
+        run: |
+          OLD_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          echo "Old version: $OLD_VERSION"
+          
+          cargo set-version --bump ${{ steps.bump_type.outputs.bump_type }}
+          
+          NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update Cargo.lock
+        if: steps.check_release.outputs.skip == 'false'
+        run: |
+          PACKAGE_NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+          cargo update -p "$PACKAGE_NAME"
+
+      - name: Commit version bump
+        if: steps.check_release.outputs.skip == 'false'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add Cargo.toml Cargo.lock
+          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
+
+      - name: Push changes
+        if: steps.check_release.outputs.skip == 'false'
+        run: |
+          BRANCH="${{ github.event.pull_request.base.ref }}"
+          git push origin "$BRANCH"
+
+      - name: Create and push tag
+        if: steps.check_release.outputs.skip == 'false'
+        run: |
+          TAG="v${{ steps.version.outputs.new_version }}"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+          echo "Created and pushed tag: $TAG"

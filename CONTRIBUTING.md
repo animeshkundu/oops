@@ -61,9 +61,16 @@ type(scope): description
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 Examples:
-- `feat(rules): add kubectl rules`
-- `fix(git): handle detached HEAD state`
-- `docs: update installation instructions`
+- `feat(rules): add kubectl rules` - triggers minor version bump
+- `fix(git): handle detached HEAD state` - triggers patch version bump
+- `feat!: breaking API change` - triggers major version bump
+- `docs: update installation instructions` - triggers patch version bump
+
+**Important for PR titles**: The PR title determines the version bump for automatic releases:
+- Use `feat:` for new features (minor version bump)
+- Use `fix:` for bug fixes (patch version bump)
+- Use `feat!:` or `fix!:` for breaking changes (major version bump)
+- Add `[skip release]` to PR title to prevent automatic release
 
 ### Pull Request Process
 
@@ -217,11 +224,36 @@ cargo bench
 
 ## Release Process
 
-Releases are automated via GitHub Actions when a tag is pushed:
+Releases are fully automated via GitHub Actions when a PR is merged to master:
+
+### Automatic Release (Recommended)
+
+1. Create a PR with your changes
+2. Use conventional commit format for PR title to control version bump:
+   - **Patch bump** (0.1.0 → 0.1.1): `fix: ...` or no prefix
+   - **Minor bump** (0.1.0 → 0.2.0): `feat: ...` or label `feature`/`enhancement`
+   - **Major bump** (0.1.0 → 1.0.0): `feat!: ...`, `fix!: ...` or label `breaking`
+3. Merge the PR
+4. The `auto-release` workflow will:
+   - Run tests on Linux, macOS, and Windows
+   - Automatically bump the version in `Cargo.toml`
+   - Create and push a git tag (e.g., `v0.1.1`)
+5. The `release` workflow will:
+   - Build binaries for 6 platforms
+   - Generate SHA256 checksums
+   - Create a GitHub release with all artifacts
+
+**To skip automatic release**: Include `[skip release]` or `[no release]` in your PR title.
+
+### Manual Release (Legacy)
+
+If needed, you can still trigger a release manually:
 
 1. Update version in `Cargo.toml`
 2. Update `CHANGELOG.md`
-3. Create and push a tag: `git tag v0.x.0 && git push --tags`
+3. Commit changes
+4. Create and push a tag: `git tag v0.x.0 && git push --tags`
+5. The release workflow will build and publish automatically
 
 ## Getting Help
 
