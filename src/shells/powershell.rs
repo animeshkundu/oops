@@ -6,6 +6,7 @@
 //! - No TF_SHELL_ALIASES support (PowerShell handles aliases differently)
 
 use std::collections::HashMap;
+use std::env;
 
 use anyhow::Result;
 
