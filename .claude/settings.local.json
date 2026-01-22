@@ -2,7 +2,24 @@
   "permissions": {
     "allow": [
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(tree:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(set TF_SHELL=bash)",
+      "Bash(./target/release/oops.exe --alias)",
+      "Bash(set TF_SHELL=powershell)",
+      "Bash(./target/release/oops.exe --version)",
+      "Bash(TF_SHELL=bash ./target/release/oops.exe:*)",
+      "Bash(TF_SHELL=powershell ./target/release/oops.exe:*)",
+      "Bash(./target/release/oops.exe:*)",
+      "Bash(TF_SHELL=fish ./target/release/oops.exe:*)",
+      "Bash(TF_SHELL=tcsh ./target/release/oops.exe:*)",
+      "Bash(TF_SHELL=zsh ./target/release/oops.exe:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(wc:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

@@ -69,8 +69,10 @@ impl Rule for SlLs {
             vec![format!("ls {}", rest)]
         } else if script == "sl" {
             vec!["ls".to_string()]
+        } else if let Some(rest) = script.strip_prefix("sl") {
+            vec![format!("ls{}", rest)]
         } else {
-            vec![format!("ls{}", &script[2..])]
+            vec![]
         }
     }
 
