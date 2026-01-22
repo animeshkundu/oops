@@ -71,7 +71,6 @@ impl Rule for MyRule {
     }
 }
 ```
-```
 
 ## Discovery Criteria
 - **Popularity**: GitHub stars, downloads
