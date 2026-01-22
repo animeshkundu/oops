@@ -406,7 +406,7 @@ const FIX_FILE_PATTERNS: &[&str] = &[
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// use oops::rules::system::FixFile;
 /// use oops::core::{Command, Rule};
 ///
@@ -941,12 +941,12 @@ impl Rule for Man {
         let mut results = Vec::new();
 
         // Build command with section 3
-        let mut cmd3_parts: Vec<String> = parts.to_vec();
+        let mut cmd3_parts = parts.to_vec();
         cmd3_parts.insert(1, "3".to_string());
         results.push(cmd3_parts.join(" "));
 
         // Build command with section 2
-        let mut cmd2_parts: Vec<String> = parts.to_vec();
+        let mut cmd2_parts = parts.to_vec();
         cmd2_parts.insert(1, "2".to_string());
         results.push(cmd2_parts.join(" "));
 

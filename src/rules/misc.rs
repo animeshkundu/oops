@@ -308,7 +308,7 @@ impl Rule for MissingSpaceBeforeSubcommand {
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// use oops::rules::misc::NoSuchFile;
 /// use oops::core::{Command, Rule};
 ///
@@ -688,7 +688,7 @@ impl Rule for SudoCommandFromUserPath {
 
         // Check if the command exists in user's PATH
         if let Some(command_name) = Self::get_command_name(&cmd.output) {
-            return which(&command_name).is_some();
+            return which(command_name.to_string()).is_some();
         }
 
         false

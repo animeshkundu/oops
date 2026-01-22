@@ -314,7 +314,7 @@ impl NixosCmdNotFound {
     /// Check if NixOS is available on this system.
     fn is_nix_available() -> bool {
         // Check if /etc/nixos exists or if nix-env is available
-        PathBuf::from("/etc/nixos").exists() || crate::utils::which("nix-env").is_some()
+        PathBuf::from("/etc/nixos").exists() || crate::utils::which("nix-env".to_string()).is_some()
     }
 }
 
@@ -407,7 +407,7 @@ impl OmnienvNoSuchCommand {
     fn is_omnienv_available() -> bool {
         OMNIENV_APPS
             .iter()
-            .any(|app| crate::utils::which(app).is_some())
+            .any(|app| crate::utils::which(app.to_string()).is_some())
     }
 
     /// Extract the bad command from the error output.
@@ -1063,7 +1063,7 @@ pub struct NpmRunScript;
 impl NpmRunScript {
     /// Check if npm is available.
     fn is_npm_available() -> bool {
-        crate::utils::which("npm").is_some()
+        crate::utils::which("npm".to_string()).is_some()
     }
 
     /// Get scripts from package.json in the current directory.

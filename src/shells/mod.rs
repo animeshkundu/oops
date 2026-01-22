@@ -109,8 +109,9 @@ pub trait Shell: Send + Sync {
 }
 
 /// Registry of known shells.
-#[allow(clippy::type_complexity)]
-static SHELLS: &[(&str, fn() -> Box<dyn Shell>)] = &[
+type ShellFactory = fn() -> Box<dyn Shell>;
+
+static SHELLS: &[(&str, ShellFactory)] = &[
     ("bash", || Box::new(Bash::new())),
     ("zsh", || Box::new(Zsh::new())),
     ("fish", || Box::new(Fish::new())),

@@ -220,15 +220,16 @@ mod tests {
 
     #[test]
     fn test_get_history_from_env() {
+        let _guard = crate::test_utils::EnvGuard::new(&["TF_HISTORY"]);
         env::set_var("TF_HISTORY", "git status\ncd /tmp\nls -la");
         let bash = Bash::new();
         let history = bash.get_history();
         assert_eq!(history, vec!["git status", "cd /tmp", "ls -la"]);
-        env::remove_var("TF_HISTORY");
     }
 
     #[test]
     fn test_get_aliases_from_env() {
+        let _guard = crate::test_utils::EnvGuard::new(&["TF_SHELL_ALIASES"]);
         env::set_var(
             "TF_SHELL_ALIASES",
             "alias ll='ls -la'\nalias gs='git status'",
@@ -237,7 +238,6 @@ mod tests {
         let aliases = bash.get_aliases();
         assert_eq!(aliases.get("ll"), Some(&"ls -la".to_string()));
         assert_eq!(aliases.get("gs"), Some(&"git status".to_string()));
-        env::remove_var("TF_SHELL_ALIASES");
     }
 
     #[test]

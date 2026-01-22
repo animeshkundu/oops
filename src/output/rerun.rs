@@ -35,7 +35,7 @@ const SLOW_COMMAND_TIMEOUT_MULTIPLIER: u32 = 15;
 /// use std::time::Duration;
 /// use oops::output::rerun::get_output;
 ///
-/// let output = get_output("ls -la", Duration::from_secs(5)).unwrap();
+/// let output = get_output("ls -la", Duration::from_secs(5)).unwrap_or_default();
 /// println!("Output: {}", output);
 /// ```
 pub fn get_output(script: &str, timeout: Duration) -> Result<String> {

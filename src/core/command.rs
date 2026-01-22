@@ -108,7 +108,7 @@ impl Command {
     /// # Arguments
     ///
     /// * `raw` - A slice of strings representing the command and its arguments.
-    ///           The first element is the command, followed by its arguments.
+    ///   The first element is the command, followed by its arguments.
     ///
     /// # Returns
     ///

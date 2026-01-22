@@ -31,7 +31,7 @@ use std::path::PathBuf;
 /// ```
 #[cached(size = 100)]
 pub fn which(program: String) -> Option<PathBuf> {
-    ::which::which(&program).ok()
+    ::which::which(program).ok()
 }
 
 /// Checks if a program exists in PATH.

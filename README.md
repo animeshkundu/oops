@@ -230,6 +230,10 @@ All settings can be overridden via environment variables:
 | `THEFUCK_WAIT_COMMAND` | Timeout in seconds |
 | `THEFUCK_DEBUG` | Enable debug output |
 
+### Minimum Supported Rust Version
+
+Oops requires Rust 1.88 or newer to build.
+
 ## Supported Rules
 
 oops includes 175+ rules for common mistakes:

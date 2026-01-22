@@ -13,3 +13,6 @@ pub mod rules;
 pub mod shells;
 pub mod ui;
 pub mod utils;
+
+#[cfg(test)]
+pub mod test_utils;

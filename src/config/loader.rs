@@ -398,6 +398,28 @@ pub fn create_default_settings_file() -> Result<PathBuf> {
 mod tests {
     use super::*;
     use std::env;
+    const ENV_VARS: &[&str] = &[
+        "THEFUCK_RULES",
+        "THEFUCK_EXCLUDE_RULES",
+        "THEFUCK_PRIORITY",
+        "THEFUCK_REQUIRE_CONFIRMATION",
+        "THEFUCK_WAIT_COMMAND",
+        "THEFUCK_WAIT_SLOW_COMMAND",
+        "THEFUCK_NO_COLORS",
+        "THEFUCK_HISTORY_LIMIT",
+        "THEFUCK_ALTER_HISTORY",
+        "THEFUCK_NUM_CLOSE_MATCHES",
+        "THEFUCK_SLOW_COMMANDS",
+        "THEFUCK_EXCLUDED_SEARCH_PATH_PREFIXES",
+        "THEFUCK_INSTANT_MODE",
+        "THEFUCK_DEBUG",
+    ];
+
+    fn clear_env_vars() {
+        for var in ENV_VARS {
+            env::remove_var(var);
+        }
+    }
 
     #[test]
     fn test_parse_colon_separated() {
@@ -473,6 +495,8 @@ mod tests {
 
     #[test]
     fn test_load_from_env_rules() {
+        let _env_guard = crate::test_utils::EnvGuard::new(ENV_VARS);
+        clear_env_vars();
         // Set environment variable
         env::set_var("THEFUCK_RULES", "sudo:git_push");
 
@@ -480,27 +504,31 @@ mod tests {
         assert_eq!(settings.rules, vec!["sudo", "git_push"]);
 
         // Clean up
-        env::remove_var("THEFUCK_RULES");
+        clear_env_vars();
     }
 
     #[test]
     fn test_load_from_env_debug() {
+        let _env_guard = crate::test_utils::EnvGuard::new(ENV_VARS);
+        clear_env_vars();
         env::set_var("THEFUCK_DEBUG", "true");
 
         let settings = load_from_env();
         assert!(settings.debug);
 
-        env::remove_var("THEFUCK_DEBUG");
+        clear_env_vars();
     }
 
     #[test]
     fn test_load_from_env_wait_command() {
+        let _env_guard = crate::test_utils::EnvGuard::new(ENV_VARS);
+        clear_env_vars();
         env::set_var("THEFUCK_WAIT_COMMAND", "10");
 
         let settings = load_from_env();
         assert_eq!(settings.wait_command, 10);
 
-        env::remove_var("THEFUCK_WAIT_COMMAND");
+        clear_env_vars();
     }
 
     #[test]
@@ -526,6 +554,8 @@ mod tests {
 
     #[test]
     fn test_load_settings_with_defaults() {
+        let _env_guard = crate::test_utils::EnvGuard::new(ENV_VARS);
+        clear_env_vars();
         let cli = Cli {
             alias: false,
             yes: false,

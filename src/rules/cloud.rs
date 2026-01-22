@@ -582,7 +582,7 @@ impl PortAlreadyInUse {
         use std::process::Command as ProcessCommand;
 
         // Check if lsof is available
-        crate::utils::which("lsof")?;
+        crate::utils::which("lsof".to_string())?;
 
         let output = ProcessCommand::new("lsof")
             .args(["-i", &format!(":{}", port)])
@@ -610,7 +610,7 @@ impl Rule for PortAlreadyInUse {
 
     fn enabled_by_default(&self) -> bool {
         // Only enable if lsof is available
-        crate::utils::which("lsof").is_some()
+        crate::utils::which("lsof".to_string()).is_some()
     }
 
     fn is_match(&self, cmd: &Command) -> bool {

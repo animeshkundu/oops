@@ -9,6 +9,7 @@
 
 use crate::core::{is_app, Command, Rule};
 use crate::utils::get_close_matches;
+#[cfg(test)]
 use regex::Regex;
 use std::fs;
 use std::path::Path;
@@ -196,7 +197,7 @@ impl CdCorrection {
     }
 
     /// Extract the typo directory name from the error output.
-    #[allow(dead_code)]
+    #[cfg(test)]
     fn extract_typo_from_output(output: &str) -> Option<String> {
         // Try common error message patterns
         let patterns = [

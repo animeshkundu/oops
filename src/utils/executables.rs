@@ -80,7 +80,7 @@ static ALL_EXECUTABLES: Lazy<HashSet<String>> = Lazy::new(|| {
 /// On Unix, checks the executable permission bits.
 /// On Windows, checks if the file has an executable extension.
 #[cfg(unix)]
-fn is_executable(path: &PathBuf) -> bool {
+fn is_executable(path: &Path) -> bool {
     use std::os::unix::fs::PermissionsExt;
 
     if let Ok(metadata) = fs::metadata(path) {
