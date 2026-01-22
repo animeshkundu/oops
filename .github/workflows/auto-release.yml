@@ -64,7 +64,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Use PAT to trigger release workflow when tag is pushed
+          # GITHUB_TOKEN cannot trigger workflows to prevent recursion
+          token: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Validate PR metadata
         id: validate
