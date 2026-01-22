@@ -241,41 +241,20 @@ After pushing the tag, verify:
 
 ## Version Bump Logic
 
-The `auto-release.yml` workflow determines version bump type based on PR title and labels.
+The `auto-release.yml` workflow creates a **MINOR version bump for every merged PR**.
 
-### Default: Patch Bump (0.1.1 → 0.1.2)
-
-**Triggered by**:
-- Any PR without special indicators
-- PR titles like:
-  - `fix: something`
-  - `docs: update readme`
-  - `chore: update deps`
-  - `refactor: cleanup`
-
-### Minor Bump (0.1.1 → 0.2.0)
+### Minor Bump (0.1.1 → 0.2.0) - DEFAULT FOR ALL PRS
 
 **Triggered by**:
-- PR title starts with `feat:`
-- PR has `feature` or `enhancement` label
+- **ALL merged PRs** automatically create a minor version bump
+- This includes any PR title or type:
+  - `feat: new feature` → 0.1.1 → 0.2.0
+  - `fix: bug fix` → 0.1.1 → 0.2.0
+  - `docs: update readme` → 0.1.1 → 0.2.0
+  - `chore: update deps` → 0.1.1 → 0.2.0
+  - Any other PR type → 0.1.1 → 0.2.0
 
-**Examples**:
-- `feat: add new git rule`
-- `feat(rules): support docker commands`
-- PR labeled `feature`
-
-### Major Bump (0.1.1 → 1.0.0)
-
-**Triggered by**:
-- PR title starts with `feat!:` or `fix!:` (breaking change marker)
-- PR title contains `breaking`
-- PR has `breaking` label
-
-**Examples**:
-- `feat!: change CLI arguments`
-- `fix!: breaking API change`
-- `feat: add feature [breaking]`
-- PR labeled `breaking`
+**Rationale**: For a pre-1.0 project, all changes are treated as minor updates to keep version progression simple and predictable.
 
 ### Skip Release
 
@@ -309,31 +288,31 @@ fi
 
 ### Test Plan: Automated PR Merge Release
 
-#### Test 1: Feature PR (Minor Bump)
+#### Test 1: Any PR (Minor Bump - Default Behavior)
 
 ```bash
 # 1. Create test branch
-git checkout -b test-feature-release
-echo "# Test Feature" >> README.md
-git commit -am "feat: test automated release"
-git push origin test-feature-release
+git checkout -b test-automated-release
+echo "# Test Change" >> README.md
+git commit -am "fix: test automated release"
+git push origin test-automated-release
 
 # 2. Create PR via GitHub UI
-# Title: "feat: test automated release"
+# Title: "fix: test automated release" (or any title)
 
 # 3. Merge PR
 
 # 4. Verify auto-release workflow
 # Go to: Actions → Auto Release
 # Should show: Running or Success
-# Should create: Version bump PR (e.g., chore: release v0.1.2)
+# Should create: Version bump PR (e.g., chore: release v0.2.0)
 
 # 5. Merge version bump PR
 
 # 6. Verify create-release-tag workflow
 # Go to: Actions → Create Release Tag
 # Should show: Success
-# Should create: Tag v0.1.2
+# Should create: Tag v0.2.0
 
 # 7. Verify release workflow
 # Go to: Actions → Release
@@ -341,26 +320,10 @@ git push origin test-feature-release
 
 # 8. Verify release published
 # Go to: Releases
-# Should see: v0.1.2 with 6 binaries + checksums
+# Should see: v0.2.0 with 6 binaries + checksums
 ```
 
-#### Test 2: Patch PR (Patch Bump)
-
-```bash
-# 1. Create test branch
-git checkout -b test-patch-release
-echo "Fix" >> src/main.rs
-git commit -am "fix: test patch release"
-git push origin test-patch-release
-
-# 2. Create and merge PR
-# Title: "fix: test patch release"
-
-# 3. Verify follows same flow as Test 1
-# Should bump: 0.1.2 → 0.1.3
-```
-
-#### Test 3: Skip Release
+#### Test 2: Skip Release
 
 ```bash
 # 1. Create test branch

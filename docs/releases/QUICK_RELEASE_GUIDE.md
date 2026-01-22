@@ -8,10 +8,12 @@ Releases happen automatically when you merge a PR. The PR title determines the v
 
 | Want | Use | Example |
 |------|-----|---------|
-| **Patch** bump (0.1.0 → 0.1.1) | `fix:` or `docs:` or `chore:` | `fix: handle empty input` |
-| **Minor** bump (0.1.0 → 0.2.0) | `feat:` | `feat: add kubectl rules` |
-| **Major** bump (0.1.0 → 1.0.0) | `feat!:` or `fix!:` | `feat!: redesign CLI interface` |
+| **Minor** bump (0.1.0 → 0.2.0) | Any PR title | `feat: add kubectl rules` |
+| **Minor** bump (0.2.0 → 0.3.0) | Any PR title | `fix: handle empty input` |
+| **Minor** bump (0.3.0 → 0.4.0) | Any PR title | `docs: update README` |
 | **No release** | Add `[skip release]` | `docs: typo fix [skip release]` |
+
+**Note:** All merged PRs trigger a minor version bump. For major or patch bumps, use manual releases.
 
 ## What Happens
 
@@ -25,30 +27,31 @@ Releases happen automatically when you merge a PR. The PR title determines the v
 ## Common Patterns
 
 ```bash
-# Bug fix → patch bump
-PR title: "fix: resolve crash on invalid input"
-Result: 0.1.0 → 0.1.1
-
-# New feature → minor bump
+# Any PR → minor bump
 PR title: "feat: add support for podman commands"
 Result: 0.1.0 → 0.2.0
 
-# Breaking change → major bump
-PR title: "feat!: change configuration file format"
-Result: 0.1.0 → 1.0.0
+# Another PR → minor bump
+PR title: "fix: resolve crash on invalid input"
+Result: 0.2.0 → 0.3.0
 
-# Documentation only → skip release
-PR title: "docs: update README [skip release]"
+# Documentation → minor bump (unless skipped)
+PR title: "docs: update installation guide"
+Result: 0.3.0 → 0.4.0
+
+# Skip release for minor changes
+PR title: "docs: fix typo [skip release]"
 Result: No release, no version change
 ```
 
-## Alternative: Labels
+## Alternative: Skip Release
 
-Instead of PR title prefix, you can use labels:
+Instead of relying on PR title prefixes, you can use `[skip release]` to skip a release:
 
-- Label `breaking` → Major bump
-- Label `feature` or `enhancement` → Minor bump
-- Label `bug` or no label → Patch bump
+- `[skip release]` in PR title → No release
+- `[no release]` in PR title → No release
+
+All other PRs will trigger a **minor version bump**.
 
 ## Manual Release (if needed)
 
@@ -77,8 +80,8 @@ git push --tags
 - Check GitHub Actions tab for errors
 
 **Wrong version bump?**
-- Check PR title format - must match patterns above
-- Next time, adjust title before merging
+- All PRs trigger minor bumps automatically
+- For major or patch bumps, create a manual release (see above)
 
 **Need help?**
 - See [AUTOMATED_RELEASES.md](./AUTOMATED_RELEASES.md) for details

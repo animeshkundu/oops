@@ -4,16 +4,14 @@ This document addresses specific questions about the release workflow implementa
 
 ## Question 1: Does every PR merge create a release with the right version?
 
-### Answer: YES, with the following behavior:
+### Answer: YES - Every PR creates a MINOR version bump
 
 **Automated Version Determination:**
-- **Feature PRs** (`feat:` prefix or `feature`/`enhancement` label) → **Minor bump** (0.1.1 → 0.2.0)
-- **Fix PRs** (`fix:` prefix) → **Patch bump** (0.1.1 → 0.1.2)  
-- **Breaking PRs** (`feat!:`/`fix!:` prefix, `breaking` in title, or `breaking` label) → **Major bump** (0.1.1 → 1.0.0)
-- **Other PRs** (docs, chore, refactor, etc.) → **Patch bump** (0.1.1 → 0.1.2)
+- **ALL merged PRs** → **Minor bump** (0.1.1 → 0.2.0)
+  - This includes `feat:`, `fix:`, `docs:`, `chore:`, or any other PR type
 - **Skip release** (PR title contains `[skip release]` or `[no release]`) → **No release**
 
-**NOT every PR creates a minor version bump.** Version bump type depends on PR title/labels as shown above.
+**Every PR creates a minor version bump** (unless explicitly skipped).
 
 ### The Complete Flow:
 
@@ -21,7 +19,7 @@ This document addresses specific questions about the release workflow implementa
 1. PR merged to master
    ↓
 2. auto-release.yml runs
-   ↓ (determines version bump type from PR title/labels)
+   ↓ (always creates minor bump unless skipped)
    ↓
 3. Version bump PR created (e.g., "chore: release v0.2.0")
    ↓ (has "release" and "automated" labels)
