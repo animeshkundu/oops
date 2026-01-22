@@ -82,4 +82,4 @@ git push --tags
 
 **Need help?**
 - See [AUTOMATED_RELEASES.md](./AUTOMATED_RELEASES.md) for details
-- See [CONTRIBUTING.md](../CONTRIBUTING.md) for full guide
+- See [CONTRIBUTING.md](../development/CONTRIBUTING.md) for full guide
