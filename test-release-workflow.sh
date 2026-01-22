@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 echo "🧪 Testing Release Workflow Logic"
 echo "=================================="
@@ -16,7 +16,7 @@ echo "✅ cargo-edit is available"
 # Test 2: Verify we can read current version
 echo ""
 echo "Test 2: Reading current version from Cargo.toml..."
-CURRENT_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+CURRENT_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
 echo "📦 Current version: $CURRENT_VERSION"
 if [ -z "$CURRENT_VERSION" ]; then
     echo "❌ Failed to read version"
@@ -36,7 +36,7 @@ cp Cargo.lock Cargo.lock.backup
 # Test patch bump
 echo "Testing patch bump..."
 cargo set-version --bump patch
-NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
 echo "After patch bump: $NEW_VERSION"
 
 if [ "$CURRENT_VERSION" = "$NEW_VERSION" ]; then
