@@ -29,6 +29,8 @@ User and developer guides.
 - [Configuration](guides/configuration.md) - All configuration options
 - [Creating Rules](guides/creating-rules.md) - How to add new correction rules
 - [Migration from thefuck](guides/migration-from-thefuck.md) - Migrating from the Python version
+- [Quick Release Guide](QUICK_RELEASE_GUIDE.md) - How releases work (TL;DR)
+- [Automated Releases](AUTOMATED_RELEASES.md) - Complete release workflow documentation
 
 ### History
 
