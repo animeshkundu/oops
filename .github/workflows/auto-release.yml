@@ -68,8 +68,9 @@ jobs:
 
       - name: Validate PR metadata
         id: validate
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
           if [ -z "$PR_TITLE" ]; then
             echo "::error::PR title is empty. Cannot determine version bump."
             exit 1
@@ -78,9 +79,10 @@ jobs:
 
       - name: Check if release needed
         id: check_release
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           # Skip if PR title contains [skip release] or [no release]
-          PR_TITLE="${{ github.event.pull_request.title }}"
           if echo "$PR_TITLE" | grep -qiE "\[(skip|no).?release\]"; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "Skipping release due to [skip release] in PR title"
@@ -101,11 +103,10 @@ jobs:
       - name: Determine version bump type
         if: steps.check_release.outputs.skip == 'false'
         id: bump_type
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
         run: |
-          # Extract PR title and labels to determine bump type
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
-          
           # Default to patch bump
           BUMP_TYPE="patch"
           
@@ -126,7 +127,7 @@ jobs:
         run: |
           set -e  # Exit on error
           
-          OLD_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          OLD_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
           echo "📦 Current version: $OLD_VERSION"
           
           BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
@@ -137,7 +138,7 @@ jobs:
             exit 1
           fi
           
-          NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
           
           if [ "$OLD_VERSION" = "$NEW_VERSION" ]; then
             echo "::error::Version did not change. Old: $OLD_VERSION, New: $NEW_VERSION"
@@ -150,7 +151,7 @@ jobs:
       - name: Update Cargo.lock
         if: steps.check_release.outputs.skip == 'false'
         run: |
-          PACKAGE_NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+          PACKAGE_NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .name')
           cargo update -p "$PACKAGE_NAME"
 
       - name: Validate version bump
@@ -178,52 +179,135 @@ jobs:
           
           echo "✅ Version bump validated successfully"
 
-      - name: Commit version bump
+      - name: Create local commit for version bump
         if: steps.check_release.outputs.skip == 'false'
         run: |
+          # Configure git for bot
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          
+          # Stage version changes
           git add Cargo.toml Cargo.lock
-          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
+          
+          # Create local commit (won't be pushed to master)
+          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}" \
+                     -m "" \
+                     -m "This commit contains the version bump and is tagged for release." \
+                     -m "It is NOT pushed to the main branch to avoid conflicts with branch protection." \
+                     -m "" \
+                     -m "PR: #${{ github.event.pull_request.number }}" \
+                     -m "Type: ${{ steps.bump_type.outputs.bump_type }} bump" || {
+            echo "::error::Failed to create version bump commit"
+            exit 1
+          }
+          
+          echo "✅ Created local version bump commit"
+          echo "📍 Commit SHA: $(git rev-parse HEAD)"
 
-      - name: Push changes
+      - name: Generate release notes
         if: steps.check_release.outputs.skip == 'false'
+        id: release_notes
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          BRANCH="${{ github.event.pull_request.base.ref }}"
-          git push origin "$BRANCH"
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          
+          # Find previous tag for changelog comparison
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          # Create release notes file
+          cat > release_notes.md << EOF
+          ## Version $NEW_VERSION
+          
+          **Release Type**: $BUMP_TYPE bump
+          **Source PR**: #$PR_NUMBER - ${PR_TITLE}
+          
+          ### Changes
+          This release was automatically created from PR merge.
+          EOF
+          
+          # Add changelog link if previous tag exists
+          if [ -n "$PREV_TAG" ]; then
+            echo "See the [full changelog](https://github.com/${{ github.repository }}/compare/$PREV_TAG...v$NEW_VERSION) for details." >> release_notes.md
+          else
+            echo "This is the first release." >> release_notes.md
+          fi
+          
+          # Add download section
+          cat >> release_notes.md << EOF
+          
+          ### Download
+          Binaries will be available shortly for:
+          - 🐧 Linux (x86_64, x86_64-musl, ARM64)
+          - 🍎 macOS (Intel x86_64, Apple Silicon ARM64)
+          - 🪟 Windows (x86_64)
+          EOF
+          
+          echo "✅ Generated release notes"
 
-      - name: Create and push tag
+      - name: Create and push annotated tag
         if: steps.check_release.outputs.skip == 'false'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           TAG="v${{ steps.version.outputs.new_version }}"
           
-          # Check if tag already exists
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "::warning::Tag $TAG already exists. Skipping tag creation."
+          # Check if tag already exists (locally or remotely)
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
+            echo "::warning::Tag $TAG already exists remotely. Skipping tag creation."
             echo "This may indicate a previous partial run. Please verify the release."
             exit 0
           fi
           
-          git tag -a "$TAG" -m "Release $TAG"
+          # Create annotated tag on the LOCAL commit (which includes version bump)
+          # This tag points to a commit that's NOT on master branch
+          git tag -a "$TAG" -m "Release $TAG" \
+                             -m "" \
+                             -m "Version: ${{ steps.version.outputs.new_version }}" \
+                             -m "Bump Type: ${{ steps.bump_type.outputs.bump_type }}" \
+                             -m "PR: #${{ github.event.pull_request.number }}" \
+                             -m "Title: ${PR_TITLE}" \
+                             -m "" \
+                             -m "This release includes binaries for Linux, macOS, and Windows." \
+                             -m "See release page for download links and checksums." \
+                             -m "" \
+                             -m "Note: This tag points to a version bump commit that exists only for" \
+                             -m "release purposes and is not merged into the main branch."
+          
+          # Push ONLY the tag (not the commit) to trigger release workflow
           git push origin "$TAG"
+          
           echo "✅ Created and pushed tag: $TAG"
+          echo "🚀 Release workflow will now build and publish binaries"
+          echo "📍 Tag points to commit: $(git rev-parse $TAG)"
 
-      - name: Create release summary
+      - name: Create workflow summary
         if: steps.check_release.outputs.skip == 'false'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           cat >> $GITHUB_STEP_SUMMARY << EOF
-          ## 🚀 Release Summary
+          ## 🚀 Release Created Successfully
           
-          - **Version**: ${{ steps.version.outputs.new_version }}
+          ### Release Information
+          - **Version**: v${{ steps.version.outputs.new_version }}
           - **Bump Type**: ${{ steps.bump_type.outputs.bump_type }}
-          - **PR**: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
-          - **Tag**: v${{ steps.version.outputs.new_version }}
+          - **Source PR**: #${{ github.event.pull_request.number }} - ${PR_TITLE}
+          - **Tag Commit**: $(git rev-parse HEAD | cut -c1-8)
           
-          ### Next Steps
-          The release workflow will automatically build binaries for:
+          ### 📦 Binary Build Status
+          The [release workflow](https://github.com/${{ github.repository }}/actions/workflows/release.yml) is now building binaries for:
           - 🐧 Linux (x86_64, x86_64-musl, ARM64)
           - 🍎 macOS (Intel x86_64, Apple Silicon ARM64)
           - 🪟 Windows (x86_64)
           
-          📦 Binaries will be available at: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.new_version }}
+          ### 🔗 Links
+          - [View Release](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.new_version }})
+          - [Download Binaries](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.new_version }})
+          - [All Releases](https://github.com/${{ github.repository }}/releases)
+          
+          > **Note**: Binaries will be available within ~10-15 minutes after the build workflow completes.
+          > All binaries include SHA256 checksums for integrity verification.
           EOF
