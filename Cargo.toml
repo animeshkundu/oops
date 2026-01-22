@@ -39,7 +39,7 @@ strsim = "0.11"
 crossterm = "0.27"
 
 # Paths and directories
-dirs = "5"
+dirs = "6"
 
 # Error handling
 anyhow = "1"
