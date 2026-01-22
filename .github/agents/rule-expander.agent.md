@@ -19,7 +19,7 @@ Expand oops CLI tool support through complete workflow: discover tools, implemen
 - Create rules in `src/rules/<category>/`
 - Register in `src/rules/mod.rs` `get_all_rules()`
 - Use `is_app()` for detection, `get_close_matches()` for fuzzy matching
-- Priority: 50-100 (specific), 500-900 (common), 1000+ (fuzzy)
+- Priority: 50-100 (specific), 500-900 (high), 1000 (default), 2000+ (fuzzy/fallback)
 
 **3. Testing (Min 6 tests/rule)**
 - Positive matches (2+), Negative matches (2+), Corrections (1+), Edge cases (1+)
@@ -70,6 +70,7 @@ impl Rule for MyRule {
         vec![format!("fixed {}", cmd.script)]
     }
 }
+```
 ```
 
 ## Discovery Criteria
