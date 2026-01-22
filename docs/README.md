@@ -53,4 +53,8 @@ Temporary analysis and summary documents from development work:
 
 ### Handoffs
 
-LLM handoff notes for context preservation between sessions (see [.github/copilot-instructions.md](../.github/copilot-instructions.md) for handoff note format).
+LLM handoff notes for context preservation between sessions:
+- [Handoff Notes Guide](handoffs/README.md) - How to create and use handoff notes
+- [2026-01-22: Documentation Reorganization](handoffs/2026-01-22-documentation-reorganization.md) - This reorganization project
+
+See [.github/copilot-instructions.md](../.github/copilot-instructions.md) for the complete handoff note template.
