@@ -17,6 +17,9 @@ jobs:
     name: Event Type Check
     runs-on: ubuntu-latest
     outputs:
+      # Note: Multi-line expressions not supported in job outputs
+      # Checks: event_name == 'pull_request' && merged == true && has 'release' label && title starts with 'chore: release'
+      # Unicode \u003a used for ':' to avoid YAML parsing issues
       should-run: ${{ github.event_name == 'pull_request' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release') && startsWith(github.event.pull_request.title, 'chore\u003a release') }}
     steps:
       - name: Check event and PR status

@@ -91,7 +91,7 @@ jobs:
 
   create-version-bump-pr:
     name: Create Version Bump PR
-    needs: [event-guard, test]
+    needs: test  # Inherits event-guard dependency through test
     if: needs.event-guard.outputs.should-run == 'true'
     permissions:
       contents: write  # Required for creating branches and PRs

@@ -188,12 +188,21 @@ git push
 
 ### YAML Syntax Issue
 ```yaml
-# ❌ Breaks YAML parsing
-'chore: release'
+# ❌ Breaks YAML parsing (colon interpreted as mapping separator)
+outputs:
+  should-run: ${{ startsWith(github.event.pull_request.title, 'chore: release') }}
 
-# ✅ Works (Unicode escape)
-'chore\u003a release'
+# ✅ Works (Unicode escape \u003a = colon character)
+outputs:
+  should-run: ${{ startsWith(github.event.pull_request.title, 'chore\u003a release') }}
 ```
+
+**Why this is necessary**: 
+- YAML parsers interpret `:` as a key-value separator for mappings
+- When `:` appears inside a string within a `${{ }}` expression, YAML gets confused
+- The parser sees `'chore: release'` and thinks `: release` starts a new mapping
+- This causes "mapping values are not allowed here" errors
+- Solution: Use Unicode escape sequence `\u003a` which represents the literal colon character
 
 Reason: YAML interprets `:` as mapping separator.
 
