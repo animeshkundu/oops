@@ -12,7 +12,7 @@ jobs:
   # Run comprehensive tests before releasing
   test:
     name: Pre-release Tests
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -93,18 +93,11 @@ jobs:
           # Default to patch bump
           BUMP_TYPE="patch"
           
-          # Check for breaking change indicators
-          if echo "$PR_TITLE" | grep -qiE "^(feat!|fix!):" || echo "$PR_TITLE" | grep -qiE "breaking"; then
+          # Check for breaking change indicators (major bump)
+          if echo "$PR_TITLE" | grep -qiE "^(feat!|fix!):" || echo "$PR_TITLE" | grep -qiE "breaking" || echo "$PR_LABELS" | grep -qi "breaking"; then
             BUMP_TYPE="major"
-          elif echo "$PR_LABELS" | grep -qi "breaking"; then
-            BUMP_TYPE="major"
-          # Check for feature indicators
-          elif echo "$PR_TITLE" | grep -qiE "^feat:"; then
-            BUMP_TYPE="minor"
-          elif echo "$PR_LABELS" | grep -qi "feature"; then
-            BUMP_TYPE="minor"
-          # Check for minor version indicators
-          elif echo "$PR_LABELS" | grep -qi "enhancement"; then
+          # Check for feature indicators (minor bump)
+          elif echo "$PR_TITLE" | grep -qiE "^feat:" || echo "$PR_LABELS" | grep -qiE "(feature|enhancement)"; then
             BUMP_TYPE="minor"
           fi
           
@@ -126,7 +119,9 @@ jobs:
 
       - name: Update Cargo.lock
         if: steps.check_release.outputs.skip == 'false'
-        run: cargo update -p oops
+        run: |
+          PACKAGE_NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+          cargo update -p "$PACKAGE_NAME"
 
       - name: Commit version bump
         if: steps.check_release.outputs.skip == 'false'

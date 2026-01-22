@@ -135,8 +135,8 @@ If needed, you can still create releases manually:
 # Update version in Cargo.toml
 cargo set-version 0.2.0
 
-# Update Cargo.lock
-cargo update -p oops
+# Update Cargo.lock (replace <package-name> with your package name)
+cargo update -p <package-name>
 
 # Commit changes
 git add Cargo.toml Cargo.lock
