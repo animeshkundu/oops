@@ -77,6 +77,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "📦 Building version: $VERSION (from tag $TAG_NAME)"
+
+      - name: Verify Cargo.toml version matches tag
+        shell: bash
+        run: |
+          CARGO_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          TAG_VERSION="${{ steps.version.outputs.version }}"
+          
+          if [ "$CARGO_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Version mismatch! Cargo.toml has $CARGO_VERSION but tag is $TAG_VERSION"
+            echo "This usually means the auto-release workflow didn't properly bump the version."
+            exit 1
+          fi
+          
+          echo "✅ Version verified: Cargo.toml ($CARGO_VERSION) matches tag ($TAG_VERSION)"
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
