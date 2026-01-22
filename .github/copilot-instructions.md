@@ -146,6 +146,8 @@ This project uses specialized agents for different tasks. When working on specif
 
 ### Available Agents
 
+All agents listed below are available in `.github/agents/`:
+
 | Agent | Purpose | When to Use |
 |-------|---------|-------------|
 | **rust-expert** | Rust code implementation | Writing/refactoring Rust code, performance optimization |
@@ -333,41 +335,47 @@ mod tests {
             "mytool badcmd",
             "error: unknown command 'badcmd'\nDid you mean 'goodcmd'?"
         );
-        assert!(MyRule.is_match(&cmd));
+        let rule = MyRule;
+        assert!(rule.is_match(&cmd));
     }
 
     #[test]
     fn test_not_matches_success() {
         let cmd = Command::new("mytool goodcmd", "Success");
-        assert!(!MyRule.is_match(&cmd));
+        let rule = MyRule;
+        assert!(!rule.is_match(&cmd));
     }
 
     #[test]
     fn test_not_matches_different_tool() {
         let cmd = Command::new("othertool badcmd", "error: unknown command");
-        assert!(!MyRule.is_match(&cmd));
+        let rule = MyRule;
+        assert!(!rule.is_match(&cmd));
     }
 
     #[test]
     fn test_generates_correction() {
         let cmd = Command::new("mytool badcmd", "error: unknown command");
-        let fixes = MyRule.get_new_command(&cmd);
+        let rule = MyRule;
+        let fixes = rule.get_new_command(&cmd);
         assert!(fixes.contains(&"mytool goodcmd".to_string()));
     }
 
     #[test]
     fn test_preserves_arguments() {
         let cmd = Command::new("mytool badcmd --flag", "error");
-        let fixes = MyRule.get_new_command(&cmd);
-        if !fixes.is_empty() {
-            assert!(fixes[0].contains("--flag"));
+        let rule = MyRule;
+        let fixes = rule.get_new_command(&cmd);
+        if let Some(first_fix) = fixes.first() {
+            assert!(first_fix.contains("--flag"));
         }
     }
 
     #[test]
     fn test_empty_command_edge_case() {
         let cmd = Command::new("", "");
-        assert!(!MyRule.is_match(&cmd));
+        let rule = MyRule;
+        assert!(!rule.is_match(&cmd));
     }
 }
 ```
