@@ -29,9 +29,32 @@ User and developer guides.
 - [Configuration](guides/configuration.md) - All configuration options
 - [Creating Rules](guides/creating-rules.md) - How to add new correction rules
 - [Migration from thefuck](guides/migration-from-thefuck.md) - Migrating from the Python version
-- [Quick Release Guide](QUICK_RELEASE_GUIDE.md) - How releases work (TL;DR)
-- [Automated Releases](AUTOMATED_RELEASES.md) - Complete release workflow documentation
+### Development
 
-### History
+- [CLAUDE.md](development/CLAUDE.md) - LLM context and project overview
+- [Contributing Guide](development/CONTRIBUTING.md) - How to contribute to oops
 
-- [Changelog](history/CHANGELOG.md) - Version history
+### Releases
+
+- [Quick Release Guide](releases/QUICK_RELEASE_GUIDE.md) - How releases work (TL;DR)
+- [Automated Releases](releases/AUTOMATED_RELEASES.md) - Complete release workflow documentation
+- [Auto-Release Workflow](releases/auto-release-workflow.md) - Detailed workflow documentation
+- [Auto-Release Improvements](releases/auto-release-improvements.md) - Improvement suggestions
+- [Changelog](releases/CHANGELOG.md) - Version history
+
+### Summaries & Analysis
+
+Temporary analysis and summary documents from development work:
+- [CI Failure Analysis](summaries/CI_FAILURE_ANALYSIS.md)
+- [Implementation Summary](summaries/IMPLEMENTATION_SUMMARY.md)
+- [PR Summary](summaries/PR_SUMMARY.md)
+- [Release Fix Summary](summaries/RELEASE_FIX_SUMMARY.md)
+- [Fixes Summary](summaries/FIXES_SUMMARY.md)
+
+### Handoffs
+
+LLM handoff notes for context preservation between sessions:
+- [Handoff Notes Guide](handoffs/README.md) - How to create and use handoff notes
+- [2026-01-22: Documentation Reorganization](handoffs/2026-01-22-documentation-reorganization.md) - This reorganization project
+
+See [.github/copilot-instructions.md](../.github/copilot-instructions.md) for the complete handoff note template.

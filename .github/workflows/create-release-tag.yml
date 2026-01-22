@@ -1,0 +1,198 @@
+name: Create Release Tag
+
+# This workflow runs after a version bump PR is merged
+# It creates the release tag which triggers the release workflow
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main, master]
+
+permissions:
+  contents: write  # Required for creating and pushing tags
+
+jobs:
+  create-tag:
+    name: Create Release Tag
+    # Only run if:
+    # 1. PR was actually merged (not just closed)
+    # 2. PR has the "release" label (set by auto-release workflow)
+    # 3. PR title starts with "chore: release"
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'release') &&
+      startsWith(github.event.pull_request.title, 'chore: release')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0
+          # Use PAT if available to trigger release workflow
+          # Falls back to GITHUB_TOKEN (release workflow won't trigger without PAT)
+          token: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from Cargo.toml
+        id: version
+        run: |
+          VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Current version in Cargo.toml: $VERSION"
+
+      - name: Verify version is not already tagged
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="v$VERSION"
+          
+          # Check if tag already exists
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
+            echo "::warning::Tag $TAG already exists. Skipping tag creation."
+            echo "This is expected if the tag was created manually or by a previous run."
+            exit 0
+          fi
+          
+          echo "✅ Tag $TAG does not exist yet. Proceeding with creation."
+
+      - name: Create annotated release tag
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="v$VERSION"
+          
+          # Check again (race condition safety)
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
+            echo "::warning::Tag $TAG was just created. Skipping."
+            exit 0
+          fi
+          
+          # Configure git
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Extract version bump type from PR body if available
+          BUMP_TYPE=$(echo "${{ github.event.pull_request.body }}" | grep -oP "(?<=\*\*Bump Type\*\*: )\w+" || echo "patch")
+          
+          # Create annotated tag pointing to the current master commit
+          # This commit now has the version bump merged into it
+          git tag -a "$TAG" -m "Release $TAG" \
+                             -m "" \
+                             -m "Version: $VERSION" \
+                             -m "Bump Type: $BUMP_TYPE" \
+                             -m "Version Bump PR: #$PR_NUMBER" \
+                             -m "" \
+                             -m "This release includes binaries for Linux, macOS, and Windows." \
+                             -m "See release page for download links and checksums." \
+                             -m "" \
+                             -m "This tag points to the merge commit on master that includes" \
+                             -m "the version bump. The version in Cargo.toml matches the tag."
+          
+          echo "✅ Created annotated tag: $TAG"
+
+      - name: Push release tag
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="v$VERSION"
+          
+          # Push the tag to trigger release workflow
+          if git push origin "$TAG"; then
+            echo "✅ Pushed tag: $TAG"
+            echo "🚀 Release workflow will now build and publish binaries"
+          else
+            echo "::error::Failed to push tag $TAG"
+            exit 1
+          fi
+
+      - name: Create workflow summary
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="v$VERSION"
+          HAS_PAT="${{ secrets.RELEASE_PAT != '' }}"
+          
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🏷️ Release Tag Created
+          
+          ### Tag Information
+          - **Tag**: $TAG
+          - **Version**: $VERSION
+          - **Commit**: $(git rev-parse HEAD | cut -c1-8)
+          - **Branch**: ${{ github.event.pull_request.base.ref }}
+          
+          EOF
+          
+          if [ "$HAS_PAT" = "true" ]; then
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+          ### 📦 Release Workflow Triggered
+          
+          ✅ The release workflow has been triggered and will:
+          1. Build binaries for all 6 targets (Linux, macOS, Windows)
+          2. Generate SHA256 checksums for each binary
+          3. Create a GitHub Release with all artifacts
+          
+          **Timeline**: Build process takes ~10-15 minutes
+          
+          ### 🔗 Links
+          - [Release Workflow Runs](https://github.com/${{ github.repository }}/actions/workflows/release.yml)
+          - [View Tag](https://github.com/${{ github.repository }}/releases/tag/$TAG)
+          - [All Releases](https://github.com/${{ github.repository }}/releases)
+          EOF
+          else
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+          ### ⚠️ Manual Action Required
+          
+          The tag was created but the release workflow will **NOT** trigger automatically because:
+          - **RELEASE_PAT secret is not configured**
+          
+          **To trigger the release workflow manually:**
+          1. Go to [Actions → Release](https://github.com/${{ github.repository }}/actions/workflows/release.yml)
+          2. Click "Run workflow"
+          3. Select tag: \`$TAG\`
+          
+          Or push the tag manually:
+          \`\`\`bash
+          git fetch --tags
+          git push origin $TAG
+          \`\`\`
+          
+          💡 **Tip**: Configure RELEASE_PAT secret for fully automated releases.
+          See [RELEASE_PAT_SETUP.md](docs/RELEASE_PAT_SETUP.md) for instructions.
+          
+          ### 🔗 Links
+          - [View Tag](https://github.com/${{ github.repository }}/releases/tag/$TAG)
+          - [All Releases](https://github.com/${{ github.repository }}/releases)
+          EOF
+          fi
+
+      - name: Comment on PR with release info
+        if: secrets.GITHUB_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HAS_PAT: ${{ secrets.RELEASE_PAT != '' }}
+          REPO: ${{ github.repository }}
+        run: |
+          TAG="v$VERSION"
+          
+          if [ "$HAS_PAT" = "true" ]; then
+            gh pr comment "$PR_NUMBER" --body "🎉 **Release tag \`$TAG\` created successfully!**
+
+          📦 The release workflow is now building binaries. Check progress:
+          - [Release Workflow](https://github.com/$REPO/actions/workflows/release.yml)
+          - [Release Page](https://github.com/$REPO/releases/tag/$TAG) *(binaries will appear in ~10-15 minutes)*"
+          else
+            gh pr comment "$PR_NUMBER" --body "🏷️ **Release tag \`$TAG\` created!**
+
+          ⚠️ However, the release workflow was **NOT** automatically triggered because \`RELEASE_PAT\` is not configured.
+
+          **Manual action required**: Push the tag to trigger the release:
+          \`\`\`bash
+          git push origin $TAG
+          \`\`\`
+
+          💡 See [RELEASE_PAT_SETUP.md](docs/RELEASE_PAT_SETUP.md) to enable fully automated releases."
+          fi
+          
+          echo "✅ Posted comment on PR #$PR_NUMBER"

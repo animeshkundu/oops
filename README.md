@@ -282,7 +282,7 @@ See the [migration guide](docs/guides/migration-from-thefuck.md) for details.
 
 ## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! See [CONTRIBUTING.md](docs/development/CONTRIBUTING.md) for guidelines.
 
 ### Adding a New Rule
 

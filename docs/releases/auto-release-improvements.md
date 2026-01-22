@@ -412,7 +412,7 @@ All improvements have been:
 ## References
 
 - [Auto-Release Workflow Documentation](auto-release-workflow.md)
-- [CONTRIBUTING.md](../CONTRIBUTING.md)
+- [CONTRIBUTING.md](../development/CONTRIBUTING.md)
 - [GitHub Actions Best Practices](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Semantic Versioning](https://semver.org/)
