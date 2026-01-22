@@ -224,7 +224,9 @@ cargo bench
 
 ## Release Process
 
-Releases are fully automated via GitHub Actions when a PR is merged to master:
+Releases are fully automated via GitHub Actions when a PR is merged to master.
+
+**For detailed information**, see [Auto-Release Workflow Documentation](docs/auto-release-workflow.md).
 
 ### Automatic Release (Recommended)
 
@@ -238,22 +240,21 @@ Releases are fully automated via GitHub Actions when a PR is merged to master:
    - Run tests on Linux, macOS, and Windows
    - Automatically bump the version in `Cargo.toml`
    - Create and push a git tag (e.g., `v0.1.1`)
-5. The `release` workflow will:
-   - Build binaries for 6 platforms
+5. The `release` workflow (triggered by tag) will:
+   - Build binaries for 6 platforms (Linux x86_64/ARM64, macOS x86_64/ARM64, Windows x86_64)
    - Generate SHA256 checksums
    - Create a GitHub release with all artifacts
 
 **To skip automatic release**: Include `[skip release]` or `[no release]` in your PR title.
 
-### Manual Release (Legacy)
+### Manual Release
 
-If needed, you can still trigger a release manually:
+If needed, you can manually trigger a release:
 
-1. Update version in `Cargo.toml`
-2. Update `CHANGELOG.md`
-3. Commit changes
-4. Create and push a tag: `git tag v0.x.0 && git push --tags`
-5. The release workflow will build and publish automatically
+1. Bump version: `cargo set-version --bump patch` (or minor/major)
+2. Commit: `git add Cargo.toml Cargo.lock && git commit -m "chore: bump version to X.Y.Z"`
+3. Tag and push: `git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin main --tags`
+4. The release workflow will build and publish automatically
 
 ## Getting Help
 

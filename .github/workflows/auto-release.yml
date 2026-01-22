@@ -12,7 +12,7 @@ jobs:
   # Run comprehensive tests before releasing
   test:
     name: Pre-release Tests
-    if: github.event.pull_request.merged == 'true'
+    if: github.event.pull_request.merged == true
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -144,3 +144,4 @@ jobs:
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
           echo "Created and pushed tag: $TAG"
+          echo "Tag $TAG pushed successfully. This will trigger the release workflow to build cross-platform binaries."
