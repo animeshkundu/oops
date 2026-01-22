@@ -68,8 +68,9 @@ jobs:
 
       - name: Validate PR metadata
         id: validate
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
           if [ -z "$PR_TITLE" ]; then
             echo "::error::PR title is empty. Cannot determine version bump."
             exit 1
@@ -78,9 +79,10 @@ jobs:
 
       - name: Check if release needed
         id: check_release
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           # Skip if PR title contains [skip release] or [no release]
-          PR_TITLE="${{ github.event.pull_request.title }}"
           if echo "$PR_TITLE" | grep -qiE "\[(skip|no).?release\]"; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "Skipping release due to [skip release] in PR title"
@@ -101,11 +103,10 @@ jobs:
       - name: Determine version bump type
         if: steps.check_release.outputs.skip == 'false'
         id: bump_type
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
         run: |
-          # Extract PR title and labels to determine bump type
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
-          
           # Default to patch bump
           BUMP_TYPE="patch"
           
