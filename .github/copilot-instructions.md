@@ -170,3 +170,265 @@ Rules are organized by category in `src/rules/`:
 - `frameworks.rs` - Python, Rails, React Native
 - `shell_utils.rs` - grep, sed, history
 - `misc.rs` - Other utilities
+
+## Agentic Workflow Guidelines
+
+### Working with AI Agents
+
+When working with GitHub Copilot agents on tasks:
+
+1. **Clear Task Scoping**
+   - Define clear, focused issues with specific acceptance criteria
+   - Include file hints and impacted areas
+   - Specify what "done" means (tests pass, docs updated, etc.)
+   - Avoid multi-topic or overly broad tasks
+
+2. **Acceptance Criteria Template**
+   ```markdown
+   ## Acceptance Criteria
+   - Implementation passes all affected tests
+   - Code follows project style and conventions
+   - Changes are minimal and focused
+   - No modifications to unrelated files
+   - Documentation updated if needed
+   - Security checks pass (cargo clippy, no vulnerabilities)
+   ```
+
+3. **Incremental Work Pattern**
+   - Plan first, then implement in small steps
+   - Verify each step before moving to the next
+   - Commit frequently with descriptive messages
+   - Request reviews at logical checkpoints
+
+4. **Agent Boundaries**
+   - Agents should NOT modify core system files without explicit need
+   - Agents should NOT skip quality checks (tests, clippy, fmt)
+   - Agents should NOT commit directly to main/master
+   - Agents MUST verify changes don't break existing functionality
+
+### Task Suitability for AI Agents
+
+**Well-suited tasks:**
+- Bug fixes with clear reproduction steps
+- Adding new rules following established patterns
+- Writing tests for existing functionality
+- Documentation updates and improvements
+- Refactoring within well-defined boundaries
+- Code style and formatting fixes
+
+**Less suitable tasks:**
+- Large architectural changes
+- Core trait modifications
+- Complex cross-cutting changes
+- Security-critical modifications requiring deep context
+- Changes requiring significant domain expertise
+
+### Review and Iteration
+
+- Treat agent output as a starting point, not final solution
+- Always review generated code for:
+  - Correctness and edge cases
+  - Performance implications
+  - Security considerations
+  - Test coverage
+  - Code style consistency
+- Provide specific feedback and iterate
+- Run all quality checks before merging
+
+## Security Guidelines
+
+1. **Dependency Management**
+   - Always check dependencies for vulnerabilities before adding
+   - Use `cargo audit` to scan for known security issues
+   - Prefer well-maintained, popular crates
+   - Document security decisions
+
+2. **Code Safety**
+   - All code must be memory-safe (Rust guarantees this mostly)
+   - Avoid `unsafe` blocks unless absolutely necessary
+   - Never execute arbitrary commands without validation
+   - Don't modify system files or environment
+   - Handle errors explicitly, never unwrap() in production code paths
+
+3. **Rule Safety**
+   - Rules must not have side effects by default
+   - Use `side_effect()` sparingly and document why
+   - Never make network calls from rules
+   - Keep rule evaluation fast (<1ms) to avoid DoS
+   - Validate all inputs before using in commands
+
+4. **Testing for Security**
+   - Test edge cases: empty input, special characters, very long input
+   - Test for injection vulnerabilities in command generation
+   - Verify rules don't match unintended commands
+   - Test cross-platform behavior
+
+## Code Quality Standards
+
+### Rust-Specific
+
+1. **Error Handling**
+   - Use `Result<T>` for fallible operations with `anyhow::Result`
+   - Use `?` operator for propagating errors
+   - Provide context with `.context()` when errors occur
+   - Never use `.unwrap()` or `.expect()` in library code
+
+2. **Type Safety**
+   - Prefer owned `String` in structs, `&str` in function parameters
+   - Use `#[derive(Debug, Clone)]` on public structs
+   - Implement traits explicitly when logic is non-trivial
+   - Use type aliases for complex types to improve readability
+
+3. **Documentation**
+   - Document all public APIs with `///` doc comments
+   - Include examples in doc comments for complex functions
+   - Explain the "why" not just the "what"
+   - Keep docs in sync with code
+
+4. **Performance**
+   - Prefer iterator chains over explicit loops where readable
+   - Use `Cow` for conditional cloning
+   - Cache expensive operations (already done for `which` lookups)
+   - Profile before optimizing
+
+### Testing Philosophy
+
+1. **Test Coverage**
+   - Every rule needs minimum 6 tests:
+     - 2+ positive matches (different error patterns)
+     - 2+ negative matches (shouldn't trigger)
+     - 1+ correction verification
+     - 1+ edge case (empty output, special chars)
+   - Use real error output from actual tools
+   - Test cross-platform behavior when relevant
+
+2. **Test Structure**
+   ```rust
+   #[cfg(test)]
+   mod tests {
+       use super::*;
+       use crate::core::Command;
+   
+       #[test]
+       fn test_matches_when_error_occurs() {
+           let cmd = Command::new("tool cmd", "error: something");
+           let rule = MyRule::default();
+           assert!(rule.is_match(&cmd));
+       }
+   
+       #[test]
+       fn test_no_match_when_success() {
+           let cmd = Command::new("tool cmd", "success");
+           let rule = MyRule::default();
+           assert!(!rule.is_match(&cmd));
+       }
+   
+       #[test]
+       fn test_generates_correct_fix() {
+           let cmd = Command::new("tool cmd", "error: typo");
+           let rule = MyRule::default();
+           let fixes = rule.get_new_command(&cmd);
+           assert!(fixes.contains(&"tool command".to_string()));
+       }
+   }
+   ```
+
+3. **Test Data**
+   - Use realistic error messages from actual tool runs
+   - Test with different versions' error formats when known
+   - Include unicode, spaces, and special characters
+   - Test boundary conditions (empty, very long, null-like)
+
+## Project Memory & Context
+
+### Architecture Principles
+
+1. **Rule System**
+   - Rules are independent, stateless, and thread-safe
+   - Rules are evaluated lazily for performance
+   - Multiple rules can match; user selects from corrections
+   - Priority determines order (lower = higher priority)
+
+2. **Shell Integration**
+   - Each shell implements the `Shell` trait
+   - Shell-specific syntax (alias, history, chaining) isolated
+   - Environment variables for backward compatibility with thefuck
+
+3. **Performance First**
+   - Target: <50ms cold start
+   - Rules evaluate in microseconds
+   - Lazy evaluation of rules
+   - Efficient fuzzy matching with `strsim`
+
+### Common Patterns
+
+1. **Command Detection**
+   ```rust
+   use crate::utils::is_app;
+   
+   // Check if command uses specific tool
+   is_app(cmd, &["git", "g"])  // Handles aliases too
+   ```
+
+2. **Fuzzy Matching**
+   ```rust
+   use crate::utils::get_close_matches;
+   
+   // Find similar commands
+   let suggestions = get_close_matches("psh", &["push", "pull"], 3);
+   ```
+
+3. **Output Parsing**
+   ```rust
+   // Check for specific error patterns
+   if cmd.output.contains("not a git command") {
+       // Extract typo, suggest fix
+   }
+   ```
+
+### Commit Message Guidelines
+
+Follow conventional commit format:
+- `feat(rules): add support for kubectl`
+- `fix(git): handle branch names with spaces`
+- `test(npm): add edge cases for package.json errors`
+- `docs(readme): update installation instructions`
+- `refactor(core): simplify rule matching logic`
+- `perf(fuzzy): optimize string comparison`
+- `chore(deps): update dependencies`
+
+### PR Best Practices
+
+1. **Title**: Clear, concise, follows commit convention
+2. **Description**:
+   - What problem does this solve?
+   - What changes were made?
+   - How was it tested?
+   - Any breaking changes or migration needed?
+3. **Scope**: Keep PRs focused (single rule, single fix)
+4. **Tests**: Include test output showing coverage
+5. **Examples**: Show before/after for rule corrections
+
+## File Organization
+
+```
+src/
+├── main.rs           # CLI entry point - minimal, just dispatch
+├── lib.rs            # Public library interface
+├── cli.rs            # clap-based argument parsing
+├── config/           # Configuration loading (env, file, defaults)
+├── core/             # Core types and rule engine (DO NOT MODIFY lightly)
+│   ├── command.rs    # Command struct
+│   ├── rule.rs       # Rule trait definition
+│   ├── corrected.rs  # CorrectedCommand with side effects
+│   └── corrector.rs  # Rule matching and filtering engine
+├── rules/            # All correction rules (ADD NEW RULES HERE)
+│   ├── mod.rs        # Rule registry
+│   └── <category>/   # Rules grouped by tool category
+├── shells/           # Shell-specific integrations
+├── output/           # Command execution and output capture
+├── ui/               # Terminal UI and user interaction
+└── utils/            # Shared utilities (caching, fuzzy matching)
+```
+
+**Key principle**: New rules go in `src/rules/<category>/` and are registered in `src/rules/mod.rs`. Core files should rarely need changes.
