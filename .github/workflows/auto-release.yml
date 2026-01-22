@@ -5,17 +5,24 @@ on:
     types: [closed]
     branches: [main, master]
 
+# Ensure only one release workflow runs at a time to prevent conflicts
+concurrency:
+  group: auto-release-${{ github.ref }}
+  cancel-in-progress: false  # Queue releases instead of cancelling
+
 permissions:
-  contents: write
+  contents: read  # Default read-only
 
 jobs:
   # Run comprehensive tests before releasing
   test:
     name: Pre-release Tests
-    if: github.event.pull_request.merged == 'true'
+    permissions:
+      contents: read
+    if: github.event.pull_request.merged == true
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false  # See all platform failures for better diagnostics
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         rust: [stable]
@@ -29,15 +36,10 @@ jobs:
           components: clippy, rustfmt
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ matrix.rust }}-
+          shared-key: "test-${{ matrix.os }}-${{ matrix.rust }}"
+          cache-on-failure: true
 
       - name: Check formatting
         run: cargo fmt --check
@@ -53,6 +55,8 @@ jobs:
 
   auto-release:
     name: Automatic Release on Merge
+    permissions:
+      contents: write  # Required for pushing commits and tags
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -61,6 +65,16 @@ jobs:
           ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate PR metadata
+        id: validate
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if [ -z "$PR_TITLE" ]; then
+            echo "::error::PR title is empty. Cannot determine version bump."
+            exit 1
+          fi
+          echo "PR title validated: $PR_TITLE"
 
       - name: Check if release needed
         id: check_release
@@ -80,7 +94,9 @@ jobs:
 
       - name: Install cargo-edit
         if: steps.check_release.outputs.skip == 'false'
-        run: cargo install cargo-edit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-edit@0.12.2
 
       - name: Determine version bump type
         if: steps.check_release.outputs.skip == 'false'
@@ -108,13 +124,27 @@ jobs:
         if: steps.check_release.outputs.skip == 'false'
         id: version
         run: |
-          OLD_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
-          echo "Old version: $OLD_VERSION"
+          set -e  # Exit on error
           
-          cargo set-version --bump ${{ steps.bump_type.outputs.bump_type }}
+          OLD_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          echo "📦 Current version: $OLD_VERSION"
+          
+          BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
+          echo "⬆️  Bumping $BUMP_TYPE version..."
+          
+          if ! cargo set-version --bump "$BUMP_TYPE"; then
+            echo "::error::Failed to bump version. Check cargo-edit installation."
+            exit 1
+          fi
           
           NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
-          echo "New version: $NEW_VERSION"
+          
+          if [ "$OLD_VERSION" = "$NEW_VERSION" ]; then
+            echo "::error::Version did not change. Old: $OLD_VERSION, New: $NEW_VERSION"
+            exit 1
+          fi
+          
+          echo "✅ Version bumped: $OLD_VERSION → $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Update Cargo.lock
@@ -123,13 +153,38 @@ jobs:
           PACKAGE_NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
           cargo update -p "$PACKAGE_NAME"
 
+      - name: Validate version bump
+        if: steps.check_release.outputs.skip == 'false'
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          
+          # Verify version format (semver)
+          if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid version format: $NEW_VERSION"
+            exit 1
+          fi
+          
+          # Verify Cargo.lock was updated
+          if ! git diff Cargo.lock | grep -q "+version = \"$NEW_VERSION\""; then
+            echo "::error::Cargo.lock was not properly updated"
+            exit 1
+          fi
+          
+          # Verify we're not creating a duplicate version
+          if git tag -l | grep -q "^v$NEW_VERSION$"; then
+            echo "::error::Version v$NEW_VERSION already exists as a tag"
+            exit 1
+          fi
+          
+          echo "✅ Version bump validated successfully"
+
       - name: Commit version bump
         if: steps.check_release.outputs.skip == 'false'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add Cargo.toml Cargo.lock
-          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
+          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
 
       - name: Push changes
         if: steps.check_release.outputs.skip == 'false'
@@ -141,6 +196,34 @@ jobs:
         if: steps.check_release.outputs.skip == 'false'
         run: |
           TAG="v${{ steps.version.outputs.new_version }}"
+          
+          # Check if tag already exists
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::warning::Tag $TAG already exists. Skipping tag creation."
+            echo "This may indicate a previous partial run. Please verify the release."
+            exit 0
+          fi
+          
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
-          echo "Created and pushed tag: $TAG"
+          echo "✅ Created and pushed tag: $TAG"
+
+      - name: Create release summary
+        if: steps.check_release.outputs.skip == 'false'
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🚀 Release Summary
+          
+          - **Version**: ${{ steps.version.outputs.new_version }}
+          - **Bump Type**: ${{ steps.bump_type.outputs.bump_type }}
+          - **PR**: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+          - **Tag**: v${{ steps.version.outputs.new_version }}
+          
+          ### Next Steps
+          The release workflow will automatically build binaries for:
+          - 🐧 Linux (x86_64, x86_64-musl, ARM64)
+          - 🍎 macOS (Intel x86_64, Apple Silicon ARM64)
+          - 🪟 Windows (x86_64)
+          
+          📦 Binaries will be available at: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.new_version }}
+          EOF

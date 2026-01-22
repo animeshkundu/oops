@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: write  # Required for creating releases
 
 env:
   CARGO_TERM_COLOR: always
@@ -83,13 +83,10 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-${{ matrix.target }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          shared-key: "release-${{ matrix.target }}"
+          cache-on-failure: true
 
       - name: Install musl tools
         if: matrix.target == 'x86_64-unknown-linux-musl'
@@ -154,6 +151,19 @@ jobs:
           echo "Release assets:"
           ls -la release/
 
+      - name: Verify artifacts
+        run: |
+          cd release
+          echo "🔍 Verifying artifact checksums..."
+          # Verify all checksums
+          for file in *.sha256; do
+            if ! sha256sum -c "$file"; then
+              echo "::error::Checksum verification failed for $file"
+              exit 1
+            fi
+          done
+          echo "✅ All artifact checksums verified"
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -161,3 +171,26 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+
+      - name: Create release summary
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🎉 Release Published
+          
+          **Version**: $TAG_NAME
+          
+          ### 📦 Built Artifacts
+          - Linux x86_64 (glibc)
+          - Linux x86_64 (musl - static)
+          - Linux ARM64
+          - macOS x86_64 (Intel)
+          - macOS ARM64 (Apple Silicon)
+          - Windows x86_64
+          
+          ### 🔗 Links
+          - [Release Page](https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME)
+          - [Download Latest](https://github.com/${{ github.repository }}/releases/latest)
+          
+          All binaries include SHA256 checksums for verification.
+          EOF
