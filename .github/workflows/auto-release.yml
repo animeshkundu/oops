@@ -225,6 +225,9 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_TITLE="${{ github.event.pull_request.title }}"
           
+          # Find previous tag for changelog comparison
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
           # Create release notes file
           cat > release_notes.md << EOF
           ## Version $NEW_VERSION
@@ -234,7 +237,17 @@ jobs:
           
           ### Changes
           This release was automatically created from PR merge.
-          See the [full changelog](https://github.com/${{ github.repository }}/compare/v$NEW_VERSION...HEAD) for details.
+          EOF
+          
+          # Add changelog link if previous tag exists
+          if [ -n "$PREV_TAG" ]; then
+            echo "See the [full changelog](https://github.com/${{ github.repository }}/compare/$PREV_TAG...v$NEW_VERSION) for details." >> release_notes.md
+          else
+            echo "This is the first release." >> release_notes.md
+          fi
+          
+          # Add download section
+          cat >> release_notes.md << EOF
           
           ### Download
           Binaries will be available shortly for:
