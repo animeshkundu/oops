@@ -69,6 +69,15 @@ else
     echo "   ⚠️  Python3 not available, skipping YAML validation"
 fi
 
+# Extract repository URL for displaying Actions link
+# Converts git@github.com:owner/repo.git or https://github.com/owner/repo.git to owner/repo
+get_repo_path() {
+    git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\1/'
+}
+
+REPO_PATH=$(get_repo_path)
+ACTIONS_URL="https://github.com/${REPO_PATH}/actions"
+
 echo ""
 echo "📊 Test Options:"
 echo "---------------"
@@ -91,7 +100,7 @@ case $option in
         git push origin v0.1.2
         echo ""
         echo "✅ Tag pushed! Check GitHub Actions:"
-        echo "   https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\1/')/actions"
+        echo "   ${ACTIONS_URL}"
         ;;
     2)
         echo ""
@@ -99,7 +108,7 @@ case $option in
         git push origin v0.1.1
         echo ""
         echo "✅ Tag pushed! Check GitHub Actions:"
-        echo "   https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\1/')/actions"
+        echo "   ${ACTIONS_URL}"
         ;;
     3)
         echo ""
@@ -109,7 +118,7 @@ case $option in
         git push origin v0.1.3-test
         echo ""
         echo "✅ Test tag created and pushed! Check GitHub Actions:"
-        echo "   https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\1/')/actions"
+        echo "   ${ACTIONS_URL}"
         ;;
     4)
         echo ""
