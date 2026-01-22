@@ -34,6 +34,9 @@ cargo build --release
 echo "==> cargo test"
 cargo test
 
+echo "==> cargo clippy --all-targets --all-features"
+cargo clippy --all-targets --all-features -- -D warnings
+
 echo "==> cargo build (msrv)"
 if [[ -n "$msrv_toolchain" ]]; then
   echo "Using MSRV toolchain: ${msrv_toolchain}"
