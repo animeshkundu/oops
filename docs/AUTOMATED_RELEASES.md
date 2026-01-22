@@ -13,6 +13,49 @@ The oops project uses a fully automated release pipeline that creates new releas
 5. Builds binaries for 6 targets (3 platforms: Linux, macOS, Windows)
 6. Creates a GitHub release with all artifacts
 
+## Setup Requirements
+
+### Personal Access Token (PAT)
+
+The automated release system requires a **Personal Access Token (PAT)** with appropriate permissions to trigger the release workflow. This is necessary because GitHub Actions has a security feature that prevents workflows triggered by `GITHUB_TOKEN` from spawning new workflow runs to avoid infinite loops.
+
+#### Creating the PAT
+
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Click "Generate new token (classic)"
+3. Set a descriptive note: "oops release automation"
+4. Set expiration as appropriate (recommend: 90 days or 1 year with calendar reminder)
+5. Select scopes:
+   - ✅ `repo` (Full control of private repositories) - this includes:
+     - `repo:status` - Access commit status
+     - `repo_deployment` - Access deployment status
+     - `public_repo` - Access public repositories
+     - `repo:invite` - Access repository invitations
+   - ✅ `workflow` (Update GitHub Action workflows)
+6. Click "Generate token"
+7. **Copy the token immediately** (you won't see it again!)
+
+#### Adding PAT to Repository
+
+1. Go to your repository Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Name: `RELEASE_PAT`
+4. Value: Paste the PAT you copied
+5. Click "Add secret"
+
+#### Why is this needed?
+
+When the auto-release workflow pushes a tag using the default `GITHUB_TOKEN`, GitHub Actions intentionally **does NOT** trigger the release workflow. This is documented GitHub behavior to prevent workflow recursion and potential infinite loops.
+
+By using a PAT, the tag push is attributed to a real user (the PAT owner), which allows the release workflow to be triggered normally.
+
+#### Fallback Behavior
+
+If the `RELEASE_PAT` secret is not configured, the workflow will fall back to using `GITHUB_TOKEN`. This means:
+- ✅ Version bump and tag creation will still work
+- ❌ Release workflow will NOT be automatically triggered
+- ⚠️ You'll need to manually trigger releases or push tags manually
+
 ## Workflows
 
 ### 1. Auto Release Workflow (`.github/workflows/auto-release.yml`)
@@ -151,6 +194,23 @@ git push --tags
 The release workflow will automatically build and publish.
 
 ## Troubleshooting
+
+### Release workflow not triggered after tag is pushed
+**Symptoms**: Tag exists (e.g., v0.1.2) but no GitHub Release was created and no binaries built.
+
+**Cause**: The auto-release workflow is using `GITHUB_TOKEN` instead of a Personal Access Token (PAT). GitHub Actions prevents workflows triggered by `GITHUB_TOKEN` from spawning new workflow runs.
+
+**Solution**:
+1. Create a Personal Access Token (see "Setup Requirements" section above)
+2. Add it as a repository secret named `RELEASE_PAT`
+3. The workflow will automatically use it for subsequent releases
+
+**Temporary Workaround**: Manually push the tag from your local machine:
+```bash
+git fetch --tags
+git push origin v0.1.2  # Replace with actual tag
+```
+When you push a tag from your local machine (not from a workflow), it will trigger the release workflow normally.
 
 ### Release didn't trigger after PR merge
 - Check if PR title contains `[skip release]` or `[no release]`
