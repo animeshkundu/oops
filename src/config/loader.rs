@@ -129,8 +129,12 @@ pub fn get_config_dir() -> PathBuf {
 pub fn ensure_config_dir() -> Result<PathBuf> {
     let config_dir = get_config_dir();
     if !config_dir.exists() {
-        fs::create_dir_all(&config_dir)
-            .with_context(|| format!("Failed to create config directory: {}", config_dir.display()))?;
+        fs::create_dir_all(&config_dir).with_context(|| {
+            format!(
+                "Failed to create config directory: {}",
+                config_dir.display()
+            )
+        })?;
     }
     Ok(config_dir)
 }
@@ -141,8 +145,9 @@ pub fn ensure_config_dir() -> Result<PathBuf> {
 pub fn ensure_rules_dir() -> Result<PathBuf> {
     let rules_dir = get_rules_dir();
     if !rules_dir.exists() {
-        fs::create_dir_all(&rules_dir)
-            .with_context(|| format!("Failed to create rules directory: {}", rules_dir.display()))?;
+        fs::create_dir_all(&rules_dir).with_context(|| {
+            format!("Failed to create rules directory: {}", rules_dir.display())
+        })?;
     }
     Ok(rules_dir)
 }
@@ -197,7 +202,10 @@ fn load_from_env() -> Settings {
     // THEFUCK_REQUIRE_CONFIRMATION: "true" or "false"
     if let Ok(value) = env::var("THEFUCK_REQUIRE_CONFIRMATION") {
         settings.require_confirmation = parse_bool(&value, true);
-        debug!("THEFUCK_REQUIRE_CONFIRMATION: {}", settings.require_confirmation);
+        debug!(
+            "THEFUCK_REQUIRE_CONFIRMATION: {}",
+            settings.require_confirmation
+        );
     }
 
     // THEFUCK_WAIT_COMMAND: integer (seconds)
@@ -327,7 +335,10 @@ fn parse_priority(value: &str) -> HashMap<String, i32> {
             if let Ok(priority_value) = parts[1].trim().parse::<i32>() {
                 priority.insert(rule_name.to_string(), priority_value);
             } else {
-                warn!("Invalid priority value for rule '{}': {}", rule_name, parts[1]);
+                warn!(
+                    "Invalid priority value for rule '{}': {}",
+                    rule_name, parts[1]
+                );
             }
         }
     }
@@ -344,7 +355,10 @@ fn parse_bool(value: &str, default: bool) -> bool {
         "true" | "1" | "yes" | "on" => true,
         "false" | "0" | "no" | "off" => false,
         _ => {
-            warn!("Invalid boolean value '{}', using default: {}", value, default);
+            warn!(
+                "Invalid boolean value '{}', using default: {}",
+                value, default
+            );
             default
         }
     }
@@ -367,10 +381,14 @@ pub fn create_default_settings_file() -> Result<PathBuf> {
 
 "#;
 
-        fs::write(&settings_path, format!("{}{}", header, toml_content))
-            .with_context(|| format!("Failed to write settings file: {}", settings_path.display()))?;
+        fs::write(&settings_path, format!("{}{}", header, toml_content)).with_context(|| {
+            format!("Failed to write settings file: {}", settings_path.display())
+        })?;
 
-        debug!("Created default settings file at: {}", settings_path.display());
+        debug!(
+            "Created default settings file at: {}",
+            settings_path.display()
+        );
     }
 
     Ok(settings_path)

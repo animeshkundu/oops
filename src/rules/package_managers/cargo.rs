@@ -191,10 +191,7 @@ mod tests {
 
         #[test]
         fn test_no_match_without_suggestion() {
-            let cmd = Command::new(
-                "cargo xyz",
-                "error: no such subcommand: `xyz`",
-            );
+            let cmd = Command::new("cargo xyz", "error: no such subcommand: `xyz`");
             assert!(!CargoNoCommand.is_match(&cmd));
         }
 
@@ -253,10 +250,7 @@ mod tests {
 
         #[test]
         fn test_matches_no_suggestion() {
-            let cmd = Command::new(
-                "cargo bildx",
-                "error: no such subcommand: `bildx`",
-            );
+            let cmd = Command::new("cargo bildx", "error: no such subcommand: `bildx`");
             assert!(CargoWrongCommand.is_match(&cmd));
         }
 
@@ -278,20 +272,14 @@ mod tests {
 
         #[test]
         fn test_get_new_command_fuzzy() {
-            let cmd = Command::new(
-                "cargo bilud",
-                "error: no such subcommand: `bilud`",
-            );
+            let cmd = Command::new("cargo bilud", "error: no such subcommand: `bilud`");
             let fixes = CargoWrongCommand.get_new_command(&cmd);
             assert_eq!(fixes, vec!["cargo build"]);
         }
 
         #[test]
         fn test_get_new_command_tset() {
-            let cmd = Command::new(
-                "cargo tset",
-                "error: no such subcommand: `tset`",
-            );
+            let cmd = Command::new("cargo tset", "error: no such subcommand: `tset`");
             let fixes = CargoWrongCommand.get_new_command(&cmd);
             assert_eq!(fixes, vec!["cargo test"]);
         }

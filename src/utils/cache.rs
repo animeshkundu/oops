@@ -25,7 +25,7 @@ use std::path::PathBuf;
 /// ```
 /// use oops::utils::cache::which;
 ///
-/// if let Some(path) = which("git") {
+/// if let Some(path) = which("git".to_string()) {
 ///     println!("git is at: {:?}", path);
 /// }
 /// ```

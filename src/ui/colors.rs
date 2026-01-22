@@ -2,11 +2,11 @@
 //!
 //! Provides functions for printing colored text to the terminal using crossterm.
 
-use std::io::{self, Write};
+use std::io;
 
 use crossterm::{
     execute,
-    style::{Color, Print, ResetColor, SetAttribute, SetForegroundColor, Attribute},
+    style::{Attribute, Color, Print, ResetColor, SetAttribute, SetForegroundColor},
 };
 
 /// Print a command script with syntax highlighting.

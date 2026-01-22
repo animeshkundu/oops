@@ -16,7 +16,6 @@ pub use corrected::{CorrectedCommand, SideEffect};
 pub use corrector::{get_best_correction, get_corrected_commands, get_rules, match_rule};
 pub use rule::{for_app, is_app, ForAppRule, Rule};
 
-use crate::config::Settings;
 use anyhow::Result;
 
 /// Options for the fix command operation.

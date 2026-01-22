@@ -5,7 +5,7 @@
 //!
 //! Run benchmarks with: `cargo bench`
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use std::process::Command as ProcessCommand;
 use std::time::{Duration, Instant};
 
@@ -118,31 +118,30 @@ fn bench_rule_matching(c: &mut Criterion) {
         ("cd_parent_match", "cd..", "command not found"),
         ("cd_mkdir_match", "cd newdir", "no such file or directory"),
         ("no_command_match", "gti status", "gti: command not found"),
-        ("complex_output", "git push origin master",
-         "error: failed to push some refs to 'origin'\n\
+        (
+            "complex_output",
+            "git push origin master",
+            "error: failed to push some refs to 'origin'\n\
           hint: Updates were rejected because the remote contains work\n\
           hint: that you do not have locally. This is usually caused by\n\
-          hint: another repository pushing to the same ref."),
+          hint: another repository pushing to the same ref.",
+        ),
     ];
 
     for (name, script, output) in test_cases {
         let cmd = TfCommand::new(script, output);
 
-        group.bench_with_input(
-            BenchmarkId::new("all_rules", name),
-            &cmd,
-            |b, cmd| {
-                b.iter(|| {
-                    let mut matches = Vec::new();
-                    for rule in rules.iter() {
-                        if rule.is_match(cmd) {
-                            matches.push(rule.name());
-                        }
+        group.bench_with_input(BenchmarkId::new("all_rules", name), &cmd, |b, cmd| {
+            b.iter(|| {
+                let mut matches = Vec::new();
+                for rule in rules.iter() {
+                    if rule.is_match(cmd) {
+                        matches.push(rule.name());
                     }
-                    black_box(matches)
-                })
-            },
-        );
+                }
+                black_box(matches)
+            })
+        });
     }
 
     group.finish();
@@ -166,21 +165,15 @@ fn bench_individual_rules(c: &mut Criterion) {
         let non_matching_cmd = TfCommand::new("ls /home", "file1 file2");
 
         group.bench_function("sudo_is_match_true", |b| {
-            b.iter(|| {
-                black_box(rule.is_match(&matching_cmd))
-            })
+            b.iter(|| black_box(rule.is_match(&matching_cmd)))
         });
 
         group.bench_function("sudo_is_match_false", |b| {
-            b.iter(|| {
-                black_box(rule.is_match(&non_matching_cmd))
-            })
+            b.iter(|| black_box(rule.is_match(&non_matching_cmd)))
         });
 
         group.bench_function("sudo_get_new_command", |b| {
-            b.iter(|| {
-                black_box(rule.get_new_command(&matching_cmd))
-            })
+            b.iter(|| black_box(rule.get_new_command(&matching_cmd)))
         });
     }
 
@@ -189,15 +182,11 @@ fn bench_individual_rules(c: &mut Criterion) {
         let matching_cmd = TfCommand::new("cd..", "command not found");
 
         group.bench_function("cd_parent_is_match", |b| {
-            b.iter(|| {
-                black_box(rule.is_match(&matching_cmd))
-            })
+            b.iter(|| black_box(rule.is_match(&matching_cmd)))
         });
 
         group.bench_function("cd_parent_get_new_command", |b| {
-            b.iter(|| {
-                black_box(rule.get_new_command(&matching_cmd))
-            })
+            b.iter(|| black_box(rule.get_new_command(&matching_cmd)))
         });
     }
 
@@ -206,15 +195,11 @@ fn bench_individual_rules(c: &mut Criterion) {
         let matching_cmd = TfCommand::new("cd newdir", "no such file or directory");
 
         group.bench_function("cd_mkdir_is_match", |b| {
-            b.iter(|| {
-                black_box(rule.is_match(&matching_cmd))
-            })
+            b.iter(|| black_box(rule.is_match(&matching_cmd)))
         });
 
         group.bench_function("cd_mkdir_get_new_command", |b| {
-            b.iter(|| {
-                black_box(rule.get_new_command(&matching_cmd))
-            })
+            b.iter(|| black_box(rule.get_new_command(&matching_cmd)))
         });
     }
 
@@ -223,17 +208,13 @@ fn bench_individual_rules(c: &mut Criterion) {
         let matching_cmd = TfCommand::new("gti status", "gti: command not found");
 
         group.bench_function("no_command_is_match", |b| {
-            b.iter(|| {
-                black_box(rule.is_match(&matching_cmd))
-            })
+            b.iter(|| black_box(rule.is_match(&matching_cmd)))
         });
 
         // Note: get_new_command for no_command is expensive as it searches PATH
         // We run it with a smaller iteration count
         group.bench_function("no_command_get_new_command", |b| {
-            b.iter(|| {
-                black_box(rule.get_new_command(&matching_cmd))
-            })
+            b.iter(|| black_box(rule.get_new_command(&matching_cmd)))
         });
     }
 
@@ -247,8 +228,14 @@ fn bench_command_parsing(c: &mut Criterion) {
     let test_scripts = vec![
         ("simple", "git status"),
         ("with_args", "git commit -m 'Initial commit'"),
-        ("complex", "docker run -it --rm -v /home/user:/data ubuntu:latest /bin/bash"),
-        ("long", "find . -name '*.rs' -type f -exec grep -l 'pattern' {} \\;"),
+        (
+            "complex",
+            "docker run -it --rm -v /home/user:/data ubuntu:latest /bin/bash",
+        ),
+        (
+            "long",
+            "find . -name '*.rs' -type f -exec grep -l 'pattern' {} \\;",
+        ),
     ];
 
     for (name, script) in test_scripts {
@@ -282,21 +269,17 @@ fn bench_full_correction(c: &mut Criterion) {
     for (name, script, output) in test_cases {
         let cmd = TfCommand::new(script, output);
 
-        group.bench_with_input(
-            BenchmarkId::new("get_corrections", name),
-            &cmd,
-            |b, cmd| {
-                b.iter(|| {
-                    let mut all_corrections = Vec::new();
-                    for rule in rules.iter() {
-                        if rule.is_match(cmd) {
-                            all_corrections.extend(rule.get_new_command(cmd));
-                        }
+        group.bench_with_input(BenchmarkId::new("get_corrections", name), &cmd, |b, cmd| {
+            b.iter(|| {
+                let mut all_corrections = Vec::new();
+                for rule in rules.iter() {
+                    if rule.is_match(cmd) {
+                        all_corrections.extend(rule.get_new_command(cmd));
                     }
-                    black_box(all_corrections)
-                })
-            },
-        );
+                }
+                black_box(all_corrections)
+            })
+        });
     }
 
     group.finish();
@@ -367,7 +350,8 @@ fn print_startup_comparison() {
     println!("Rust average startup time: {:?}", rust_avg);
 
     if !python_times.is_empty() {
-        let python_avg: Duration = python_times.iter().sum::<Duration>() / python_times.len() as u32;
+        let python_avg: Duration =
+            python_times.iter().sum::<Duration>() / python_times.len() as u32;
         println!("Python average startup time: {:?}", python_avg);
 
         let speedup = python_avg.as_secs_f64() / rust_avg.as_secs_f64();
