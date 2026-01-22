@@ -4,33 +4,64 @@ This document explains how the automated release system works for the oops proje
 
 ## Overview
 
-The oops project uses a fully automated release pipeline that creates new releases whenever a Pull Request is merged to the `master` branch. The system automatically:
+The oops project uses a **PR-based automated release pipeline** that creates new releases whenever a Pull Request is merged to the `master` branch. This approach respects branch protection rules and maintains version consistency between the master branch and release tags.
 
-1. Runs comprehensive tests on all platforms
-2. Determines the appropriate version bump
-3. Updates version files
-4. Creates a git tag
-5. Builds binaries for 6 targets (3 platforms: Linux, macOS, Windows)
-6. Creates a GitHub release with all artifacts
+### Release Flow
+
+```
+PR Merged → Version Bump PR → Auto-merge → Tag Created → Binaries Built → Release Published
+```
+
+The system automatically:
+
+1. **Analyzes the merged PR** to determine version bump type
+2. **Creates a version bump PR** with updated Cargo.toml and Cargo.lock
+3. **Runs CI checks** on the version bump PR
+4. **Auto-merges the PR** (if RELEASE_PAT configured) or waits for manual merge
+5. **Creates a git tag** pointing to the merged commit
+6. **Builds binaries** for 6 targets (Linux, macOS, Windows)
+7. **Creates a GitHub release** with all artifacts and checksums
+
+## Why PR-Based Approach?
+
+The PR-based approach is the **industry standard for 2024** and provides:
+
+✅ **Version Consistency**: Master branch always has the same version as the latest tag
+✅ **Branch Protection**: Fully compatible with protected branches (no workarounds needed)
+✅ **Audit Trail**: Every version bump visible as a PR with full CI history
+✅ **Transparency**: Easy to see what version is on master vs what's released
+✅ **Rollback Safety**: Version bumps can be reverted like any other PR
+✅ **Standard Practice**: Used by semantic-release, changesets, release-please, and major open source projects
 
 ## Setup Requirements
 
-### Personal Access Token (PAT)
+### Personal Access Token (PAT) - Optional but Recommended
 
-The automated release system requires a **Personal Access Token (PAT)** with appropriate permissions to trigger the release workflow. This is necessary because GitHub Actions has a security feature that prevents workflows triggered by `GITHUB_TOKEN` from spawning new workflow runs to avoid infinite loops.
+The automated release system can work in two modes:
 
-#### Creating the PAT
+#### With RELEASE_PAT (Fully Automated)
+- Version bump PR is created
+- PR auto-merges when CI passes
+- Tag is created automatically
+- Release workflow triggers automatically
+- **Zero manual intervention**
+
+#### Without RELEASE_PAT (Semi-Automated)
+- Version bump PR is created
+- ⚠️ **Manual merge required**
+- Tag must be pushed manually
+- **Some manual steps needed**
+
+### Creating the PAT
+
+To enable fully automated releases:
 
 1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
 2. Click "Generate new token (classic)"
 3. Set a descriptive note: "oops release automation"
 4. Set expiration as appropriate (recommend: 90 days or 1 year with calendar reminder)
 5. Select scopes:
-   - ✅ `repo` (Full control of private repositories) - this includes:
-     - `repo:status` - Access commit status
-     - `repo_deployment` - Access deployment status
-     - `public_repo` - Access public repositories
-     - `repo:invite` - Access repository invitations
+   - ✅ `repo` (Full control of private repositories)
    - ✅ `workflow` (Update GitHub Action workflows)
 6. Click "Generate token"
 7. **Copy the token immediately** (you won't see it again!)
@@ -43,20 +74,11 @@ The automated release system requires a **Personal Access Token (PAT)** with app
 4. Value: Paste the PAT you copied
 5. Click "Add secret"
 
-#### Why is this needed?
-
-When the auto-release workflow pushes a tag using the default `GITHUB_TOKEN`, GitHub Actions intentionally **does NOT** trigger the release workflow. This is documented GitHub behavior to prevent workflow recursion and potential infinite loops.
-
-By using a PAT, the tag push is attributed to a real user (the PAT owner), which allows the release workflow to be triggered normally.
-
-#### Fallback Behavior
-
-If the `RELEASE_PAT` secret is not configured, the workflow will fall back to using `GITHUB_TOKEN`. This means:
-- ✅ Version bump and tag creation will still work
-- ❌ Release workflow will NOT be automatically triggered
-- ⚠️ You'll need to manually trigger releases or push tags manually
+See [RELEASE_PAT_SETUP.md](../RELEASE_PAT_SETUP.md) for detailed instructions.
 
 ## Workflows
+
+The release system consists of three workflows:
 
 ### 1. Auto Release Workflow (`.github/workflows/auto-release.yml`)
 
@@ -64,31 +86,59 @@ If the `RELEASE_PAT` secret is not configured, the workflow will fall back to us
 
 **Jobs**:
 
-#### Test Job
+#### Test Job (Pre-release validation)
 - Runs on: Linux, macOS, Windows
 - Checks:
   - Code formatting (`cargo fmt --check`)
   - Linting (`cargo clippy -- -D warnings`)
   - Build (`cargo build --release`)
   - All tests (`cargo test`)
-- **Must pass** before release proceeds
+- **Must pass** before version bump PR is created
 
-#### Auto-Release Job
-- Determines version bump type from PR title/labels
-- Bumps version in `Cargo.toml` using `cargo-edit`
-- Updates `Cargo.lock`
-- Commits changes
-- Creates and pushes git tag (e.g., `v0.1.1`)
+#### Create Version Bump PR Job
+**Purpose**: Creates a PR with version changes
 
-### 2. Release Workflow (`.github/workflows/release.yml`)
+**Steps**:
+1. Analyze PR title/labels to determine bump type
+2. Bump version in `Cargo.toml` using `cargo-edit`
+3. Update `Cargo.lock`
+4. Validate version bump
+5. Create branch `release/vX.Y.Z`
+6. Commit version changes
+7. Create PR to master
+8. Enable auto-merge (if RELEASE_PAT configured)
 
-**Trigger**: Runs when a tag matching `v*` is pushed (triggered by auto-release)
+**PR Details**:
+- **Title**: `chore: release vX.Y.Z`
+- **Labels**: `release`, `automated`
+- **Body**: Version info, source PR, next steps
+- **Auto-merge**: Enabled with squash strategy (if PAT available)
+
+### 2. Create Release Tag Workflow (`.github/workflows/create-release-tag.yml`)
+
+**Trigger**: Runs when a PR with label `release` is merged to `master`
+
+**Purpose**: Creates the release tag after version bump is on master
+
+**Steps**:
+1. Extract version from merged Cargo.toml
+2. Verify tag doesn't already exist
+3. Create annotated tag `vX.Y.Z` pointing to merge commit
+4. Push tag to origin
+5. Comment on version bump PR with release info
+
+**Important**: This workflow ensures the tag points to a commit on master that has the correct version in Cargo.toml.
+
+### 3. Release Workflow (`.github/workflows/release.yml`)
+
+**Trigger**: Runs when a tag matching `v*` is pushed
 
 **Jobs**:
 
 #### Pre-release Tests
 - Additional validation before building
 - Runs formatting, clippy, and tests
+- **Verifies Cargo.toml version matches tag version** ✨
 
 #### Build Matrix
 Builds for 6 targets:
@@ -105,11 +155,38 @@ Builds for 6 targets:
 - Creates GitHub Release with auto-generated notes
 - Attaches all binaries and checksums
 
-### 3. CI Workflow (`.github/workflows/ci.yml`)
+## Complete Flow Example
 
-**Trigger**: Runs on all pushes and PRs to `master`
+Let's walk through a complete release:
 
-**Note**: Skips execution for version bump commits to avoid infinite loops
+1. **Developer merges PR** `fix: handle git errors properly`
+   - PR title starts with `fix:` → patch bump
+
+2. **Auto-release workflow runs**
+   - Tests pass on all platforms
+   - Determines: patch bump (0.1.3 → 0.1.4)
+   - Creates branch `release/v0.1.4`
+   - Updates Cargo.toml: `version = "0.1.4"`
+   - Creates PR #123: `chore: release v0.1.4`
+   - Enables auto-merge
+
+3. **CI runs on version bump PR**
+   - All checks pass
+   - PR auto-merges to master
+
+4. **Create-release-tag workflow runs**
+   - Checks out master (now has version 0.1.4)
+   - Creates tag `v0.1.4` pointing to master
+   - Pushes tag
+
+5. **Release workflow triggered**
+   - Checks out tag `v0.1.4`
+   - Verifies: Cargo.toml has version 0.1.4 ✅
+   - Builds binaries for all 6 targets
+   - Creates GitHub Release `v0.1.4`
+   - Uploads all binaries + checksums
+
+**Total time**: ~15-20 minutes from PR merge to release published
 
 ## Version Bumping Logic
 
@@ -154,108 +231,230 @@ To merge a PR without triggering a release, include one of these in the PR title
 
 Example: `docs: update README [skip release]`
 
-## Security & Quality Gates
-
-### Before Version Bump
-1. **All tests must pass** on Linux, macOS, and Windows
-2. **Formatting** must be correct (`cargo fmt`)
-3. **No clippy warnings** allowed (`cargo clippy -- -D warnings`)
-4. **Build must succeed** in release mode
-
-### Before Binary Distribution
-1. Additional test run (pre-release tests)
-2. Formatting and clippy checks (again)
-3. All unit and integration tests pass
-
-### Result
-**Only working, tested builds are released**. If any check fails, the release is aborted.
+The auto-release workflow will skip the version bump entirely.
 
 ## Manual Override
 
 If needed, you can still create releases manually:
 
+### Manual Version Bump + Release
+
 ```bash
-# Update version in Cargo.toml
+# 1. Update version in Cargo.toml
 cargo set-version 0.2.0
 
-# Update Cargo.lock (replace <package-name> with your package name)
-cargo update -p <package-name>
+# 2. Update Cargo.lock
+cargo update -p oops
 
-# Commit changes
+# 3. Commit changes
 git add Cargo.toml Cargo.lock
 git commit -m "chore: bump version to 0.2.0"
-git push
 
-# Create and push tag
+# 4. Create PR or push to master (if you have permission)
+git push origin master
+
+# 5. Create and push tag
 git tag v0.2.0
-git push --tags
+git push origin v0.2.0
 ```
 
 The release workflow will automatically build and publish.
 
+### Manual Tag Push (Re-trigger Release)
+
+If a release failed or you want to rebuild:
+
+```bash
+# Delete tag locally and remotely
+git tag -d v0.2.0
+git push origin :refs/tags/v0.2.0
+
+# Re-create and push tag
+git tag v0.2.0
+git push origin v0.2.0
+```
+
 ## Troubleshooting
 
-### Release workflow not triggered after tag is pushed
-**Symptoms**: Tag exists (e.g., v0.1.2) but no GitHub Release was created and no binaries built.
+### Version bump PR not created
 
-**Cause**: The auto-release workflow is using `GITHUB_TOKEN` instead of a Personal Access Token (PAT). GitHub Actions prevents workflows triggered by `GITHUB_TOKEN` from spawning new workflow runs.
+**Symptoms**: PR merged but no version bump PR appeared
+
+**Possible causes**:
+1. PR title contains `[skip release]` or `[no release]`
+2. Tests failed in the pre-release test job
+3. PR was closed without merging
+4. Workflow is disabled
 
 **Solution**:
-1. Create a Personal Access Token (see "Setup Requirements" section above)
-2. Add it as a repository secret named `RELEASE_PAT`
-3. The workflow will automatically use it for subsequent releases
+- Check GitHub Actions tab for workflow run details
+- Review test job logs if tests failed
+- Ensure PR was actually merged
 
-**Temporary Workaround**: Manually push the tag from your local machine:
-```bash
-git fetch --tags
-git push origin v0.1.2  # Replace with actual tag
-```
-When you push a tag from your local machine (not from a workflow), it will trigger the release workflow normally.
+### Version bump PR not auto-merging
 
-### Release didn't trigger after PR merge
-- Check if PR title contains `[skip release]` or `[no release]`
-- Verify PR was merged (not closed without merging)
-- Check GitHub Actions tab for workflow runs
-- Look for any test failures in the test job
+**Symptoms**: Version bump PR created but not merged automatically
 
-### Version bump was wrong
-- Check PR title format - it determines bump type
-- Consider adding labels (`breaking`, `feature`, `enhancement`)
-- For next release, adjust PR title before merging
+**Possible causes**:
+1. `RELEASE_PAT` secret not configured
+2. CI checks failing on version bump PR
+3. Branch protection requires additional approvals
+
+**Solution**:
+- Configure `RELEASE_PAT` (see [setup guide](../RELEASE_PAT_SETUP.md))
+- Review CI check failures and fix if needed
+- Manually merge the PR if auto-merge is not possible
+
+### Tag not created after version bump PR merge
+
+**Symptoms**: Version bump PR merged but no tag created
+
+**Possible causes**:
+1. Create-release-tag workflow failed
+2. Tag already exists
+3. Version extraction failed
+
+**Solution**:
+- Check GitHub Actions → Create Release Tag workflow
+- Verify tag doesn't already exist: `git tag -l`
+- Review workflow logs for errors
+
+### Release workflow not triggered
+
+**Symptoms**: Tag exists but no release created, no binaries built
+
+**Possible causes**:
+1. `RELEASE_PAT` not configured (tag push from workflow doesn't trigger release)
+2. Release workflow is disabled
+3. Tag was created manually without push
+
+**Solution**:
+- Configure `RELEASE_PAT` for automatic triggering
+- Or manually push the tag: `git push origin v0.2.0`
+- Check Settings → Actions → Workflow permissions
+
+### Version mismatch error
+
+**Symptoms**: Release workflow fails with "Version mismatch! Cargo.toml has X but tag is Y"
+
+**Possible causes**:
+1. Tag was created before version bump was merged
+2. Manual tag creation with wrong version
+3. Using old workflow (orphan commit approach)
+
+**Solution**:
+- Delete the incorrect tag:
+  ```bash
+  git tag -d vX.Y.Z
+  git push origin :refs/tags/vX.Y.Z
+  ```
+- Ensure version bump PR is merged first
+- Then let create-release-tag workflow create the tag
 
 ### Build failed for specific platform
+
+**Symptoms**: Some builds succeed, others fail
+
+**Possible causes**:
+- Platform-specific code issues
+- Cross-compilation toolchain problems
+- Dependency compatibility issues
+
+**Solution**:
 - Check the release workflow run details
 - Look at the specific platform's build logs
-- Common issues: cross-compilation toolchain, dependencies
-
-### Release created but no binaries attached
-- Check if all build jobs completed successfully
-- Verify the release job successfully downloaded artifacts
-- Check that files were copied to the release directory
+- Test locally with: `cargo build --target <target-triple>`
+- Common issues: musl tools not installed, ARM toolchain missing
 
 ## Monitoring
 
 After each release:
-1. Check GitHub Actions runs for both workflows
-2. Verify the new tag was created
-3. Verify the GitHub release exists with all binaries
-4. Download and test at least one binary
+
+1. **Check GitHub Actions**:
+   - Auto-release workflow: Version bump PR created?
+   - Create-release-tag workflow: Tag created?
+   - Release workflow: Binaries built?
+
+2. **Verify Release Page**:
+   - Go to `https://github.com/<owner>/oops/releases`
+   - Confirm new release exists
+   - Check all 6 binaries are attached
+   - Verify SHA256 checksums present
+
+3. **Test Binary** (spot check):
+   ```bash
+   # Download a binary
+   curl -L -o oops https://github.com/<owner>/oops/releases/download/v0.2.0/oops-linux-x86_64
+   chmod +x oops
+   ./oops --version  # Should show v0.2.0
+   ```
 
 ## Benefits of This Approach
 
-1. **Fully Automated**: No manual steps required
-2. **Consistent**: Every release follows the same process
-3. **Tested**: Only working builds are released
-4. **Fast**: Parallel builds for all platforms
-5. **Traceable**: All actions logged in GitHub Actions
-6. **Safe**: Multiple quality gates prevent broken releases
-7. **Semantic**: Versions follow SemVer based on change type
+### For Developers
+- **Transparent**: See exactly what version is on master
+- **Predictable**: Know what version will be released
+- **Reversible**: Can revert version bumps like any PR
+- **Reviewable**: Can review version changes before release
+
+### For Maintainers
+- **Automated**: No manual version management
+- **Safe**: Multiple quality gates prevent broken releases
+- **Traceable**: Full audit trail of version changes
+- **Flexible**: Works with or without full automation
+
+### For Users
+- **Reliable**: Only tested code is released
+- **Consistent**: Every release follows same process
+- **Fast**: Binaries available 15-20 minutes after PR merge
+- **Verifiable**: SHA256 checksums for integrity
+
+## Best Practices
+
+1. **Use Conventional Commits**: PR titles should follow `type: description` format
+   - `feat:` for features (minor bump)
+   - `fix:` for fixes (patch bump)
+   - `feat!:` or `fix!:` for breaking changes (major bump)
+
+2. **Test Before Merge**: Ensure all CI checks pass on your PR
+
+3. **Review Version Bump PRs**: Quickly review auto-generated PRs to catch issues early
+
+4. **Monitor Releases**: Check that releases complete successfully
+
+5. **Keep PAT Updated**: Set calendar reminders for PAT expiration
+
+6. **Document Breaking Changes**: Add clear notes for major version bumps
+
+## Security & Quality Gates
+
+### Before Version Bump PR
+1. ✅ All tests must pass on Linux, macOS, and Windows
+2. ✅ Formatting must be correct (`cargo fmt`)
+3. ✅ No clippy warnings allowed (`cargo clippy -- -D warnings`)
+4. ✅ Build must succeed in release mode
+
+### Before Version Bump Merge
+1. ✅ CI checks pass on version bump PR
+2. ✅ Version format validated (semantic versioning)
+3. ✅ Cargo.lock properly updated
+4. ✅ No duplicate version tags
+
+### Before Binary Distribution
+1. ✅ **Version consistency check**: Cargo.toml version MUST match tag version
+2. ✅ Additional test run (pre-release tests)
+3. ✅ All unit and integration tests pass
+4. ✅ Cross-platform builds succeed
+
+**Result**: Only working, tested, version-consistent builds are released.
 
 ## Future Enhancements
 
 Potential improvements to consider:
-- [ ] Add changelog generation from PR descriptions
+- [ ] Automatic changelog generation from PR descriptions
 - [ ] Publish to crates.io automatically
 - [ ] Add smoke tests for released binaries
 - [ ] Notification to Discord/Slack on release
 - [ ] Update Homebrew formula automatically
+- [ ] Generate release notes from commit messages
+- [ ] Support for pre-release versions (alpha, beta, rc)
