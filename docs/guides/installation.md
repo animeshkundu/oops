@@ -65,7 +65,7 @@ choco install oops
 
 ### Prerequisites
 
-- Rust toolchain (1.70 or later)
+- Rust toolchain (1.88 or later)
 - Git
 
 ### Steps

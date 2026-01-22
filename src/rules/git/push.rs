@@ -4,9 +4,7 @@
 
 use regex::Regex;
 
-use super::support::{
-    and_commands, replace_argument, Command, GitSupport, Rule,
-};
+use super::support::{and_commands, replace_argument, Command, GitSupport, Rule};
 
 /// Rule for handling "git push" when there's no upstream branch set.
 ///
@@ -77,7 +75,11 @@ impl Rule for GitPush {
                 .to_string();
 
             let base_cmd = command_parts.join(" ");
-            return vec![replace_argument(&base_cmd, "push", &format!("push {}", arguments))];
+            return vec![replace_argument(
+                &base_cmd,
+                "push",
+                &format!("push {}", arguments),
+            )];
         }
 
         vec![]
@@ -232,7 +234,9 @@ impl Rule for GitPushDifferentBranchNames {
 
     fn get_new_command(&self, cmd: &Command) -> Vec<String> {
         // Extract the branch name from output
-        let re = Regex::new(r"To push to the upstream branch on the remote, use\n\s+git push ([^\n]+)").unwrap();
+        let re =
+            Regex::new(r"To push to the upstream branch on the remote, use\n\s+git push ([^\n]+)")
+                .unwrap();
         if let Some(captures) = re.captures(&cmd.output) {
             let suggestion = captures.get(1).map(|m| m.as_str()).unwrap_or("");
             return vec![format!("git push {}", suggestion.trim())];

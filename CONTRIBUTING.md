@@ -10,7 +10,7 @@ Please be respectful and constructive in all interactions. We welcome contributo
 
 ### Prerequisites
 
-- Rust toolchain (stable, 1.70+)
+- Rust toolchain (stable, 1.88+)
 - Git
 
 ### Development Setup

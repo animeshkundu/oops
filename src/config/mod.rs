@@ -56,15 +56,7 @@ mod settings;
 
 // Re-export main types and functions
 pub use loader::{
-    create_default_settings_file,
-    ensure_config_dir,
-    ensure_rules_dir,
-    get_config_dir,
-    get_rules_dir,
-    get_settings,
-    get_settings_path,
-    init_settings,
-    load_settings,
-    SETTINGS,
+    create_default_settings_file, ensure_config_dir, ensure_rules_dir, get_config_dir,
+    get_rules_dir, get_settings, get_settings_path, init_settings, load_settings, SETTINGS,
 };
 pub use settings::Settings;

@@ -25,13 +25,13 @@ use std::path::PathBuf;
 /// ```
 /// use oops::utils::cache::which;
 ///
-/// if let Some(path) = which("git") {
+/// if let Some(path) = which("git".to_string()) {
 ///     println!("git is at: {:?}", path);
 /// }
 /// ```
 #[cached(size = 100)]
 pub fn which(program: String) -> Option<PathBuf> {
-    ::which::which(&program).ok()
+    ::which::which(program).ok()
 }
 
 /// Checks if a program exists in PATH.
