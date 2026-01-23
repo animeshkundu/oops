@@ -124,10 +124,24 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
-    # Only create release for workflow_dispatch (manual trigger)
-    if: github.event_name == 'workflow_dispatch'
+    # Create release for workflow_dispatch (manual trigger) and push events (not PRs)
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG_NAME="${{ inputs.tag }}"
+          else
+            # For push events, use branch name as tag (sanitized)
+            BRANCH_NAME="${{ github.ref_name }}"
+            # Replace / with - for valid tag names
+            TAG_NAME="branch-${BRANCH_NAME//\//-}"
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Using tag: $TAG_NAME"
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -159,7 +173,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG_NAME="${{ inputs.tag }}"
+          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
           echo "Checking for existing release with tag $TAG_NAME..."
           
           # Try to delete the existing release
@@ -171,16 +185,16 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ inputs.tag }}
-          name: Release ${{ inputs.tag }}
+          tag_name: ${{ steps.tag.outputs.tag_name }}
+          name: Release ${{ steps.tag.outputs.tag_name }}
           files: release/*
           generate_release_notes: true
           draft: false
-          prerelease: ${{ contains(inputs.tag, 'alpha') || contains(inputs.tag, 'beta') || contains(inputs.tag, 'rc') }}
+          prerelease: ${{ github.event_name == 'push' || contains(steps.tag.outputs.tag_name, 'alpha') || contains(steps.tag.outputs.tag_name, 'beta') || contains(steps.tag.outputs.tag_name, 'rc') }}
 
       - name: Create release summary
         run: |
-          TAG_NAME="${{ inputs.tag }}"
+          TAG_NAME="${{ steps.tag.outputs.tag_name }}"
           cat >> $GITHUB_STEP_SUMMARY << EOF
           ## 🎉 Release Published
           
