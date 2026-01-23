@@ -58,7 +58,7 @@ All user-controlled inputs (PR titles, labels) now properly sanitized:
 ### Documentation
 - `RELEASE_FIX_SUMMARY.md` - Detailed technical explanation
 - `IMPLEMENTATION_SUMMARY.md` - Complete implementation overview
-- `test-release-workflow.sh` - Validation script
+- `scripts/tests/test-release-workflow.sh` - Validation script
 
 ## 🚀 Workflow After Fix
 

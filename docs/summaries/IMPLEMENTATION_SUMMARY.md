@@ -56,7 +56,7 @@ remote: - Changes must be made through a pull request.
 ### `RELEASE_FIX_SUMMARY.md`
 - ✅ Created: Comprehensive documentation (6361 bytes)
 
-### `test-release-workflow.sh`
+### `scripts/tests/test-release-workflow.sh`
 - ✅ Created: Validation script with tests
 - ✅ Improved: Strict error handling (`set -euo pipefail`)
 - ✅ Uses: Package-specific jq queries
@@ -299,7 +299,7 @@ git push origin :refs/tags/v1.2.3
 - `.github/workflows/auto-release.yml` (major refactor)
 - `.github/workflows/release.yml` (added verification)
 - `RELEASE_FIX_SUMMARY.md` (new documentation)
-- `test-release-workflow.sh` (new test script)
+- `scripts/tests/test-release-workflow.sh` (new test script)
 - `IMPLEMENTATION_SUMMARY.md` (this file)
 
 ---

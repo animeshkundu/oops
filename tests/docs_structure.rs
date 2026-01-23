@@ -13,8 +13,7 @@ fn test_only_allowed_markdown_files_at_root() {
     let allowed_files = ["readme.md", "claude.md", "agent.md"];
 
     // Read all entries in the repository root
-    let entries = fs::read_dir(root_path)
-        .expect("Failed to read repository root directory");
+    let entries = fs::read_dir(root_path).expect("Failed to read repository root directory");
 
     let mut violations = Vec::new();
 
