@@ -49,12 +49,15 @@ Temporary analysis and summary documents from development work:
 - [Implementation Summary](summaries/IMPLEMENTATION_SUMMARY.md)
 - [PR Summary](summaries/PR_SUMMARY.md)
 - [Release Fix Summary](summaries/RELEASE_FIX_SUMMARY.md)
+- [Release Workflow Fix](summaries/RELEASE_WORKFLOW_FIX.md)
 - [Fixes Summary](summaries/FIXES_SUMMARY.md)
+- [Solution Summary](summaries/SOLUTION_SUMMARY.md)
 
 ### Handoffs
 
 LLM handoff notes for context preservation between sessions:
 - [Handoff Notes Guide](handoffs/README.md) - How to create and use handoff notes
-- [2026-01-22: Documentation Reorganization](handoffs/2026-01-22-documentation-reorganization.md) - This reorganization project
+- [2026-01-23: Documentation Structure Enforcement](handoffs/2026-01-23-documentation-enforcement.md) - Test to enforce doc placement policy
+- [2026-01-22: Documentation Reorganization](handoffs/2026-01-22-documentation-reorganization.md) - Documentation reorganization project
 
 See [.github/copilot-instructions.md](../.github/copilot-instructions.md) for the complete handoff note template.
