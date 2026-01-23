@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oops • Blazingly fast command-line typo fixer</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <meta name="description" content="oops fixes your last failed shell command instantly. 175+ rules, sub-50ms startup, single binary for macOS, Linux, and Windows." />
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <img src="https://raw.githubusercontent.com/animeshkundu/oops/master/docs/assets/logo.svg" alt="oops logo" width="32" height="32" />
+        <span>oops</span>
+      </div>
+      <div class="nav-links">
+        <a href="#install">Install</a>
+        <a href="#why">Why oops?</a>
+        <a href="#features">Features</a>
+        <a href="#rules">Rules</a>
+        <a href="https://github.com/animeshkundu/oops">GitHub</a>
+        <a href="https://github.com/animeshkundu/oops/discussions">Community</a>
+      </div>
+      <a class="btn" href="#install">Install fast</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <div class="pill">⚡️ Sub-50ms startup • 175+ rules • Single binary</div>
+        <h1>Fix your last typo in one keypress.</h1>
+        <p class="subtitle">
+          oops is a blazingly fast CLI that rewrites your last failed command and executes it instantly.
+          Works on macOS, Linux, and Windows with Bash, Zsh, Fish, PowerShell, and Tcsh.
+        </p>
+        <div class="cta-row">
+          <a class="btn" href="#install">Copy install one-liner</a>
+          <a class="btn secondary" href="https://animeshkundu.github.io/oops/docs/">View full docs</a>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <div class="value">~30ms</div>
+            <div class="muted">Cold start</div>
+          </div>
+          <div class="metric">
+            <div class="value">175+</div>
+            <div class="muted">Rules included</div>
+          </div>
+          <div class="metric">
+            <div class="value">6</div>
+            <div class="muted">Shells supported</div>
+          </div>
+          <div class="metric">
+            <div class="value">1</div>
+            <div class="muted">Static binary</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="code">
+          <button onclick="copyCommand('install-macos')">Copy</button>
+<pre><code id="install-macos"># macOS / Linux (Homebrew)
+brew install animeshkundu/tap/oops
+eval "$(oops --alias)"</code></pre>
+        </div>
+        <div class="code" style="margin-top:12px;">
+          <button onclick="copyCommand('install-linux')">Copy</button>
+<pre><code id="install-linux"># Linux (binary)
+curl -LO https://github.com/animeshkundu/oops/releases/latest/download/oops-linux-x86_64
+chmod +x oops-linux-x86_64 && sudo mv oops-linux-x86_64 /usr/local/bin/oops
+eval "$(oops --alias)"</code></pre>
+        </div>
+        <div class="code" style="margin-top:12px;">
+          <button onclick="copyCommand('install-windows')">Copy</button>
+<pre><code id="install-windows"># Windows (PowerShell)
+Invoke-WebRequest -Uri "https://github.com/animeshkundu/oops/releases/latest/download/oops-windows-x86_64.exe" -OutFile "$env:USERPROFILE\\bin\\oops.exe"
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\\bin", "User")
+Invoke-Expression (oops --alias | Out-String)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="why">
+      <h2>Why switch from thefuck?</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Blazing fast</h3>
+          <p>Rust binary with <strong>&lt;50ms startup</strong>. No Python runtime, no cold boot penalty.</p>
+        </div>
+        <div class="card">
+          <h3>Drop-in compatible</h3>
+          <p>Same environment variables as thefuck. Use <code>TF_ALIAS=fuck</code> to keep muscle memory.</p>
+        </div>
+        <div class="card">
+          <h3>Huge rule set</h3>
+          <p>175+ curated rules covering git, package managers, system ops, containers, and cloud CLIs.</p>
+        </div>
+        <div class="card">
+          <h3>Single static binary</h3>
+          <p>Ships as one file for macOS, Linux, Windows. Works in CI, containers, and air‑gapped hosts.</p>
+        </div>
+      </div>
+      <div class="banner" style="margin-top:16px;">
+        <strong>Benchmarks:</strong> oops cold start ~30ms vs thefuck ~300ms; memory ~10MB vs ~50MB. See <a href="https://github.com/animeshkundu/oops#performance">detailed numbers</a>.
+      </div>
+    </section>
+
+    <section class="section" id="install">
+      <h2>Install in one command</h2>
+      <p class="muted">Pick your platform and paste. Then add shell alias.</p>
+      <div class="cards">
+        <div class="card">
+          <h3>macOS / Linux</h3>
+          <div class="code"><button onclick="copyCommand('brew')">Copy</button><pre><code id="brew">brew install animeshkundu/tap/oops
+eval "$(oops --alias)"</code></pre></div>
+        </div>
+        <div class="card">
+          <h3>Linux binary</h3>
+          <div class="code"><button onclick="copyCommand('linux-bin')">Copy</button><pre><code id="linux-bin">curl -LO https://github.com/animeshkundu/oops/releases/latest/download/oops-linux-x86_64
+chmod +x oops-linux-x86_64 && sudo mv oops-linux-x86_64 /usr/local/bin/oops
+eval "$(oops --alias)"</code></pre></div>
+        </div>
+        <div class="card">
+          <h3>Windows</h3>
+          <div class="code"><button onclick="copyCommand('win')">Copy</button><pre><code id="win">Invoke-WebRequest -Uri "https://github.com/animeshkundu/oops/releases/latest/download/oops-windows-x86_64.exe" -OutFile "$env:USERPROFILE\\bin\\oops.exe"
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\\bin", "User")
+Invoke-Expression (oops --alias | Out-String)</code></pre></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <h2>What makes oops delightful</h2>
+      <div class="cards">
+        <div class="card">
+          <span class="badge">Shells</span>
+          <h3>5 shells, zero friction</h3>
+          <p>Bash, Zsh, Fish, PowerShell, Tcsh. Add <code>eval \"$(oops --alias)\"</code> once and forget it.</p>
+        </div>
+        <div class="card">
+          <span class="badge">UX</span>
+          <h3>Instant suggestions</h3>
+          <p>Type <code>oops</code> after an error to see ranked fixes with arrow-key navigation, or <code>oops -y</code> to auto-run.</p>
+        </div>
+        <div class="card">
+          <span class="badge">Compatibility</span>
+          <h3>thefuck friendly</h3>
+          <p>Environment variables preserved. Alias to <code>fuck</code> with <code>TF_ALIAS=fuck oops --alias</code>.</p>
+        </div>
+        <div class="card">
+          <span class="badge">Performance</span>
+          <h3>Built for speed</h3>
+          <p>Precompiled rules, no runtime deps, optimized fuzzy matching, and static binaries.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="rules">
+      <h2>Coverage at a glance</h2>
+      <p class="muted">Highlights from 175+ rules. See full catalog in <a href="https://animeshkundu.github.io/oops/docs/guides/rules.html">rules guide</a>.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Git</h3>
+          <ul>
+            <li>Unknown command typos (push/status/checkout)</li>
+            <li>Set upstream on first push</li>
+            <li>Add missing files before commit</li>
+            <li>Fix branch name typos</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Package managers</h3>
+          <ul>
+            <li>brew, apt, yum/dnf, pacman, cargo, npm, pip</li>
+            <li>Missing sudo, wrong subcommands, typos</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>System &amp; shells</h3>
+          <ul>
+            <li>Permission denied → add <code>sudo</code></li>
+            <li><code>cd</code> to missing dir → create it</li>
+            <li><code>chmod +x</code> for scripts</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Dev &amp; cloud</h3>
+          <ul>
+            <li>Docker, Kubernetes, Terraform, Maven/Gradle</li>
+            <li>AWS/Azure CLI command fixes</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Docs & Migration</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Full documentation</h3>
+          <p>Installation, configuration, shell setup, and every rule explained.</p>
+          <a class="btn secondary" href="https://animeshkundu.github.io/oops/docs/">Browse docs</a>
+        </div>
+        <div class="card">
+          <h3>Migrate from thefuck</h3>
+          <p>Keep aliases, env vars, and habits. Learn the differences and why oops is faster.</p>
+          <a class="btn secondary" href="https://animeshkundu.github.io/oops/docs/guides/migration-from-thefuck.html">Read migration guide</a>
+        </div>
+        <div class="card">
+          <h3>Add or port a rule</h3>
+          <p>Step-by-step guide to contribute new corrections with tests.</p>
+          <a class="btn secondary" href="https://animeshkundu.github.io/oops/docs/guides/creating-rules.html">Create rules</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Community & Support</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>GitHub Discussions</h3>
+          <p>Request rules, share tips, and get help.</p>
+          <a class="btn secondary" href="https://github.com/animeshkundu/oops/discussions">Join discussions</a>
+        </div>
+        <div class="card">
+          <h3>Open an Issue</h3>
+          <p>Found a bug or a missing rule? Let us know.</p>
+          <a class="btn secondary" href="https://github.com/animeshkundu/oops/issues/new/choose">Report issue</a>
+        </div>
+        <div class="card">
+          <h3>Star the repo</h3>
+          <p>Help others discover oops and track releases.</p>
+          <a class="btn secondary" href="https://github.com/animeshkundu/oops">Star on GitHub</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>oops • MIT Licensed • Built with Rust</div>
+    <div>Docs, migration, and rule catalog at <a href="https://animeshkundu.github.io/oops/docs/">animeshkundu.github.io/oops/docs</a></div>
+  </footer>
+
+  <script>
+    function copyCommand(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const text = el.innerText;
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+  </script>
+</body>
+</html>
