@@ -55,7 +55,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Caching
-cached = "0.52"
+cached = "0.56"
 once_cell = "1"
 
 # Shell lexing
