@@ -79,9 +79,9 @@ Each binary includes SHA256 checksum file.
 Format: manual-v{version}-{branch}-{sha}[-{suffix}]
 
 Examples:
-  manual-v0.1.1-main-abc1234-20260123-143022
-  manual-v0.1.1-feature-branch-def5678-rc1
-  manual-v0.1.1-pr-45-head-abc9012-test
+  manual-v0.1.1-main-abc12345-20260123-143022
+  manual-v0.1.1-feature-branch-def56789-rc1
+  manual-v0.1.1-pr-45-head-abc90123-test
 ```
 
 ---

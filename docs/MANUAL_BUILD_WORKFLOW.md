@@ -96,10 +96,10 @@ manual-v{version}-{branch}-{sha}[-{suffix}]
 
 | Input Ref | Tag Suffix | Generated Tag |
 |-----------|------------|---------------|
-| `main` | *(empty)* | `manual-v0.1.1-main-abc1234-20240115-143022` |
+| `main` | *(empty)* | `manual-v0.1.1-main-abc1234-20260115-143022` |
 | `feature/new-rules` | `-rc1` | `manual-v0.1.1-feature-new-rules-abc1234-rc1` |
 | `refs/pull/45/head` | `-test` | `manual-v0.1.1-pr-45-head-abc1234-test` |
-| `hotfix/critical-bug` | *(empty)* | `manual-v0.1.1-hotfix-critical-bug-def5678-20240115-143530` |
+| `hotfix/critical-bug` | *(empty)* | `manual-v0.1.1-hotfix-critical-bug-def5678-20260115-143530` |
 
 **Notes:**
 - `{version}` is extracted from `Cargo.toml`
@@ -347,12 +347,12 @@ This is a manually triggered build for testing or preview purposes.
 - **Version**: v0.1.1 *(from Cargo.toml)*
 - **Source Ref**: `feature/new-git-rules`
 - **Commit**: `abc12345`
-- **Built**: 20240115-143022 UTC
+- **Built**: 20260115-143022 UTC
 - **Tag**: `manual-v0.1.1-feature-new-git-rules-abc12345-rc1`
 
 ### Commit Details
 **Author**: Jane Developer  
-**Date**: 2024-01-15 14:15:30 +0000  
+**Date**: 2026-01-15 14:15:30 +0000  
 **Message**:
 ```
 feat: add Git command correction rules

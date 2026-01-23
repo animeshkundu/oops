@@ -28,7 +28,7 @@ January 23, 2026
 **Decision**: Use `manual-` prefix with auto-generated unique identifiers
 ```
 Format: manual-v{version}-{branch}-{sha}[-{suffix}]
-Example: manual-v0.1.1-feature-branch-abc1234-20240115-143022
+Example: manual-v0.1.1-feature-branch-abc1234-20260115-143022
 ```
 
 **Rationale**:
