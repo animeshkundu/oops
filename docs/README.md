@@ -39,6 +39,7 @@ User and developer guides.
 - [Quick Release Guide](releases/QUICK_RELEASE_GUIDE.md) - How releases work (TL;DR)
 - [Automated Releases](releases/AUTOMATED_RELEASES.md) - Complete release workflow documentation
 - [Auto-Release Workflow](releases/auto-release-workflow.md) - Detailed workflow documentation
+- [Manual Build Workflow](MANUAL_BUILD_WORKFLOW.md) - Build and release from any branch/PR
 - [Auto-Release Improvements](releases/auto-release-improvements.md) - Improvement suggestions
 - [Changelog](releases/CHANGELOG.md) - Version history
 
@@ -56,5 +57,7 @@ Temporary analysis and summary documents from development work:
 LLM handoff notes for context preservation between sessions:
 - [Handoff Notes Guide](handoffs/README.md) - How to create and use handoff notes
 - [2026-01-22: Documentation Reorganization](handoffs/2026-01-22-documentation-reorganization.md) - This reorganization project
+- [2026-01-23: Manual Build Workflow](handoffs/2026-01-23-manual-build-workflow.md) - Manual build and release implementation
+- [2026-01-23: Manual CI Trigger](handoffs/2026-01-23-manual-ci-trigger.md) - Manual CI trigger implementation
 
 See [.github/copilot-instructions.md](../.github/copilot-instructions.md) for the complete handoff note template.

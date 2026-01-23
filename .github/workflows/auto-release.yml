@@ -1,6 +1,26 @@
-name: Auto Release
+name: Auto Release (Legacy/Manual)
+
+# ⚠️ LEGACY WORKFLOW - This workflow is now superseded by the auto-release
+# job in ci.yml which runs after all CI tests pass.
+#
+# This workflow is kept as a backup for:
+# - Manual triggering via workflow_dispatch
+# - Emergency releases
+# - Backwards compatibility during transition
+#
+# For normal releases, the auto-release job in the CI workflow is preferred.
+# See: .github/workflows/ci.yml (auto-release job)
+# Documentation: docs/releases/AUTOMATED_RELEASES.md
 
 on:
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      skip_tests:
+        description: 'Skip pre-release tests (use with caution)'
+        required: false
+        type: boolean
+        default: false
+  # Keep pull_request trigger for backwards compatibility (will be phased out)
   pull_request:
     types: [closed]
     branches: [main, master]
@@ -19,22 +39,32 @@ jobs:
     name: Event Type Check
     runs-on: ubuntu-latest
     outputs:
-      should-run: ${{ github.event_name == 'pull_request' && github.event.pull_request.merged == true }}
+      should-run: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) }}
     steps:
       - name: Check event and PR status
         run: |
           echo "🔍 Event Analysis"
           echo "─────────────────────────────────────"
           echo "Event type: ${{ github.event_name }}"
-          echo "PR merged: ${{ github.event.pull_request.merged }}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "PR merged: ${{ github.event.pull_request.merged }}"
+          fi
           echo "─────────────────────────────────────"
+          
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo ""
+            echo "✅ Manual workflow dispatch - proceeding with auto-release"
+            echo "⚠️  Note: This workflow is legacy. Consider using the CI workflow instead."
+            exit 0
+          fi
           
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo ""
-            echo "ℹ️  This workflow is designed for pull_request events"
+            echo "ℹ️  This workflow is designed for pull_request or workflow_dispatch events"
             echo "Current trigger: ${{ github.event_name }}"
             echo ""
             echo "💡 This is normal when workflow files are modified"
+            echo "For normal releases, the CI workflow handles auto-release automatically"
             echo "Skipping auto-release workflow execution"
             exit 0
           fi
@@ -47,13 +77,17 @@ jobs:
           fi
           
           echo ""
-          echo "✅ Pull request was merged - proceeding with auto-release"
+          echo "⚠️  Pull request was merged - but CI workflow should handle this now"
+          echo "This workflow is kept for backwards compatibility"
+          echo "Proceeding with auto-release"
 
   # Run comprehensive tests before releasing
   test:
     name: Pre-release Tests
     needs: event-guard
-    if: needs.event-guard.outputs.should-run == 'true'
+    if: |
+      needs.event-guard.outputs.should-run == 'true' &&
+      (github.event_name != 'workflow_dispatch' || !inputs.skip_tests)
     permissions:
       contents: read
     runs-on: ${{ matrix.os }}

@@ -6,10 +6,11 @@ on:
       - 'v*'
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Tag to release (e.g., v0.1.3). Must exist and match Cargo.toml version.'
+      ref:
+        description: 'Git ref (branch, tag, or SHA) to build from (e.g., my-feature-branch, pr-123)'
         required: true
         type: string
+        default: 'main'
 
 permissions:
   contents: write  # Required for creating releases
@@ -18,14 +19,55 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # Generate tag for manual releases
+  prepare:
+    name: Prepare Release Tag
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.generate_tag.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Generate manual tag
+        id: generate_tag
+        run: |
+          # Extract version from Cargo.toml
+          # Package name is assumed to be 'oops' based on project structure
+          VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
+
+          # Get short commit SHA
+          SHORT_SHA=$(git rev-parse --short HEAD)
+
+          # Get timestamp
+          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+
+          # Sanitize ref name for tag usage
+          # Replaces refs/heads/, refs/pull/ prefixes and non-alphanumeric chars with hyphens
+          REF_NAME=$(echo "${{ inputs.ref }}" | sed 's/refs\/heads\///' | sed 's/refs\/pull\//pr-/' | sed 's/[^a-zA-Z0-9._-]/-/g')
+
+          # Generate tag: manual-v{version}-{ref}-{sha}-{timestamp}
+          TAG_NAME="manual-v${VERSION}-${REF_NAME}-${SHORT_SHA}-${TIMESTAMP}"
+
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "🏷️  Generated tag: $TAG_NAME"
+          echo "📦 Version: $VERSION"
+          echo "🔗 Ref: ${{ inputs.ref }}"
+          echo "📝 Commit: $SHORT_SHA"
+
   # Run tests before building releases
   test:
     name: Pre-release Tests
+    needs: [prepare]
+    if: always() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -52,7 +94,10 @@ jobs:
 
   build:
     name: Build (${{ matrix.target }})
-    needs: test
+    # Conditional dependency: run if test succeeded and prepare either succeeded or was skipped
+    # prepare job only runs for workflow_dispatch, so it's skipped for push events
+    needs: [prepare, test]
+    if: always() && needs.test.result == 'success' && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -85,7 +130,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
 
       - name: Extract version from tag
         id: version
@@ -93,14 +138,20 @@ jobs:
         run: |
           # Handle both push and workflow_dispatch events
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_NAME="${{ inputs.tag }}"
-            echo "📝 Manual workflow dispatch with tag: $TAG_NAME"
+            TAG_NAME="${{ needs.prepare.outputs.tag_name }}"
+            echo "📝 Manual workflow dispatch with generated tag: $TAG_NAME"
           else
             TAG_NAME=${GITHUB_REF#refs/tags/}
             echo "🏷️  Tag push event with tag: $TAG_NAME"
           fi
-          
+
           VERSION=${TAG_NAME#v}
+          # For manual tags, extract version from the beginning (manual-v{version}-...)
+          # Expected format: manual-v{VERSION}-{REF}-{SHA}-{TIMESTAMP}
+          if [[ $TAG_NAME == manual-v* ]]; then
+            VERSION=$(echo "$TAG_NAME" | sed 's/manual-v//' | cut -d'-' -f1)
+          fi
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "📦 Building version: $VERSION (from tag $TAG_NAME)"
@@ -110,14 +161,18 @@ jobs:
         run: |
           CARGO_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
           TAG_VERSION="${{ steps.version.outputs.version }}"
-          
-          if [ "$CARGO_VERSION" != "$TAG_VERSION" ]; then
+
+          # Skip version check for manual releases (they use the current Cargo.toml version)
+          if [[ "${{ steps.version.outputs.tag }}" == manual-* ]]; then
+            echo "ℹ️  Manual release - using Cargo.toml version: $CARGO_VERSION"
+            echo "   Generated tag: ${{ steps.version.outputs.tag }}"
+          elif [ "$CARGO_VERSION" != "$TAG_VERSION" ]; then
             echo "::error::Version mismatch! Cargo.toml has $CARGO_VERSION but tag is $TAG_VERSION"
             echo "This usually means the auto-release workflow didn't properly bump the version."
             exit 1
+          else
+            echo "✅ Version verified: Cargo.toml ($CARGO_VERSION) matches tag ($TAG_VERSION)"
           fi
-          
-          echo "✅ Version verified: Cargo.toml ($CARGO_VERSION) matches tag ($TAG_VERSION)"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -176,12 +231,13 @@ jobs:
 
   release:
     name: Create Release
-    needs: build
+    needs: [prepare, build]
+    if: always() && needs.build.result == 'success' && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -211,19 +267,26 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && needs.prepare.outputs.tag_name || '' }}
           files: release/*
           generate_release_notes: true
           draft: false
-          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+          prerelease: ${{ github.event_name == 'workflow_dispatch' || contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+          target_commitish: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
 
       - name: Create release summary
         run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="${{ needs.prepare.outputs.tag_name }}"
+          else
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+          fi
+
           cat >> $GITHUB_STEP_SUMMARY << EOF
           ## 🎉 Release Published
-          
+
           **Version**: $TAG_NAME
-          
+
           ### 📦 Built Artifacts
           - Linux x86_64 (glibc)
           - Linux x86_64 (musl - static)
@@ -231,10 +294,10 @@ jobs:
           - macOS x86_64 (Intel)
           - macOS ARM64 (Apple Silicon)
           - Windows x86_64
-          
+
           ### 🔗 Links
           - [Release Page](https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME)
           - [Download Latest](https://github.com/${{ github.repository }}/releases/latest)
-          
+
           All binaries include SHA256 checksums for verification.
           EOF

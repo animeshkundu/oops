@@ -13,7 +13,8 @@ jobs:
   test:
     name: Test (${{ matrix.os }}, ${{ matrix.rust }})
     # Skip if this is a version bump commit from the bot
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    # For pull_request events, head_commit is null, so use || '' to handle it
+    if: "!contains(github.event.head_commit.message || '', 'chore: bump version')"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -56,7 +57,8 @@ jobs:
   msrv:
     name: MSRV (Minimum Supported Rust Version)
     # Skip if this is a version bump commit from the bot
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    # For pull_request events, head_commit is null, so use || '' to handle it
+    if: "!contains(github.event.head_commit.message || '', 'chore: bump version')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +72,8 @@ jobs:
   coverage:
     name: Code Coverage
     # Skip if this is a version bump commit from the bot
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    # For pull_request events, head_commit is null, so use || '' to handle it
+    if: "!contains(github.event.head_commit.message || '', 'chore: bump version')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +98,8 @@ jobs:
   shell-tests:
     name: Shell Integration Tests
     # Skip if this is a version bump commit from the bot
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    # For pull_request events, head_commit is null, so use || '' to handle it
+    if: "!contains(github.event.head_commit.message || '', 'chore: bump version')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -140,3 +144,312 @@ jobs:
       - name: Test Tcsh alias generation
         run: |
           TF_SHELL=tcsh ./target/release/oops --alias | grep -q "alias"
+
+  auto-release:
+    name: Auto Release
+    # Run on push to main/master (after PR merge) for automated releases
+    # Skip if this is a version bump commit from the bot
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+      !contains(github.event.head_commit.message || '', 'chore: bump version') &&
+      !contains(github.event.head_commit.message || '', 'chore: release')
+    # Wait for all tests to pass first
+    needs: [test, msrv, coverage, shell-tests]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # Required for creating branches
+      pull-requests: write   # Required for creating PRs
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Check if release needed
+        id: check_release
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          # Skip if commit message contains [skip release] or [no release]
+          if echo "$COMMIT_MSG" | grep -qiE "\[(skip|no).?release\]"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "ℹ️  Skipping release due to [skip release] in commit message"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ Release will proceed"
+          fi
+
+      - name: Install Rust
+        if: steps.check_release.outputs.skip == 'false'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-edit
+        if: steps.check_release.outputs.skip == 'false'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-edit@0.12.2
+
+      - name: Determine version bump type
+        if: steps.check_release.outputs.skip == 'false'
+        id: bump_type
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          set -e
+
+          echo "🔍 Analyzing commit for version bump type"
+          echo "Commit: $COMMIT_MSG"
+
+          BUMP_TYPE="patch"
+          REASON="default (patch bump)"
+          TEXT_LOWER=$(echo "$COMMIT_MSG" | tr '[:upper:]' '[:lower:]')
+
+          # Check for breaking changes
+          if echo "$TEXT_LOWER" | grep -qE '(^|[^a-z])(feat|fix|chore)!\s*(\(|:)'; then
+            BUMP_TYPE="major"
+            REASON="breaking change (! marker)"
+          elif echo "$TEXT_LOWER" | grep -qE '\bbreaking\s+change\b'; then
+            BUMP_TYPE="major"
+            REASON="BREAKING CHANGE in commit message"
+          # Check for features
+          elif echo "$TEXT_LOWER" | grep -qE '(^|[^a-z])feat\s*(\(|:)'; then
+            BUMP_TYPE="minor"
+            REASON="feature (feat:)"
+          fi
+
+          echo "📊 Decision: $BUMP_TYPE bump ($REASON)"
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "bump_reason=$REASON" >> $GITHUB_OUTPUT
+
+      - name: Bump version in Cargo.toml
+        if: steps.check_release.outputs.skip == 'false'
+        id: version
+        run: |
+          set -e
+
+          OLD_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
+          echo "📦 Current version: $OLD_VERSION"
+
+          BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
+          echo "⬆️  Bumping $BUMP_TYPE version..."
+
+          if ! cargo set-version --bump "$BUMP_TYPE"; then
+            echo "::error::Failed to bump version"
+            exit 1
+          fi
+
+          NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
+
+          if [ "$OLD_VERSION" = "$NEW_VERSION" ]; then
+            echo "::error::Version did not change. Old: $OLD_VERSION, New: $NEW_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version bumped: $OLD_VERSION → $NEW_VERSION"
+          echo "old_version=$OLD_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update Cargo.lock
+        if: steps.check_release.outputs.skip == 'false'
+        run: |
+          # Get package name dynamically from Cargo.toml
+          PACKAGE_NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+          cargo update -p "$PACKAGE_NAME"
+          echo "✅ Cargo.lock updated for $PACKAGE_NAME"
+
+      - name: Check for existing version bump PR
+        if: steps.check_release.outputs.skip == 'false'
+        id: check_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          BRANCH_NAME="release/v$NEW_VERSION"
+
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️  Branch $BRANCH_NAME already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Branch $BRANCH_NAME does not exist yet"
+          fi
+
+      - name: Create version bump branch and PR
+        if: steps.check_release.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          OLD_VERSION="${{ steps.version.outputs.old_version }}"
+          BRANCH_NAME="release/v$NEW_VERSION"
+          BASE_BRANCH="${{ github.ref_name }}"
+
+          echo "ℹ️  Post-merge mode - creating version bump PR for release"
+
+          # Configure git
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Create and switch to new branch
+          git checkout -b "$BRANCH_NAME"
+
+          # Stage changes
+          git add Cargo.toml Cargo.lock
+
+          # Create commit
+          git commit -m "chore: bump version to $NEW_VERSION" \
+                     -m "" \
+                     -m "Automated version bump: $OLD_VERSION → $NEW_VERSION" \
+                     -m "Type: ${{ steps.bump_type.outputs.bump_type }} bump" \
+                     -m "Reason: ${{ steps.bump_type.outputs.bump_reason }}" \
+                     -m "Commit: ${{ github.sha }}"
+
+          # Push branch
+          git push origin "$BRANCH_NAME"
+
+          # Create PR body
+          cat > pr_body.md << 'EOF'
+## 🚀 Automated Version Bump
+
+**Old Version**: OLD_VERSION_PLACEHOLDER
+**New Version**: NEW_VERSION_PLACEHOLDER
+**Bump Type**: BUMP_TYPE_PLACEHOLDER
+**Reason**: BUMP_REASON_PLACEHOLDER
+
+This PR was automatically created by the CI workflow after all tests passed.
+
+### What's Changed
+- Updated `Cargo.toml` version
+- Updated `Cargo.lock`
+
+### Next Steps
+1. ✅ Auto-merge enabled (if RELEASE_PAT configured)
+2. 🏷️ Tag will be created automatically after merge
+3. 📦 Release binaries will be built
+
+---
+🤖 *Automated by [CI workflow](.github/workflows/ci.yml)*
+EOF
+
+          # Replace placeholders
+          sed -i "s/OLD_VERSION_PLACEHOLDER/$OLD_VERSION/g" pr_body.md
+          sed -i "s/NEW_VERSION_PLACEHOLDER/$NEW_VERSION/g" pr_body.md
+          sed -i "s/BUMP_TYPE_PLACEHOLDER/${{ steps.bump_type.outputs.bump_type }}/g" pr_body.md
+          sed -i "s/BUMP_REASON_PLACEHOLDER/${{ steps.bump_type.outputs.bump_reason }}/g" pr_body.md
+
+          # Create PR with release label
+          gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$BRANCH_NAME" \
+            --title "chore: release v$NEW_VERSION" \
+            --body-file pr_body.md \
+            --label "release" \
+            --label "automated"
+
+          echo "✅ Created version bump PR for v$NEW_VERSION (base: $BASE_BRANCH)"
+
+      - name: Enable auto-merge
+        if: steps.check_release.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'false' && secrets.RELEASE_PAT != ''
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          BRANCH_NAME="release/v$NEW_VERSION"
+
+          # Retry logic to wait for PR to be created
+          MAX_ATTEMPTS=10
+          ATTEMPT=0
+          PR_NUMBER=""
+
+          echo "⏳ Waiting for PR to be created..."
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+
+            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+            if [ -n "$PR_NUMBER" ]; then
+              echo "✅ Found PR #$PR_NUMBER after $ATTEMPT attempt(s)"
+              break
+            fi
+
+            echo "   Attempt $ATTEMPT/$MAX_ATTEMPTS: PR not found yet, waiting..."
+            sleep 2
+          done
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::warning::Could not find PR after $MAX_ATTEMPTS attempts. Auto-merge not enabled."
+            echo "You'll need to merge the PR manually."
+            exit 0
+          fi
+
+          # Enable auto-merge with squash strategy
+          if gh pr merge "$PR_NUMBER" --auto --squash; then
+            echo "✅ Enabled auto-merge for PR #$PR_NUMBER"
+            echo "ℹ️  PR will merge automatically once checks pass"
+          else
+            echo "::warning::Failed to enable auto-merge for PR #$PR_NUMBER"
+            echo "You may need to enable it manually or merge the PR."
+          fi
+
+      - name: Create workflow summary
+        if: steps.check_release.outputs.skip == 'false'
+        run: |
+          if [ "${{ steps.check_pr.outputs.exists }}" = "true" ]; then
+            echo "## ⚠️ Version Bump PR Already Exists" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "A PR for version ${{ steps.version.outputs.new_version }} already exists." >> $GITHUB_STEP_SUMMARY
+            echo "No new PR was created." >> $GITHUB_STEP_SUMMARY
+          else
+            NEW_VERSION="${{ steps.version.outputs.new_version }}"
+            OLD_VERSION="${{ steps.version.outputs.old_version }}"
+            HAS_PAT="${{ secrets.RELEASE_PAT != '' }}"
+
+            # Production mode only
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+## 🚀 Version Bump PR Created
+
+### Version Information
+- **Old Version**: $OLD_VERSION
+- **New Version**: v$NEW_VERSION
+- **Bump Type**: ${{ steps.bump_type.outputs.bump_type }}
+- **Reason**: ${{ steps.bump_type.outputs.bump_reason }}
+
+### Status
+EOF
+
+            if [ "$HAS_PAT" = "true" ]; then
+              cat >> $GITHUB_STEP_SUMMARY << EOF
+✅ **Auto-merge enabled** - PR will merge automatically when checks pass
+
+### What happens next?
+1. ⏳ CI checks run on the version bump PR
+2. ✅ Once checks pass, PR auto-merges to ${{ github.ref_name }}
+3. 🏷️ Release tag \`v$NEW_VERSION\` is created automatically
+4. 📦 Release workflow builds binaries for all platforms
+5. 🎉 GitHub Release is published with all artifacts
+
+**Timeline**: Full release process takes ~15-20 minutes
+EOF
+            else
+              cat >> $GITHUB_STEP_SUMMARY << EOF
+⚠️  **Auto-merge NOT enabled** - RELEASE_PAT secret not configured
+
+### What happens next?
+1. ⏳ CI checks run on the version bump PR
+2. 👤 **Manual action required**: Merge the version bump PR
+3. 🏷️ After manual merge, tag will be created automatically
+
+💡 **Tip**: Configure RELEASE_PAT secret for fully automated releases.
+See [RELEASE_PAT_SETUP.md](docs/RELEASE_PAT_SETUP.md) for instructions.
+EOF
+            fi
+
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+
+### 🔗 Links
+- [All PRs](https://github.com/${{ github.repository }}/pulls?q=is%3Apr+label%3Arelease)
+- [All Releases](https://github.com/${{ github.repository }}/releases)
+EOF
+          fi
