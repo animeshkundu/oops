@@ -1,74 +1,88 @@
 //! Parity checker for oops vs thefuck
 //!
-//! This tool checks the thefuck repository for new or recently updated rules
-//! and reports which ones are missing from oops or need to be ported.
+//! This tool dynamically fetches rules from the thefuck GitHub repository
+//! and compares them with oops rules to identify missing coverage.
 //!
 //! Usage:
 //!   cargo run --bin check_parity
-//!   cargo run --bin check_parity -- --days 7
 //!   cargo run --bin check_parity -- --output json
+//!   cargo run --bin check_parity -- --verbose
 
-use anyhow::Result;
+use anyhow::{Context, Result};
+use oops::rules::get_all_rules;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::fs;
-use std::path::{Path, PathBuf};
 
+const GITHUB_API_BASE: &str = "https://api.github.com";
+const THEFUCK_REPO: &str = "nvbn/thefuck";
+const THEFUCK_RULES_PATH: &str = "thefuck/rules";
+
+/// GitHub API response for directory listing
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct GitHubFile {
+    name: String,
+    path: String,
+    sha: String,
+    #[serde(rename = "type")]
+    file_type: String,
+    html_url: String,
+}
+
+/// A rule from thefuck repository
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct TheFuckRule {
     name: String,
     path: String,
-    last_modified: String,
-    has_recent_activity: bool,
+    sha: String,
+    url: String,
 }
 
+/// A rule from oops with metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct OopsRule {
+    name: String,
+    priority: i32,
+    requires_output: bool,
+    enabled_by_default: bool,
+}
+
+/// The complete parity report
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ParityReport {
     thefuck_rules: Vec<TheFuckRule>,
-    oops_rules: Vec<String>,
+    oops_rules: Vec<OopsRule>,
     missing_rules: Vec<TheFuckRule>,
-    recently_updated_rules: Vec<TheFuckRule>,
     total_thefuck_rules: usize,
     total_oops_rules: usize,
     coverage_percentage: f64,
+    name_mappings: HashMap<String, String>,
 }
 
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    let days = parse_days(&args).unwrap_or(7);
     let output_format = parse_output_format(&args);
+    let verbose = args.contains(&"--verbose".to_string());
 
-    eprintln!("🔍 Checking parity between oops and thefuck...");
-    eprintln!(
-        "   Looking for rules with activity in the last {} days",
-        days
-    );
+    if !verbose {
+        eprintln!("🔍 Checking parity between oops and thefuck...");
+    }
 
-    // Get thefuck rules from GitHub API or local clone
-    let thefuck_rules = get_thefuck_rules(days)?;
+    // Fetch thefuck rules from GitHub
+    let thefuck_rules = fetch_thefuck_rules_from_github(verbose)?;
 
-    // Get oops rules from source
-    let oops_rules = get_oops_rules()?;
+    // Get oops rules using get_all_rules()
+    let oops_rules = get_oops_rules_from_library(verbose)?;
 
-    // Generate report
+    // Generate comparison report
     let report = generate_report(thefuck_rules, oops_rules)?;
 
     // Output report
     match output_format.as_str() {
         "json" => print_json_report(&report)?,
-        _ => print_human_report(&report)?,
+        _ => print_human_report(&report, verbose)?,
     }
 
     Ok(())
-}
-
-fn parse_days(args: &[String]) -> Option<u32> {
-    for i in 0..args.len() {
-        if args[i] == "--days" && i + 1 < args.len() {
-            return args[i + 1].parse().ok();
-        }
-    }
-    None
 }
 
 fn parse_output_format(args: &[String]) -> String {
@@ -80,405 +94,96 @@ fn parse_output_format(args: &[String]) -> String {
     "human".to_string()
 }
 
-/// Get thefuck rules from the GitHub repository
-fn get_thefuck_rules(days: u32) -> Result<Vec<TheFuckRule>> {
-    eprintln!("📥 Fetching thefuck rules...");
-
-    // First, try to find a local clone
-    if let Ok(rules) = get_thefuck_rules_from_local(days) {
-        return Ok(rules);
+/// Fetch thefuck rules from GitHub API
+fn fetch_thefuck_rules_from_github(verbose: bool) -> Result<Vec<TheFuckRule>> {
+    if verbose {
+        eprintln!("📥 Fetching thefuck rules from GitHub API...");
     }
 
-    // Fall back to GitHub API
-    get_thefuck_rules_from_github(days)
-}
+    let url = format!(
+        "{}/repos/{}/contents/{}",
+        GITHUB_API_BASE, THEFUCK_REPO, THEFUCK_RULES_PATH
+    );
 
-/// Get thefuck rules from a local clone
-fn get_thefuck_rules_from_local(days: u32) -> Result<Vec<TheFuckRule>> {
-    let mut possible_paths: Vec<PathBuf> =
-        vec![PathBuf::from("../thefuck"), PathBuf::from("../../thefuck")];
+    let response = ureq::get(&url)
+        .set("Accept", "application/vnd.github+json")
+        .set("User-Agent", "oops-parity-checker")
+        .timeout(std::time::Duration::from_secs(10))
+        .call()
+        .context("Failed to fetch thefuck rules from GitHub API. Check your internet connection and GitHub API rate limits (60 requests per hour per IP for unauthenticated requests)")?;
 
-    if let Some(home) = dirs::home_dir() {
-        possible_paths.push(home.join("projects/thefuck"));
-        possible_paths.push(home.join("src/thefuck"));
-    }
+    let files: Vec<GitHubFile> = response
+        .into_json()
+        .context("Failed to parse GitHub API response")?;
 
-    for path_opt in possible_paths {
-        let rules_dir = path_opt.join("thefuck").join("rules");
-        if rules_dir.exists() {
-            eprintln!("   Found local thefuck clone at: {:?}", path_opt);
-            return scan_local_rules(&rules_dir, days);
-        }
-    }
-
-    Err(anyhow::anyhow!("No local thefuck clone found"))
-}
-
-/// Scan local thefuck rules directory
-fn scan_local_rules(rules_dir: &Path, days: u32) -> Result<Vec<TheFuckRule>> {
-    let mut rules = Vec::new();
-    let cutoff_time =
-        std::time::SystemTime::now() - std::time::Duration::from_secs(days as u64 * 24 * 60 * 60);
-
-    for entry in fs::read_dir(rules_dir)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if path.extension().and_then(|e| e.to_str()) == Some("py") {
-            let name = path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("")
-                .to_string();
-
-            // Skip __init__.py and internal files
-            if name.starts_with("__") {
-                continue;
-            }
-
-            let metadata = fs::metadata(&path)?;
-            let modified = metadata.modified()?;
-            let has_recent_activity = modified > cutoff_time;
-
-            let last_modified = format_timestamp(modified);
-
-            rules.push(TheFuckRule {
+    let rules: Vec<TheFuckRule> = files
+        .into_iter()
+        .filter(|f| f.file_type == "file" && f.name.ends_with(".py") && f.name != "__init__.py")
+        .map(|f| {
+            let name = f.name.trim_end_matches(".py").to_string();
+            TheFuckRule {
                 name,
-                path: path.display().to_string(),
-                last_modified,
-                has_recent_activity,
-            });
-        }
+                path: f.path,
+                sha: f.sha,
+                url: f.html_url,
+            }
+        })
+        .collect();
+
+    if verbose {
+        eprintln!("   Found {} thefuck rules", rules.len());
     }
 
-    eprintln!("   Found {} rules in local clone", rules.len());
     Ok(rules)
 }
 
-/// Get thefuck rules from GitHub API
-fn get_thefuck_rules_from_github(_days: u32) -> Result<Vec<TheFuckRule>> {
-    eprintln!("   Fetching from GitHub API...");
+/// Get oops rules using get_all_rules()
+fn get_oops_rules_from_library(verbose: bool) -> Result<Vec<OopsRule>> {
+    if verbose {
+        eprintln!("📋 Loading oops rules from library...");
+    }
 
-    // For now, we'll use a static list of known thefuck rules
-    // In production, this would use the GitHub API
-    let known_rules = get_known_thefuck_rules();
-
-    eprintln!("   Using {} known rules", known_rules.len());
-    Ok(known_rules
-        .into_iter()
-        .map(|name| TheFuckRule {
-            name: name.to_string(),
-            path: format!("thefuck/rules/{}.py", name),
-            last_modified: "unknown".to_string(),
-            has_recent_activity: false,
+    let all_rules = get_all_rules();
+    let rules: Vec<OopsRule> = all_rules
+        .iter()
+        .map(|rule| OopsRule {
+            name: rule.name().to_string(),
+            priority: rule.priority(),
+            requires_output: rule.requires_output(),
+            enabled_by_default: rule.enabled_by_default(),
         })
-        .collect())
-}
+        .collect();
 
-/// Get list of known thefuck rules (maintained manually from thefuck repo)
-fn get_known_thefuck_rules() -> Vec<&'static str> {
-    vec![
-        "ag_literal",
-        "aws_cli",
-        "az_cli",
-        "brew_install",
-        "brew_link",
-        "brew_uninstall",
-        "brew_unknown_command",
-        "brew_update_formula",
-        "cargo",
-        "cargo_no_command",
-        "cat_dir",
-        "cd_correction",
-        "cd_cs",
-        "cd_mkdir",
-        "cd_parent",
-        "chmod_x",
-        "choco_install",
-        "composer_not_command",
-        "conda_mistype",
-        "cp_create_destination",
-        "cp_omitting_directory",
-        "cpp11",
-        "dirty_untar",
-        "dirty_unzip",
-        "django_south_ghost",
-        "django_south_merge",
-        "dnf_no_such_command",
-        "docker_login",
-        "docker_not_command",
-        "dry",
-        "fab_command_not_found",
-        "fix_alt_space",
-        "fix_file",
-        "flutter_command_not_found",
-        "gem_unknown_command",
-        "git_add",
-        "git_add_force",
-        "git_bisect_usage",
-        "git_branch_delete",
-        "git_branch_delete_checked_out",
-        "git_branch_exists",
-        "git_branch_list",
-        "git_checkout",
-        "git_clone_git_clone",
-        "git_clone_missing",
-        "git_commit_add",
-        "git_commit_amend",
-        "git_commit_reset",
-        "git_diff_no_index",
-        "git_diff_staged",
-        "git_fix_stash",
-        "git_flag_after_filename",
-        "git_help_aliased",
-        "git_hook_bypass",
-        "git_lfs_mistype",
-        "git_main_master",
-        "git_merge",
-        "git_merge_unrelated",
-        "git_not_command",
-        "git_pull",
-        "git_pull_clone",
-        "git_pull_uncommitted_changes",
-        "git_push",
-        "git_push_different_branch_names",
-        "git_push_force",
-        "git_push_pull",
-        "git_push_set_upstream",
-        "git_push_without_commits",
-        "git_rebase_continue",
-        "git_rebase_merge_dir",
-        "git_rebase_no_changes",
-        "git_remote_delete",
-        "git_remote_set_url",
-        "git_revert_merge",
-        "git_rm_local_modifications",
-        "git_rm_recursive",
-        "git_rm_staged",
-        "git_stash",
-        "git_stash_pop",
-        "git_tag_force",
-        "git_two_dashes",
-        "go_run",
-        "gradle_no_task",
-        "gradle_wrapper",
-        "grep_arguments_order",
-        "grep_recursive",
-        "grunt_not_found",
-        "grunt_task_not_found",
-        "gulp_not_task",
-        "has_exists_script",
-        "helm_not_command",
-        "heroku_multiple_apps",
-        "heroku_not_command",
-        "history",
-        "hostscli",
-        "ifconfig_device_not_found",
-        "java",
-        "javac",
-        "ln_no_hard_link",
-        "ln_s_order",
-        "long_form_help",
-        "ls_all",
-        "ls_lah",
-        "lein_not_task",
-        "man",
-        "man_no_space",
-        "mercurial",
-        "mkdir_p",
-        "mvn_no_command",
-        "mvn_unknown_lifecycle_phase",
-        "nixos_cmd_not_found",
-        "no_command",
-        "no_such_file",
-        "npm_missing_script",
-        "npm_run_script",
-        "npm_wrong_command",
-        "npx_install",
-        "open",
-        "open_with_args",
-        "pacman",
-        "pacman_invalid_option",
-        "pacman_not_found",
-        "path_from_history",
-        "pip_install",
-        "pip_unknown_command",
-        "port_already_in_use",
-        "prove_recursively",
-        "python_command",
-        "python_execute",
-        "python_module_error",
-        "quotation_marks",
-        "react_native_command_unrecognized",
-        "remove_trailing_cedilla",
-        "rm_dir",
-        "rm_root",
-        "scm_correction",
-        "sed_unterminated_s",
-        "sl_ls",
-        "ssh_known_hosts",
-        "sudo",
-        "sudo_command_from_user_path",
-        "switch_lang",
-        "systemctl",
-        "terraform_init",
-        "terraform_no_command",
-        "test_py",
-        "touch",
-        "tsuru_login",
-        "tsuru_not_command",
-        "unknown_command",
-        "unsudo",
-        "vagrant_up",
-        "whois",
-        "workon_doesnt_exists",
-        "wrong_hyphen_before_subcommand",
-        "yarn_alias",
-        "yarn_command_not_found",
-        "yarn_command_replaced",
-        "yarn_help",
-    ]
-}
-
-/// Get oops rules from the source code
-fn get_oops_rules() -> Result<Vec<String>> {
-    eprintln!("📋 Scanning oops rules...");
-
-    let mut rules = HashSet::new();
-    let rules_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/rules");
-
-    scan_rust_rules(&rules_dir, &mut rules)?;
-
-    let mut sorted_rules: Vec<_> = rules.into_iter().collect();
-    sorted_rules.sort();
-
-    eprintln!("   Found {} rules in oops", sorted_rules.len());
-    Ok(sorted_rules)
-}
-
-/// Recursively scan Rust files for rule names
-fn scan_rust_rules(dir: &Path, rules: &mut HashSet<String>) -> Result<()> {
-    for entry in fs::read_dir(dir)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if path.is_dir() {
-            scan_rust_rules(&path, rules)?;
-        } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
-            extract_rule_names(&path, rules)?;
-        }
-    }
-    Ok(())
-}
-
-/// Extract rule names from a Rust source file
-fn extract_rule_names(path: &Path, rules: &mut HashSet<String>) -> Result<()> {
-    let content = fs::read_to_string(path)?;
-    let lines: Vec<&str> = content.lines().collect();
-
-    for i in 0..lines.len() {
-        let line = lines[i];
-
-        // Look for: fn name(&self) -> &str {
-        if line.contains("fn name(&self) -> &str") {
-            // Check the same line first
-            if let Some(rule_name) = extract_string_literal(line) {
-                rules.insert(rule_name);
-                continue;
-            }
-
-            // Check next few lines for the string literal
-            for next_line in lines.iter().skip(i + 1).take(4) {
-                if let Some(rule_name) = extract_string_literal(next_line) {
-                    rules.insert(rule_name);
-                    break;
-                }
-            }
-        }
+    if verbose {
+        eprintln!("   Found {} oops rules", rules.len());
     }
 
-    Ok(())
+    Ok(rules)
 }
 
-/// Extract a string literal from a line of code
-/// Note: This is a simple parser for extracting rule names from Rust source.
-/// It handles basic string literals and attempts to skip escaped quotes.
-/// For our use case (rule names which are simple identifiers), this is sufficient.
-fn extract_string_literal(line: &str) -> Option<String> {
-    let trimmed = line.trim();
-    if let Some(start) = trimmed.find('"') {
-        // Skip the opening quote and find the closing quote
-        let after_start = &trimmed[start + 1..];
-        if let Some(end) = after_start.find('"') {
-            // Simple heuristic: skip if the quote appears to be escaped
-            // Note: This doesn't handle all edge cases (e.g., \\"), but works
-            // for our use case since rule names don't contain special characters
-            if end > 0 && after_start.chars().nth(end - 1) == Some('\\') {
-                return None;
-            }
-            return Some(after_start[..end].to_string());
-        }
-    }
-    None
-}
-
-/// Format a system time as a human-readable string
-fn format_timestamp(time: std::time::SystemTime) -> String {
-    use std::time::UNIX_EPOCH;
-
-    match time.duration_since(UNIX_EPOCH) {
-        Ok(duration) => {
-            let secs = duration.as_secs();
-            let days = secs / 86400;
-            if days == 0 {
-                "today".to_string()
-            } else if days == 1 {
-                "1 day ago".to_string()
-            } else if days < 7 {
-                format!("{} days ago", days)
-            } else if days < 30 {
-                format!("{} weeks ago", days / 7)
-            } else {
-                format!("{} months ago", days / 30)
-            }
-        }
-        Err(_) => "unknown".to_string(),
-    }
-}
-
-/// Generate the parity report
+/// Generate the parity report with detailed comparison
 fn generate_report(
     thefuck_rules: Vec<TheFuckRule>,
-    oops_rules: Vec<String>,
+    oops_rules: Vec<OopsRule>,
 ) -> Result<ParityReport> {
-    let oops_set: HashSet<String> = oops_rules.iter().cloned().collect();
+    let oops_name_set: HashSet<String> = oops_rules.iter().map(|r| r.name.clone()).collect();
 
-    // Build a mapping from thefuck names to oops names (since they might differ)
+    // Build name mapping for rules that differ between thefuck and oops
     let name_mapping = build_name_mapping();
 
     let mut missing_rules = Vec::new();
-    let mut recently_updated_rules = Vec::new();
 
     for rule in &thefuck_rules {
-        let oops_name = name_mapping.get(&rule.name).unwrap_or(&rule.name);
-
-        if !oops_set.contains(oops_name) {
+        if is_rule_missing(&rule.name, &name_mapping, &oops_name_set) {
             missing_rules.push(rule.clone());
-        }
-
-        if rule.has_recent_activity {
-            recently_updated_rules.push(rule.clone());
         }
     }
 
     let total_thefuck = thefuck_rules.len();
     let total_oops = oops_rules.len();
     let coverage_percentage = if total_thefuck > 0 {
-        (total_oops as f64 / total_thefuck as f64) * 100.0
+        ((total_thefuck - missing_rules.len()) as f64 / total_thefuck as f64) * 100.0
     } else {
-        // Edge case: no thefuck rules to compare against
-        // Return 0.0 to indicate "no baseline" rather than "complete coverage"
-        // In practice, this should never happen since thefuck has 159+ rules
         0.0
     };
 
@@ -486,23 +191,50 @@ fn generate_report(
         thefuck_rules,
         oops_rules,
         missing_rules,
-        recently_updated_rules,
         total_thefuck_rules: total_thefuck,
         total_oops_rules: total_oops,
         coverage_percentage,
+        name_mappings: name_mapping,
     })
 }
 
+/// Check if a thefuck rule is missing from oops
+///
+/// This checks both the original rule name and any mapped name (for cases
+/// where thefuck and oops use different names for the same functionality).
+///
+/// A rule is considered present if either:
+/// - The mapped name (if one exists) is found in oops, OR
+/// - The original name (if no mapping or as fallback) is found in oops
+fn is_rule_missing(
+    rule_name: &str,
+    name_mapping: &HashMap<String, String>,
+    oops_rules: &HashSet<String>,
+) -> bool {
+    // Check if there's a mapping for this rule
+    if let Some(mapped_name) = name_mapping.get(rule_name) {
+        // If mapped, check only the mapped name
+        !oops_rules.contains(mapped_name)
+    } else {
+        // No mapping, check the original name
+        !oops_rules.contains(rule_name)
+    }
+}
+
 /// Build a mapping from thefuck rule names to oops rule names
+/// for cases where the naming differs between projects
 fn build_name_mapping() -> HashMap<String, String> {
-    // Add known mappings where names differ between thefuck and oops
-    // Example: mapping.insert("thefuck_name".to_string(), "oops_name".to_string());
-    // Currently, all rule names are identical between projects
+    // Add known mappings where names differ
+    // Format: mapping.insert("thefuck_name".to_string(), "oops_name".to_string());
+
+    // Example: apt_get -> apt (if we consolidate)
+    // Most rules maintain the same names between projects
+
     HashMap::new()
 }
 
 /// Print the report in human-readable format
-fn print_human_report(report: &ParityReport) -> Result<()> {
+fn print_human_report(report: &ParityReport, verbose: bool) -> Result<()> {
     println!("\n═══════════════════════════════════════════════════════════");
     println!("             oops ↔ thefuck Parity Report");
     println!("═══════════════════════════════════════════════════════════\n");
@@ -511,27 +243,45 @@ fn print_human_report(report: &ParityReport) -> Result<()> {
     println!("   • thefuck rules: {}", report.total_thefuck_rules);
     println!("   • oops rules:    {}", report.total_oops_rules);
     println!("   • Coverage:      {:.1}%", report.coverage_percentage);
-    println!("   • Missing:       {} rules", report.missing_rules.len());
-    println!(
-        "   • Recent activity: {} rules\n",
-        report.recently_updated_rules.len()
-    );
+    println!("   • Missing:       {} rules\n", report.missing_rules.len());
 
-    if !report.recently_updated_rules.is_empty() {
-        println!("🔥 Recently Updated Rules (last 7 days):");
-        for rule in &report.recently_updated_rules {
-            println!("   • {} ({})", rule.name, rule.last_modified);
+    if verbose && !report.oops_rules.is_empty() {
+        println!("✅ Implemented Rules ({}):", report.oops_rules.len());
+        for rule in &report.oops_rules {
+            println!(
+                "   • {} (priority: {}, requires_output: {})",
+                rule.name, rule.priority, rule.requires_output
+            );
         }
         println!();
     }
 
     if !report.missing_rules.is_empty() {
         println!("❌ Missing Rules ({}):", report.missing_rules.len());
+
+        // Group missing rules by category
+        let mut categorized: HashMap<&str, Vec<&TheFuckRule>> = HashMap::new();
         for rule in &report.missing_rules {
-            if rule.has_recent_activity {
-                println!("   • {} 🔥 ({})", rule.name, rule.last_modified);
-            } else {
-                println!("   • {}", rule.name);
+            let category = categorize_rule(&rule.name);
+            categorized.entry(category).or_default().push(rule);
+        }
+
+        // Sort categories by name
+        let mut categories: Vec<_> = categorized.keys().copied().collect();
+        categories.sort();
+
+        for category in categories {
+            if let Some(rules) = categorized.get(category) {
+                println!("\n   {} ({} rules):", category, rules.len());
+                let mut sorted_rules = rules.clone();
+                sorted_rules.sort_by(|a, b| a.name.cmp(&b.name));
+                for rule in sorted_rules {
+                    if verbose {
+                        println!("      • {} ({})", rule.name, rule.url);
+                    } else {
+                        println!("      • {}", rule.name);
+                    }
+                }
             }
         }
         println!();
@@ -541,15 +291,57 @@ fn print_human_report(report: &ParityReport) -> Result<()> {
     if report.missing_rules.is_empty() {
         println!("   🎉 Full parity achieved! All thefuck rules are ported.");
     } else {
-        println!("   1. Review missing rules for relevance");
-        println!("   2. Prioritize rules with recent activity (marked 🔥)");
-        println!("   3. Port high-value rules first");
+        println!("   1. Review missing rules for relevance to Rust ecosystem");
+        println!("   2. Prioritize frequently-used commands (git, docker, npm, etc.)");
+        println!("   3. Implement high-value rules with tests");
         println!("   4. Update tests in tests/parity_tests.rs");
-        println!("\n   See: https://github.com/nvbn/thefuck/tree/master/thefuck/rules");
+        println!("\n   Reference: https://github.com/nvbn/thefuck/tree/master/thefuck/rules");
     }
     println!();
 
     Ok(())
+}
+
+/// Categorize a rule by its name prefix
+fn categorize_rule(name: &str) -> &'static str {
+    if name.starts_with("git_") {
+        "Git"
+    } else if name.starts_with("docker_") {
+        "Docker"
+    } else if name.starts_with("npm_") || name.starts_with("yarn_") || name.starts_with("npx_") {
+        "Node.js"
+    } else if name.starts_with("brew_") {
+        "Homebrew"
+    } else if name.starts_with("apt_") || name.starts_with("pacman") || name.starts_with("dnf_") {
+        "Package Managers"
+    } else if name.starts_with("cargo") || name.starts_with("mvn_") || name.starts_with("gradle_") {
+        "Build Tools"
+    } else if name.starts_with("aws_") || name.starts_with("az_") || name.starts_with("heroku_") {
+        "Cloud Services"
+    } else if name.starts_with("python_") || name.starts_with("java") || name.starts_with("go_") {
+        "Programming Languages"
+    } else if name.starts_with("cd_")
+        || name.starts_with("ls_")
+        || name.starts_with("cp_")
+        || name.starts_with("rm_")
+        || name.starts_with("mkdir_")
+    {
+        "Shell/System"
+    } else if name.starts_with("grep_") || name.starts_with("sed_") || name.starts_with("adb_") {
+        "CLI Utilities"
+    } else if name.starts_with("terraform_")
+        || name.starts_with("kubectl_")
+        || name.starts_with("helm_")
+    {
+        "Infrastructure"
+    } else if name.starts_with("django_")
+        || name.starts_with("react_")
+        || name.starts_with("rails_")
+    {
+        "Web Frameworks"
+    } else {
+        "Miscellaneous"
+    }
 }
 
 /// Print the report in JSON format

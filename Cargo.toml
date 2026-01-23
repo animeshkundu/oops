@@ -67,6 +67,9 @@ which = "6"
 # URL parsing
 url = "2"
 
+# HTTP client (minimal, synchronous)
+ureq = { version = "2.10", default-features = false, features = ["json", "tls"] }
+
 [target.'cfg(unix)'.dependencies]
 portable-pty = "0.8"
 
