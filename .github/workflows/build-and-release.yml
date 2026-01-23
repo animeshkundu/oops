@@ -1,0 +1,201 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v0.1.0). Will create/update release with this tag.'
+        required: true
+        type: string
+  push:
+    branches:
+      - '**'  # All branches
+  pull_request:
+    branches:
+      - '**'  # All branches
+
+permissions:
+  contents: write  # Required for creating releases
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Run tests before building releases
+  test:
+    name: Pre-release Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-release-test-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Run tests
+        run: cargo test
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: oops-linux-x86_64
+
+          # macOS x86_64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: oops-darwin-x86_64
+
+          # Windows x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: oops-windows-x86_64.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "release-${{ matrix.target }}"
+          cache-on-failure: true
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Rename binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mv target/${{ matrix.target }}/release/oops ${{ matrix.artifact }}
+
+      - name: Rename binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mv target/${{ matrix.target }}/release/oops.exe ${{ matrix.artifact }}
+
+      - name: Generate SHA256 checksum (Unix)
+        if: runner.os != 'Windows'
+        run: sha256sum ${{ matrix.artifact }} > ${{ matrix.artifact }}.sha256
+
+      - name: Generate SHA256 checksum (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash "${{ matrix.artifact }}" -Algorithm SHA256).Hash.ToLower()
+          "$hash  ${{ matrix.artifact }}" | Out-File -Encoding ASCII "${{ matrix.artifact }}.sha256"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}
+            ${{ matrix.artifact }}.sha256
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    # Only create release for workflow_dispatch (manual trigger)
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name "oops-*" -o -name "*.sha256" \) -exec cp {} release/ \;
+          echo "Release assets:"
+          ls -la release/
+
+      - name: Verify artifacts
+        run: |
+          cd release
+          echo "🔍 Verifying artifact checksums..."
+          # Verify all checksums
+          for file in *.sha256; do
+            if ! sha256sum -c "$file"; then
+              echo "::error::Checksum verification failed for $file"
+              exit 1
+            fi
+          done
+          echo "✅ All artifact checksums verified"
+
+      - name: Delete existing release if exists
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ inputs.tag }}"
+          echo "Checking for existing release with tag $TAG_NAME..."
+          
+          # Try to delete the existing release
+          gh release delete "$TAG_NAME" --yes || echo "No existing release to delete"
+          
+          # Try to delete the existing tag
+          git push --delete origin "$TAG_NAME" || echo "No existing tag to delete"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: Release ${{ inputs.tag }}
+          files: release/*
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(inputs.tag, 'alpha') || contains(inputs.tag, 'beta') || contains(inputs.tag, 'rc') }}
+
+      - name: Create release summary
+        run: |
+          TAG_NAME="${{ inputs.tag }}"
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🎉 Release Published
+          
+          **Version**: $TAG_NAME
+          **Event**: ${{ github.event_name }}
+          **Branch**: ${{ github.ref_name }}
+          
+          ### 📦 Built Artifacts
+          - Linux x86_64 (glibc)
+          - macOS x86_64 (Intel)
+          - Windows x86_64
+          
+          ### 🔗 Links
+          - [Release Page](https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME)
+          - [Download Latest](https://github.com/${{ github.repository }}/releases/latest)
+          
+          All binaries include SHA256 checksums for verification.
+          EOF
