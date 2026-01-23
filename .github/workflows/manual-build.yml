@@ -1,0 +1,402 @@
+name: Manual Build and Release
+
+# This workflow allows manual building and releasing of binaries from any branch or PR
+# without interfering with the automated release process or PR approval workflows.
+#
+# Use cases:
+# - Testing builds from feature branches
+# - Creating pre-releases from PR branches
+# - Emergency releases from hotfix branches
+# - Preview builds for testing
+#
+# This workflow does NOT:
+# - Modify version numbers
+# - Create PRs
+# - Interfere with the standard release process
+# - Remove or affect PR approval requirements
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref (branch, tag, or commit SHA) to build from'
+        required: true
+        type: string
+        default: 'main'
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: true
+      draft:
+        description: 'Create as draft release'
+        required: false
+        type: boolean
+        default: false
+      tag_suffix:
+        description: 'Optional tag suffix (e.g., "-rc1", "-beta"). Leave empty for auto-generated timestamp'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write  # Required for creating releases and tags
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Validate inputs and generate release metadata
+  prepare:
+    name: Prepare Release Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.generate_tag.outputs.tag_name }}
+      release_name: ${{ steps.generate_tag.outputs.release_name }}
+      short_sha: ${{ steps.generate_tag.outputs.short_sha }}
+      build_timestamp: ${{ steps.generate_tag.outputs.build_timestamp }}
+      cargo_version: ${{ steps.extract_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Extract version from Cargo.toml
+        id: extract_version
+        run: |
+          VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Version from Cargo.toml: $VERSION"
+
+      - name: Generate tag name and metadata
+        id: generate_tag
+        run: |
+          # Get commit SHA (short version)
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          
+          # Get current timestamp
+          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+          echo "build_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          
+          # Get branch name (sanitize for tag usage)
+          REF_INPUT="${{ inputs.ref }}"
+          BRANCH_NAME=$(echo "$REF_INPUT" | sed 's/refs\/heads\///' | sed 's/refs\/pull\//pr-/' | sed 's/[^a-zA-Z0-9._-]/-/g')
+          
+          # Construct tag name
+          # Format: manual-{version}-{branch}-{sha}[-{suffix}]
+          VERSION="${{ steps.extract_version.outputs.version }}"
+          TAG_SUFFIX="${{ inputs.tag_suffix }}"
+          
+          if [ -n "$TAG_SUFFIX" ]; then
+            # User provided suffix
+            TAG_NAME="manual-v${VERSION}-${BRANCH_NAME}-${SHORT_SHA}${TAG_SUFFIX}"
+          else
+            # Auto-generated with timestamp
+            TAG_NAME="manual-v${VERSION}-${BRANCH_NAME}-${SHORT_SHA}-${TIMESTAMP}"
+          fi
+          
+          # Sanitize tag name (remove any problematic characters)
+          TAG_NAME=$(echo "$TAG_NAME" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          
+          # Generate human-readable release name
+          RELEASE_NAME="Manual Build v${VERSION} (${BRANCH_NAME}@${SHORT_SHA})"
+          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+          
+          echo "🏷️  Tag name: $TAG_NAME"
+          echo "📋 Release name: $RELEASE_NAME"
+
+      - name: Check if tag already exists
+        run: |
+          TAG_NAME="${{ steps.generate_tag.outputs.tag_name }}"
+          
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG_NAME$"; then
+            echo "::error::Tag $TAG_NAME already exists. Please use a different tag_suffix or wait a moment."
+            exit 1
+          fi
+          
+          echo "✅ Tag $TAG_NAME is available"
+
+      - name: Validate ref exists
+        run: |
+          REF="${{ inputs.ref }}"
+          
+          if ! git rev-parse --verify "$REF" >/dev/null 2>&1; then
+            echo "::error::Ref '$REF' does not exist in this repository"
+            exit 1
+          fi
+          
+          echo "✅ Ref '$REF' is valid"
+          echo "   Points to commit: $(git rev-parse HEAD)"
+
+  # Run quick validation tests
+  test:
+    name: Pre-build Tests
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-manual-test-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Run tests
+        run: cargo test
+
+  # Build binaries for 3 main platforms (1 per OS)
+  build:
+    name: Build (${{ matrix.os }})
+    needs: [prepare, test]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64 (GNU libc - most compatible)
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: oops-linux-x86_64
+            platform: Linux
+
+          # macOS ARM64 (Apple Silicon - most common for macOS users)
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: oops-darwin-aarch64
+            platform: macOS
+
+          # Windows x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: oops-windows-x86_64.exe
+            platform: Windows
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "manual-build-${{ matrix.target }}"
+          cache-on-failure: true
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Rename binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mv target/${{ matrix.target }}/release/oops ${{ matrix.artifact }}
+
+      - name: Rename binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mv target/${{ matrix.target }}/release/oops.exe ${{ matrix.artifact }}
+
+      - name: Generate SHA256 checksum (Unix)
+        if: runner.os != 'Windows'
+        run: sha256sum ${{ matrix.artifact }} > ${{ matrix.artifact }}.sha256
+
+      - name: Generate SHA256 checksum (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash "${{ matrix.artifact }}" -Algorithm SHA256).Hash.ToLower()
+          "$hash  ${{ matrix.artifact }}" | Out-File -Encoding ASCII "${{ matrix.artifact }}.sha256"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}
+            ${{ matrix.artifact }}.sha256
+
+  # Create GitHub Release with all artifacts
+  release:
+    name: Create GitHub Release
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name "oops-*" -o -name "*.sha256" \) -exec cp {} release/ \;
+          echo "Release assets:"
+          ls -lh release/
+
+      - name: Verify artifacts
+        run: |
+          cd release
+          echo "🔍 Verifying artifact checksums..."
+          
+          for file in *.sha256; do
+            if ! sha256sum -c "$file"; then
+              echo "::error::Checksum verification failed for $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ All artifact checksums verified"
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          TAG_NAME="${{ needs.prepare.outputs.tag_name }}"
+          RELEASE_NAME="${{ needs.prepare.outputs.release_name }}"
+          SHORT_SHA="${{ needs.prepare.outputs.short_sha }}"
+          CARGO_VERSION="${{ needs.prepare.outputs.cargo_version }}"
+          REF_INPUT="${{ inputs.ref }}"
+          TIMESTAMP="${{ needs.prepare.outputs.build_timestamp }}"
+          
+          # Get commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B HEAD)
+          
+          # Get commit author and date
+          COMMIT_AUTHOR=$(git log -1 --pretty=%an HEAD)
+          COMMIT_DATE=$(git log -1 --pretty=%ai HEAD)
+          
+          # Generate release body
+          cat > release_notes.md << EOF
+          ## 🔧 Manual Build Release
+          
+          This is a manually triggered build for testing or preview purposes.
+          
+          ### Build Information
+          - **Version**: v${CARGO_VERSION} *(from Cargo.toml)*
+          - **Source Ref**: \`${REF_INPUT}\`
+          - **Commit**: \`${SHORT_SHA}\`
+          - **Built**: ${TIMESTAMP} UTC
+          - **Tag**: \`${TAG_NAME}\`
+          
+          ### Commit Details
+          **Author**: ${COMMIT_AUTHOR}  
+          **Date**: ${COMMIT_DATE}  
+          **Message**:
+          \`\`\`
+          ${COMMIT_MSG}
+          \`\`\`
+          
+          ### 📦 Included Binaries
+          
+          | Platform | Binary | Architecture |
+          |----------|--------|--------------|
+          | 🐧 Linux | \`oops-linux-x86_64\` | x86_64 (GNU libc) |
+          | 🍎 macOS | \`oops-darwin-aarch64\` | ARM64 (Apple Silicon) |
+          | 🪟 Windows | \`oops-windows-x86_64.exe\` | x86_64 |
+          
+          All binaries include SHA256 checksum files (*.sha256) for verification.
+          
+          ### 🔒 Verification
+          
+          To verify binary integrity:
+          \`\`\`bash
+          # Linux/macOS
+          sha256sum -c oops-linux-x86_64.sha256
+          
+          # Windows (PowerShell)
+          \$hash = (Get-FileHash oops-windows-x86_64.exe).Hash.ToLower()
+          \$expected = (Get-Content oops-windows-x86_64.exe.sha256).Split()[0]
+          if (\$hash -eq \$expected) { Write-Host "✅ Checksum verified" } else { Write-Host "❌ Checksum mismatch" }
+          \`\`\`
+          
+          ### ⚠️ Note
+          
+          This is **not** an official release. For production use, please use the official releases from the [Releases page](https://github.com/\${{ github.repository }}/releases).
+          
+          ---
+          
+          🤖 *Built by [manual-build workflow](.github/workflows/manual-build.yml)*
+          EOF
+          
+          echo "release_notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag_name }}
+          name: ${{ needs.prepare.outputs.release_name }}
+          body_path: release_notes.md
+          files: release/*
+          draft: ${{ inputs.draft }}
+          prerelease: ${{ inputs.prerelease }}
+          target_commitish: ${{ inputs.ref }}  # Point release to the specified ref
+          generate_release_notes: false  # We're providing custom notes
+
+      - name: Create workflow summary
+        run: |
+          TAG_NAME="${{ needs.prepare.outputs.tag_name }}"
+          RELEASE_NAME="${{ needs.prepare.outputs.release_name }}"
+          SHORT_SHA="${{ needs.prepare.outputs.short_sha }}"
+          CARGO_VERSION="${{ needs.prepare.outputs.cargo_version }}"
+          REF_INPUT="${{ inputs.ref }}"
+          IS_PRERELEASE="${{ inputs.prerelease }}"
+          IS_DRAFT="${{ inputs.draft }}"
+          
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🎉 Manual Build Release Created
+          
+          ### Release Information
+          - **Tag**: \`${TAG_NAME}\`
+          - **Name**: ${RELEASE_NAME}
+          - **Version**: v${CARGO_VERSION}
+          - **Source**: \`${REF_INPUT}\` @ \`${SHORT_SHA}\`
+          - **Type**: $([ "$IS_PRERELEASE" = "true" ] && echo "Pre-release" || echo "Release") $([ "$IS_DRAFT" = "true" ] && echo "(Draft)" || echo "")
+          
+          ### 📦 Built Artifacts
+          - ✅ Linux x86_64 (GNU libc)
+          - ✅ macOS ARM64 (Apple Silicon)
+          - ✅ Windows x86_64
+          
+          ### 🔗 Links
+          - [Release Page](https://github.com/${{ github.repository }}/releases/tag/${TAG_NAME})
+          - [All Releases](https://github.com/${{ github.repository }}/releases)
+          - [Commit Details](https://github.com/${{ github.repository }}/commit/${SHORT_SHA})
+          
+          ### 📝 Notes
+          - All binaries include SHA256 checksums for verification
+          - This is a manual build, not an official release
+          - Source ref: \`${REF_INPUT}\`
+          
+          ---
+          
+          **Next Steps**: Test the binaries and provide feedback. For production releases, use the standard release process.
+          EOF
