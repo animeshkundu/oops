@@ -16,6 +16,10 @@ categories = ["command-line-utilities"]
 name = "oops"
 path = "src/main.rs"
 
+[[bin]]
+name = "check_parity"
+path = "src/bin/check_parity.rs"
+
 [lib]
 name = "oops"
 path = "src/lib.rs"
@@ -26,6 +30,7 @@ clap = { version = "4", features = ["derive", "env"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 toml = "0.8"
 
 # Regex

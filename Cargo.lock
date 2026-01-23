@@ -976,6 +976,7 @@ dependencies = [
  "pyo3",
  "regex",
  "serde",
+ "serde_json",
  "shlex",
  "strsim",
  "tempfile",
