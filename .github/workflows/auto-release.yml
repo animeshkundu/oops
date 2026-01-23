@@ -91,7 +91,7 @@ jobs:
 
   create-version-bump-pr:
     name: Create Version Bump PR
-    needs: [event-guard, test]
+    needs: [event-guard, test]  # Explicit dependency for clear conditional checking
     if: needs.event-guard.outputs.should-run == 'true'
     permissions:
       contents: write  # Required for creating branches and PRs
@@ -145,21 +145,104 @@ jobs:
         id: bump_type
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         run: |
-          # Default to patch bump
-          BUMP_TYPE="patch"
+          set -e  # Exit on any error
           
-          # Check for breaking change indicators (major bump)
-          if echo "$PR_TITLE" | grep -qiE "^(feat!|fix!):" || echo "$PR_TITLE" | grep -qiE "breaking" || echo "$PR_LABELS" | grep -qi "breaking"; then
+          echo "🔍 Analyzing PR for version bump type"
+          echo "─────────────────────────────────────"
+          echo "PR Title: $PR_TITLE"
+          echo "PR Labels: $PR_LABELS"
+          echo "─────────────────────────────────────"
+          echo ""
+          
+          # Initialize bump type
+          BUMP_TYPE="patch"
+          REASON="default (no specific indicators found)"
+          
+          # Check for BREAKING CHANGE (highest priority)
+          # Patterns:
+          # - feat! or fix! (conventional commits with !)
+          # - BREAKING CHANGE: in title
+          # - [breaking] tag in title
+          # - "breaking" or "breaking-change" label
+          
+          # Normalize title for case-insensitive matching (preserve original for display)
+          TITLE_LOWER=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
+          
+          # Check for breaking change indicators in title
+          # Regex explained: (^|[^a-z]) = start of string OR non-letter (word boundary)
+          #                  (feat|fix|...) = conventional commit type
+          #                  ! = breaking change marker
+          #                  \s* = optional whitespace
+          #                  (\(|:) = scope with parenthesis OR colon
+          if echo "$TITLE_LOWER" | grep -qE '(^|[^a-z])(feat|fix|chore|docs|style|refactor|perf|test)!\s*(\(|:)'; then
             BUMP_TYPE="major"
-          # Check for feature indicators (minor bump)
-          elif echo "$PR_TITLE" | grep -qiE "^feat:" || echo "$PR_LABELS" | grep -qiE "(feature|enhancement)"; then
+            REASON="conventional commit with '!' (breaking change marker)"
+            echo "✓ Detected: $REASON"
+          elif echo "$TITLE_LOWER" | grep -qE '\bbreaking\s+change\b'; then
+            BUMP_TYPE="major"
+            REASON="'BREAKING CHANGE' found in title"
+            echo "✓ Detected: $REASON"
+          elif echo "$TITLE_LOWER" | grep -qE '\[breaking\]'; then
+            BUMP_TYPE="major"
+            REASON="[breaking] tag in title"
+            echo "✓ Detected: $REASON"
+          # Check labels for breaking change
+          elif echo "$PR_LABELS" | grep -qiE '(breaking|breaking-change)'; then
+            BUMP_TYPE="major"
+            REASON="'breaking' or 'breaking-change' label"
+            echo "✓ Detected: $REASON"
+          
+          # Check for FEATURE (minor version bump)
+          # Patterns:
+          # - feat: or feat( (conventional commits)
+          # - [feat] tag
+          # - "feature" or "enhancement" label
+          # Regex explained: (^|[^a-z]) = start of string OR non-letter (ensures 'feat' is a word, not part of 'defeat')
+          #                  feat = feature keyword
+          #                  \s* = optional whitespace
+          #                  (\(|:) = scope with parenthesis OR colon
+          elif echo "$TITLE_LOWER" | grep -qE '(^|[^a-z])feat\s*(\(|:)'; then
             BUMP_TYPE="minor"
+            REASON="conventional commit 'feat:' or 'feat(...)'"
+            echo "✓ Detected: $REASON"
+          elif echo "$TITLE_LOWER" | grep -qE '\[feat\]'; then
+            BUMP_TYPE="minor"
+            REASON="[feat] tag in title"
+            echo "✓ Detected: $REASON"
+          elif echo "$PR_LABELS" | grep -qiE '(feature|enhancement)'; then
+            BUMP_TYPE="minor"
+            REASON="'feature' or 'enhancement' label"
+            echo "✓ Detected: $REASON"
+          
+          # Default to PATCH for everything else
+          # This includes: fix:, docs:, chore:, style:, refactor:, perf:, test:, build:, ci:, etc.
+          else
+            echo "ℹ️  No major or minor indicators found - defaulting to patch bump"
+            echo "   This is appropriate for: bug fixes, docs, chores, style, refactors, etc."
           fi
           
+          echo ""
+          echo "─────────────────────────────────────"
+          echo "📊 Decision Summary"
+          echo "─────────────────────────────────────"
+          echo "Bump Type: $BUMP_TYPE"
+          echo "Reason: $REASON"
+          echo "─────────────────────────────────────"
+          
+          # Validate bump type before outputting
+          if ! echo "$BUMP_TYPE" | grep -qE '^(major|minor|patch)$'; then
+            echo "::error::Invalid bump type determined: '$BUMP_TYPE'. Must be major, minor, or patch."
+            exit 1
+          fi
+          
+          # Output to GitHub Actions
           echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
-          echo "Version bump type: $BUMP_TYPE"
+          echo "bump_reason=$REASON" >> $GITHUB_OUTPUT
+          
+          echo ""
+          echo "✅ Version bump type determined successfully"
 
       - name: Bump version in Cargo.toml
         if: steps.check_release.outputs.skip == 'false'
@@ -259,6 +342,7 @@ jobs:
                      -m "Auto-generated version bump for release v$NEW_VERSION" \
                      -m "" \
                      -m "Type: ${{ steps.bump_type.outputs.bump_type }} bump" \
+                     -m "Reason: ${{ steps.bump_type.outputs.bump_reason }}" \
                      -m "Source PR: #${{ github.event.pull_request.number }}" \
                      -m "Title: ${{ github.event.pull_request.title }}"
           
@@ -276,6 +360,7 @@ jobs:
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
           OLD_VERSION="${{ steps.version.outputs.old_version }}"
           BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
+          BUMP_REASON="${{ steps.bump_type.outputs.bump_reason }}"
           BRANCH_NAME="release/v$NEW_VERSION"
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           PR_NUMBER="${{ github.event.pull_request.number }}"
@@ -291,6 +376,7 @@ jobs:
           - **Old Version**: OLD_VERSION_PLACEHOLDER
           - **New Version**: NEW_VERSION_PLACEHOLDER
           - **Bump Type**: BUMP_TYPE_PLACEHOLDER
+          - **Reason**: BUMP_REASON_PLACEHOLDER
           
           ### Source
           - **Trigger PR**: #PR_NUMBER_PLACEHOLDER
@@ -314,6 +400,7 @@ jobs:
           sed -i "s/OLD_VERSION_PLACEHOLDER/$OLD_VERSION/g" pr_body.md
           sed -i "s/NEW_VERSION_PLACEHOLDER/$NEW_VERSION/g" pr_body.md
           sed -i "s/BUMP_TYPE_PLACEHOLDER/$BUMP_TYPE/g" pr_body.md
+          sed -i "s#BUMP_REASON_PLACEHOLDER#$BUMP_REASON#g" pr_body.md
           sed -i "s/PR_NUMBER_PLACEHOLDER/$PR_NUMBER/g" pr_body.md
           sed -i "s#PR_TITLE_PLACEHOLDER#$PR_TITLE#g" pr_body.md
           
@@ -372,6 +459,7 @@ jobs:
           - **Old Version**: $OLD_VERSION
           - **New Version**: v$NEW_VERSION
           - **Bump Type**: ${{ steps.bump_type.outputs.bump_type }}
+          - **Reason**: ${{ steps.bump_type.outputs.bump_reason }}
           - **Source PR**: #${{ github.event.pull_request.number }} - ${PR_TITLE}
           
           ### 📝 Version Bump PR
