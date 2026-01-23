@@ -13,7 +13,8 @@ jobs:
   test:
     name: Test (${{ matrix.os }}, ${{ matrix.rust }})
     # Skip if this is a version bump commit from the bot
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    # For pull_request events, head_commit is null, so use || '' to handle it
+    if: "!contains(github.event.head_commit.message || '', 'chore: bump version')"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -56,7 +57,8 @@ jobs:
   msrv:
     name: MSRV (Minimum Supported Rust Version)
     # Skip if this is a version bump commit from the bot
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    # For pull_request events, head_commit is null, so use || '' to handle it
+    if: "!contains(github.event.head_commit.message || '', 'chore: bump version')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +72,8 @@ jobs:
   coverage:
     name: Code Coverage
     # Skip if this is a version bump commit from the bot
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    # For pull_request events, head_commit is null, so use || '' to handle it
+    if: "!contains(github.event.head_commit.message || '', 'chore: bump version')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +98,8 @@ jobs:
   shell-tests:
     name: Shell Integration Tests
     # Skip if this is a version bump commit from the bot
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    # For pull_request events, head_commit is null, so use || '' to handle it
+    if: "!contains(github.event.head_commit.message || '', 'chore: bump version')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -148,8 +152,8 @@ jobs:
     if: |
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      !contains(github.event.head_commit.message, 'chore: bump version') &&
-      !contains(github.event.head_commit.message, 'chore: release')
+      !contains(github.event.head_commit.message || '', 'chore: bump version') &&
+      !contains(github.event.head_commit.message || '', 'chore: release')
     # Wait for all tests to pass first
     needs: [test, msrv, coverage, shell-tests]
     runs-on: ubuntu-latest

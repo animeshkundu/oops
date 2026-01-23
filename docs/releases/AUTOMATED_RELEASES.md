@@ -258,7 +258,47 @@ git tag vX.Y.Z
 git push origin master --tags
 ```
 
-## Manual Override
+## Manual Releases for Testing
+
+For testing builds from feature branches or PRs before merging, use the **Release workflow's manual trigger**:
+
+### Via GitHub Actions UI
+
+1. Go to **Actions** → **Release** workflow
+2. Click **Run workflow**
+3. Select the branch or enter a ref:
+   - **ref**: Branch name, PR ref, or commit SHA (e.g., `my-feature-branch`, `pr-123`, `abc1234`)
+4. Click **Run workflow**
+
+The workflow will:
+- Build binaries for all 6 targets (Linux, macOS, Windows)
+- Generate an auto-tagged pre-release: `manual-v{version}-{ref}-{sha}-{timestamp}`
+- Create a GitHub pre-release with all binaries and SHA256 checksums
+- Use `target_commitish` to point the release to your specified ref
+
+### Via GitHub CLI
+
+```bash
+# Build from a feature branch
+gh workflow run release.yml -f ref=my-feature-branch
+
+# Build from a specific commit
+gh workflow run release.yml -f ref=abc1234567
+
+# Build from a PR (use the branch name)
+gh workflow run release.yml -f ref=fix-memory-leak
+```
+
+### Use Cases
+
+- 🧪 Testing binaries from feature branches before merging
+- 🔍 Creating preview builds for PR reviewers
+- 🚨 Quick hotfix releases from dedicated branches
+- 📊 Building specific commits for performance testing
+
+**Note**: Manual releases are always marked as pre-releases and don't interfere with the automated release process or version bumping.
+
+## Manual Override (Advanced)
 
 If needed, you can still create releases manually:
 
