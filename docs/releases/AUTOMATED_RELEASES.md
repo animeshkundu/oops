@@ -289,6 +289,10 @@ gh workflow run release.yml -f ref=abc1234567
 gh workflow run release.yml -f ref=fix-memory-leak
 ```
 
+**Generated Tag Format**: `manual-v{VERSION}-{REF}-{SHA}-{TIMESTAMP}`
+
+Example: `manual-v0.1.3-my-feature-branch-abc1234-20260123-120000`
+
 ### Use Cases
 
 - 🧪 Testing binaries from feature branches before merging

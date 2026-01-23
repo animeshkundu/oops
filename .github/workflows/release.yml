@@ -36,6 +36,7 @@ jobs:
         id: generate_tag
         run: |
           # Extract version from Cargo.toml
+          # Package name is assumed to be 'oops' based on project structure
           VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "oops") | .version')
 
           # Get short commit SHA
@@ -45,6 +46,7 @@ jobs:
           TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
 
           # Sanitize ref name for tag usage
+          # Replaces refs/heads/, refs/pull/ prefixes and non-alphanumeric chars with hyphens
           REF_NAME=$(echo "${{ inputs.ref }}" | sed 's/refs\/heads\///' | sed 's/refs\/pull\//pr-/' | sed 's/[^a-zA-Z0-9._-]/-/g')
 
           # Generate tag: manual-v{version}-{ref}-{sha}-{timestamp}
@@ -92,6 +94,8 @@ jobs:
 
   build:
     name: Build (${{ matrix.target }})
+    # Conditional dependency: run if test succeeded and prepare either succeeded or was skipped
+    # prepare job only runs for workflow_dispatch, so it's skipped for push events
     needs: [prepare, test]
     if: always() && needs.test.result == 'success' && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped')
     runs-on: ${{ matrix.os }}
@@ -143,6 +147,7 @@ jobs:
 
           VERSION=${TAG_NAME#v}
           # For manual tags, extract version from the beginning (manual-v{version}-...)
+          # Expected format: manual-v{VERSION}-{REF}-{SHA}-{TIMESTAMP}
           if [[ $TAG_NAME == manual-v* ]]; then
             VERSION=$(echo "$TAG_NAME" | sed 's/manual-v//' | cut -d'-' -f1)
           fi
