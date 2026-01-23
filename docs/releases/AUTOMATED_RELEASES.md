@@ -190,40 +190,24 @@ Let's walk through a complete release:
 
 ## Version Bumping Logic
 
-The version bump type is determined by the PR title and labels:
+**All merged PRs trigger a MINOR version bump** (e.g., 0.1.0 → 0.2.0).
 
-### Major Version Bump (0.1.0 → 1.0.0)
-Triggered by:
-- PR title starts with `feat!:` or `fix!:`
-- PR title contains `breaking` or `BREAKING`
-- PR has label `breaking`
-
-Examples:
-- `feat!: redesign API interface`
-- `BREAKING: remove deprecated functions`
+This simplified approach ensures:
+- ✅ Consistent versioning across all changes
+- ✅ No need to categorize PR types
+- ✅ Clear expectations for contributors
+- ✅ Faster release cycles
 
 ### Minor Version Bump (0.1.0 → 0.2.0)
-Triggered by:
-- PR title starts with `feat:`
-- PR has label `feature`
-- PR has label `enhancement`
+**Triggered by:** Any PR merged to `master` (unless explicitly skipped)
 
 Examples:
-- `feat: add kubectl rules`
-- `feat(rules): support docker-compose errors`
+- `feat: add kubectl rules` → 0.1.0 → 0.2.0
+- `fix: handle git errors` → 0.2.0 → 0.3.0
+- `docs: update guide` → 0.3.0 → 0.4.0
+- `chore: update dependencies` → 0.4.0 → 0.5.0
 
-### Patch Version Bump (0.1.0 → 0.1.1)
-Default for all other cases:
-- PR title starts with `fix:`
-- PR title starts with `docs:`, `chore:`, etc.
-- No specific prefix
-
-Examples:
-- `fix: handle git detached HEAD state`
-- `docs: update installation guide`
-- `chore: update dependencies`
-
-## Skipping Releases
+### Skipping Releases
 
 To merge a PR without triggering a release, include one of these in the PR title:
 - `[skip release]`
@@ -232,6 +216,27 @@ To merge a PR without triggering a release, include one of these in the PR title
 Example: `docs: update README [skip release]`
 
 The auto-release workflow will skip the version bump entirely.
+
+### Manual Version Bumps
+
+If you need a specific version bump (major, patch, or custom version), you can create a manual release:
+
+```bash
+# For a major version bump (0.5.0 → 1.0.0)
+cargo set-version --bump major
+
+# For a patch version bump (0.5.0 → 0.5.1)  
+cargo set-version --bump patch
+
+# For a specific version
+cargo set-version 2.0.0
+
+# Then commit, tag, and push
+git add Cargo.toml Cargo.lock
+git commit -m "chore: bump version to X.Y.Z"
+git tag vX.Y.Z
+git push origin master --tags
+```
 
 ## Manual Override
 
@@ -411,10 +416,11 @@ After each release:
 
 ## Best Practices
 
-1. **Use Conventional Commits**: PR titles should follow `type: description` format
-   - `feat:` for features (minor bump)
-   - `fix:` for fixes (patch bump)
-   - `feat!:` or `fix!:` for breaking changes (major bump)
+1. **Clear PR Titles**: Use descriptive titles to document changes
+   - `feat: add new kubectl rules`
+   - `fix: resolve crash on invalid input`
+   - `docs: update installation guide`
+   - Note: All PRs trigger minor bumps automatically
 
 2. **Test Before Merge**: Ensure all CI checks pass on your PR
 

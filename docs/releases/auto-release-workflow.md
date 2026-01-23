@@ -73,9 +73,8 @@ Runs comprehensive tests on all three main platforms before proceeding with rele
 Creates a new version and triggers the release workflow:
 
 **Version Bump Logic**:
-- **Major bump** (X.0.0): PR title starts with `feat!:` or `fix!:`, contains "breaking", or has "breaking" label
-- **Minor bump** (0.X.0): PR title starts with `feat:` or has "feature"/"enhancement" label
-- **Patch bump** (0.0.X): Default for bug fixes and other changes
+- **All PRs** → minor bump (0.1.0 → 0.2.0, 0.2.0 → 0.3.0, etc.)
+- **Exception**: PRs with `[skip release]` in title → no release
 
 **Steps**:
 1. Check if release should be skipped (if PR title contains `[skip release]` or `[no release]`)
@@ -134,53 +133,45 @@ Creates the GitHub release:
 
 ## Conventional Commits
 
-The workflow uses Conventional Commits to determine version bumps:
+While the workflow no longer uses commit prefixes to determine version bumps, we still recommend using Conventional Commits for clarity:
 
-### Major Version (Breaking Changes)
-```
-feat!: redesign CLI interface
-fix!: remove deprecated --legacy flag
-chore: refactor core [breaking]
-```
-
-### Minor Version (New Features)
+### Recommended PR Title Formats
 ```
 feat: add docker command corrections
-feat(rules): support kubectl errors
-```
-
-### Patch Version (Bug Fixes, Docs, etc.)
-```
 fix: handle empty command output
 docs: update installation guide
 chore: update dependencies
 test: add missing test cases
 ```
 
+**Note:** All merged PRs trigger a **minor version bump** regardless of the prefix used.
+
+### Skipping Releases
+```
+docs: fix README typo [skip release]
+chore: update CI config [no release]
+```
+
+PRs with `[skip release]` or `[no release]` in the title will not trigger any version bump.
+
 ## Usage Examples
 
-### Standard Feature Release
+### Standard Release
 1. Create PR with title: `feat: add new correction rule for npm`
 2. Merge PR to main
 3. auto-release.yml runs:
    - Tests pass on all platforms
-   - Version bumps from 0.1.0 → 0.2.0
+   - Version bumps from 0.1.0 → 0.2.0 (minor bump)
    - Commits version bump
    - Creates tag v0.2.0
 4. release.yml triggers automatically:
    - Builds 6 platform binaries
    - Creates GitHub release v0.2.0 with all binaries
 
-### Bug Fix Release
+### Another Release
 1. PR title: `fix: correct git branch detection`
-2. Merge → version 0.2.0 → 0.2.1
-3. Tag v0.2.1 created
-4. Release created with binaries
-
-### Breaking Change Release
-1. PR title: `feat!: redesign rule matching engine`
-2. Merge → version 0.2.1 → 1.0.0
-3. Tag v1.0.0 created
+2. Merge → version 0.2.0 → 0.3.0 (minor bump)
+3. Tag v0.3.0 created
 4. Release created with binaries
 
 ### Skip Release
@@ -216,10 +207,9 @@ test: add missing test cases
 - Verify permissions are set correctly (contents: write)
 
 ### Wrong Version Bump Type
-- Adjust PR title to match Conventional Commits format
-- Use `feat:` for features, `fix:` for fixes
-- Add `!` suffix for breaking changes: `feat!:` or `fix!:`
-- Add labels: "breaking", "feature", "enhancement"
+- **Note**: All automatic releases use minor bumps
+- For major or patch bumps, use manual release process (see below)
+- Labels no longer affect version bump type
 
 ## Manual Overrides
 

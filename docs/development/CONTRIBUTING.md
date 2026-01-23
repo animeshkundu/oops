@@ -61,16 +61,15 @@ type(scope): description
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 Examples:
-- `feat(rules): add kubectl rules` - triggers minor version bump
-- `fix(git): handle detached HEAD state` - triggers patch version bump
-- `feat!: breaking API change` - triggers major version bump
-- `docs: update installation instructions` - triggers patch version bump
+- `feat(rules): add kubectl rules`
+- `fix(git): handle detached HEAD state`
+- `docs: update installation instructions`
+- `chore: update dependencies`
 
-**Important for PR titles**: The PR title determines the version bump for automatic releases:
-- Use `feat:` for new features (minor version bump)
-- Use `fix:` for bug fixes (patch version bump)
-- Use `feat!:` or `fix!:` for breaking changes (major version bump)
+**Important for PR titles**: All merged PRs trigger a **minor version bump** (e.g., 0.1.0 → 0.2.0):
+- Use clear, descriptive PR titles following conventional commit format
 - Add `[skip release]` to PR title to prevent automatic release
+- For major or patch bumps, manual releases can be created
 
 ### Pull Request Process
 
@@ -231,14 +230,14 @@ Releases are fully automated via GitHub Actions when a PR is merged to master.
 ### Automatic Release (Recommended)
 
 1. Create a PR with your changes
-2. Use conventional commit format for PR title to control version bump:
-   - **Patch bump** (0.1.0 → 0.1.1): `fix: ...` or no prefix
-   - **Minor bump** (0.1.0 → 0.2.0): `feat: ...` or label `feature`/`enhancement`
-   - **Major bump** (0.1.0 → 1.0.0): `feat!: ...`, `fix!: ...` or label `breaking`
+2. Use a clear, descriptive PR title (conventional commit format recommended):
+   - **Examples**: `feat: add new rules`, `fix: resolve crash`, `docs: update guide`
+   - **All PRs trigger minor bumps**: 0.1.0 → 0.2.0 → 0.3.0
+   - **Skip release**: Add `[skip release]` to title
 3. Merge the PR
 4. The `auto-release` workflow will:
    - Run tests on Linux, macOS, and Windows
-   - Automatically bump the version in `Cargo.toml`
+   - Automatically bump the version in `Cargo.toml` (minor bump)
    - Create and push a git tag (e.g., `v0.1.1`)
 5. The `release` workflow (triggered by tag) will:
    - Build binaries for 6 platforms (Linux x86_64/ARM64, macOS x86_64/ARM64, Windows x86_64)
