@@ -9,10 +9,7 @@ on:
         type: string
   push:
     branches:
-      - '**'  # All branches
-  pull_request:
-    branches:
-      - '**'  # All branches
+      - master  # Only master branch
 
 permissions:
   contents: write  # Required for creating releases
@@ -190,7 +187,7 @@ jobs:
           files: release/*
           generate_release_notes: true
           draft: false
-          prerelease: ${{ github.event_name == 'push' || contains(steps.tag.outputs.tag_name, 'alpha') || contains(steps.tag.outputs.tag_name, 'beta') || contains(steps.tag.outputs.tag_name, 'rc') }}
+          prerelease: ${{ contains(steps.tag.outputs.tag_name, 'alpha') || contains(steps.tag.outputs.tag_name, 'beta') || contains(steps.tag.outputs.tag_name, 'rc') }}
 
       - name: Create release summary
         run: |
