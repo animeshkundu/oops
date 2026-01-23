@@ -143,13 +143,23 @@ jobs:
 
   auto-release:
     name: Auto Release
-    # Only run on push to main/master (after PR merge)
-    # Skip if this is a version bump commit from the bot
+    # Run on:
+    # 1. Push to main/master (after PR merge) - post-merge auto-release
+    # 2. Pull request to main/master (same-repo PRs only) - pre-merge testing
+    # Skip if:
+    # - This is a version bump commit from the bot
+    # - This is from a forked repository (security safeguard)
     if: |
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      !contains(github.event.head_commit.message, 'chore: bump version') &&
-      !contains(github.event.head_commit.message, 'chore: release')
+      (
+        (github.event_name == 'push' &&
+         (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) ||
+        (github.event_name == 'pull_request' &&
+         github.event.pull_request.head.repo.full_name == github.repository)
+      ) &&
+      (github.event_name != 'push' || !contains(github.event.head_commit.message, 'chore: bump version')) &&
+      (github.event_name != 'push' || !contains(github.event.head_commit.message, 'chore: release')) &&
+      (github.event_name != 'pull_request' || !contains(github.event.pull_request.title, 'chore: bump version')) &&
+      (github.event_name != 'pull_request' || !contains(github.event.pull_request.title, 'chore: release'))
     # Wait for all tests to pass first
     needs: [test, msrv, coverage, shell-tests]
     runs-on: ubuntu-latest
@@ -167,11 +177,22 @@ jobs:
         id: check_release
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          # Skip if commit message contains [skip release] or [no release]
-          if echo "$COMMIT_MSG" | grep -qiE "\[(skip|no).?release\]"; then
+          # Determine the source to check based on event type
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            CHECK_TEXT="$PR_TITLE"
+            SOURCE="PR title"
+          else
+            CHECK_TEXT="$COMMIT_MSG"
+            SOURCE="commit message"
+          fi
+
+          # Skip if text contains [skip release] or [no release]
+          if echo "$CHECK_TEXT" | grep -qiE "\[(skip|no).?release\]"; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "ℹ️  Skipping release due to [skip release] in commit message"
+            echo "ℹ️  Skipping release due to [skip release] in $SOURCE"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
             echo "✅ Release will proceed"
@@ -192,27 +213,49 @@ jobs:
         id: bump_type
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -e
 
-          echo "🔍 Analyzing commit for version bump type"
-          echo "Commit: $COMMIT_MSG"
+          echo "🔍 Analyzing for version bump type"
+          
+          # Determine source based on event type
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            ANALYZE_TEXT="$PR_TITLE"
+            SOURCE="PR title and labels"
+            echo "Event: pull_request"
+            echo "PR Title: $ANALYZE_TEXT"
+            echo "PR Labels: $PR_LABELS"
+          else
+            ANALYZE_TEXT="$COMMIT_MSG"
+            SOURCE="commit message"
+            echo "Event: push"
+            echo "Commit: $ANALYZE_TEXT"
+          fi
 
           BUMP_TYPE="patch"
           REASON="default (patch bump)"
-          COMMIT_LOWER=$(echo "$COMMIT_MSG" | tr '[:upper:]' '[:lower:]')
+          TEXT_LOWER=$(echo "$ANALYZE_TEXT" | tr '[:upper:]' '[:lower:]')
 
           # Check for breaking changes
-          if echo "$COMMIT_LOWER" | grep -qE '(^|[^a-z])(feat|fix|chore)!\s*(\(|:)'; then
+          if echo "$TEXT_LOWER" | grep -qE '(^|[^a-z])(feat|fix|chore)!\s*(\(|:)'; then
             BUMP_TYPE="major"
             REASON="breaking change (! marker)"
-          elif echo "$COMMIT_LOWER" | grep -qE '\bbreaking\s+change\b'; then
+          elif echo "$TEXT_LOWER" | grep -qE '\bbreaking\s+change\b'; then
             BUMP_TYPE="major"
-            REASON="BREAKING CHANGE in message"
+            REASON="BREAKING CHANGE in $SOURCE"
+          elif [ "$EVENT_NAME" = "pull_request" ] && echo "$PR_LABELS" | jq -r '.[]' | grep -qiE '^(breaking|breaking-change)$'; then
+            BUMP_TYPE="major"
+            REASON="'breaking' or 'breaking-change' label"
           # Check for features
-          elif echo "$COMMIT_LOWER" | grep -qE '(^|[^a-z])feat\s*(\(|:)'; then
+          elif echo "$TEXT_LOWER" | grep -qE '(^|[^a-z])feat\s*(\(|:)'; then
             BUMP_TYPE="minor"
             REASON="feature (feat:)"
+          elif [ "$EVENT_NAME" = "pull_request" ] && echo "$PR_LABELS" | jq -r '.[]' | grep -qiE '^(feature|enhancement)$'; then
+            BUMP_TYPE="minor"
+            REASON="'feature' or 'enhancement' label"
           fi
 
           echo "📊 Decision: $BUMP_TYPE bump ($REASON)"
@@ -276,11 +319,20 @@ jobs:
         if: steps.check_release.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           NEW_VERSION="${{ steps.version.outputs.new_version }}"
           OLD_VERSION="${{ steps.version.outputs.old_version }}"
           BRANCH_NAME="release/v$NEW_VERSION"
-          BASE_BRANCH="${{ github.ref_name }}"
+          
+          # Determine base branch based on event type
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+            echo "ℹ️  PR-based testing mode - creating version bump PR for testing"
+          else
+            BASE_BRANCH="${{ github.ref_name }}"
+            echo "ℹ️  Post-merge mode - creating version bump PR for release"
+          fi
 
           # Configure git
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -292,10 +344,16 @@ jobs:
           # Stage changes
           git add Cargo.toml Cargo.lock
 
-          # Create commit
+          # Create commit with context about testing vs production
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            COMMIT_CONTEXT="[TEST] Pre-merge release pipeline test"
+          else
+            COMMIT_CONTEXT="Automated version bump: $OLD_VERSION → $NEW_VERSION"
+          fi
+
           git commit -m "chore: bump version to $NEW_VERSION" \
                      -m "" \
-                     -m "Automated version bump: $OLD_VERSION → $NEW_VERSION" \
+                     -m "$COMMIT_CONTEXT" \
                      -m "Type: ${{ steps.bump_type.outputs.bump_type }} bump" \
                      -m "Reason: ${{ steps.bump_type.outputs.bump_reason }}" \
                      -m "Commit: ${{ github.sha }}"
@@ -303,23 +361,64 @@ jobs:
           # Push branch
           git push origin "$BRANCH_NAME"
 
-          # Create PR
-          gh pr create \
-            --base "$BASE_BRANCH" \
-            --head "$BRANCH_NAME" \
-            --title "chore: release v$NEW_VERSION" \
-            --body "## 🚀 Automated Version Bump
+          # Build PR body based on mode
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            PR_TITLE_PREFIX="[TEST] "
+            
+            cat > pr_body.md << 'EOF'
+## 🚀 Automated Version Bump
 
-**Old Version**: $OLD_VERSION
-**New Version**: $NEW_VERSION
-**Bump Type**: ${{ steps.bump_type.outputs.bump_type }}
-**Reason**: ${{ steps.bump_type.outputs.bump_reason }}
+**Old Version**: OLD_VERSION_PLACEHOLDER
+**New Version**: NEW_VERSION_PLACEHOLDER
+**Bump Type**: BUMP_TYPE_PLACEHOLDER
+**Reason**: BUMP_REASON_PLACEHOLDER
+**Event**: pull_request
+
+⚠️ **TEST MODE** - This PR was created to test the release pipeline on PR #PR_NUMBER_PLACEHOLDER.
+- Do NOT merge this PR
+- This tests that version bumps work correctly before merging to main
+- Close this PR manually after review
+
+### What's Changed
+- Updated `Cargo.toml` version
+- Updated `Cargo.lock`
+
+---
+🤖 *Automated by [CI workflow](.github/workflows/ci.yml)*
+EOF
+            
+            # Replace placeholders
+            sed -i "s/OLD_VERSION_PLACEHOLDER/$OLD_VERSION/g" pr_body.md
+            sed -i "s/NEW_VERSION_PLACEHOLDER/$NEW_VERSION/g" pr_body.md
+            sed -i "s/BUMP_TYPE_PLACEHOLDER/${{ steps.bump_type.outputs.bump_type }}/g" pr_body.md
+            sed -i "s/BUMP_REASON_PLACEHOLDER/${{ steps.bump_type.outputs.bump_reason }}/g" pr_body.md
+            sed -i "s/PR_NUMBER_PLACEHOLDER/${{ github.event.pull_request.number }}/g" pr_body.md
+            
+            # Create PR with test labels
+            gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$BRANCH_NAME" \
+              --title "${PR_TITLE_PREFIX}chore: release v$NEW_VERSION" \
+              --body-file pr_body.md \
+              --label "test" \
+              --label "do-not-merge" \
+              --label "automated"
+          else
+            PR_TITLE_PREFIX=""
+            
+            cat > pr_body.md << 'EOF'
+## 🚀 Automated Version Bump
+
+**Old Version**: OLD_VERSION_PLACEHOLDER
+**New Version**: NEW_VERSION_PLACEHOLDER
+**Bump Type**: BUMP_TYPE_PLACEHOLDER
+**Reason**: BUMP_REASON_PLACEHOLDER
 
 This PR was automatically created by the CI workflow after all tests passed.
 
 ### What's Changed
-- Updated \`Cargo.toml\` version
-- Updated \`Cargo.lock\`
+- Updated `Cargo.toml` version
+- Updated `Cargo.lock`
 
 ### Next Steps
 1. ✅ Auto-merge enabled (if RELEASE_PAT configured)
@@ -327,14 +426,29 @@ This PR was automatically created by the CI workflow after all tests passed.
 3. 📦 Release binaries will be built
 
 ---
-🤖 *Automated by [CI workflow](.github/workflows/ci.yml)*" \
-            --label "release" \
-            --label "automated"
+🤖 *Automated by [CI workflow](.github/workflows/ci.yml)*
+EOF
+            
+            # Replace placeholders
+            sed -i "s/OLD_VERSION_PLACEHOLDER/$OLD_VERSION/g" pr_body.md
+            sed -i "s/NEW_VERSION_PLACEHOLDER/$NEW_VERSION/g" pr_body.md
+            sed -i "s/BUMP_TYPE_PLACEHOLDER/${{ steps.bump_type.outputs.bump_type }}/g" pr_body.md
+            sed -i "s/BUMP_REASON_PLACEHOLDER/${{ steps.bump_type.outputs.bump_reason }}/g" pr_body.md
+            
+            # Create PR with release label
+            gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$BRANCH_NAME" \
+              --title "${PR_TITLE_PREFIX}chore: release v$NEW_VERSION" \
+              --body-file pr_body.md \
+              --label "release" \
+              --label "automated"
+          fi
 
-          echo "✅ Created version bump PR for v$NEW_VERSION"
+          echo "✅ Created version bump PR for v$NEW_VERSION (base: $BASE_BRANCH)"
 
       - name: Enable auto-merge
-        if: steps.check_release.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'false' && secrets.RELEASE_PAT != ''
+        if: steps.check_release.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'false' && secrets.RELEASE_PAT != '' && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_PAT }}
         run: |
@@ -378,6 +492,8 @@ This PR was automatically created by the CI workflow after all tests passed.
 
       - name: Create workflow summary
         if: steps.check_release.outputs.skip == 'false'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           if [ "${{ steps.check_pr.outputs.exists }}" = "true" ]; then
             echo "## ⚠️ Version Bump PR Already Exists" >> $GITHUB_STEP_SUMMARY
@@ -389,7 +505,46 @@ This PR was automatically created by the CI workflow after all tests passed.
             OLD_VERSION="${{ steps.version.outputs.old_version }}"
             HAS_PAT="${{ secrets.RELEASE_PAT != '' }}"
 
-            cat >> $GITHUB_STEP_SUMMARY << EOF
+            if [ "$EVENT_NAME" = "pull_request" ]; then
+              # PR testing mode
+              cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🧪 Release Pipeline Test
+
+          ### Test Information
+          This is a **pre-merge test** of the release pipeline.
+          - **Testing PR**: #${{ github.event.pull_request.number }}
+          - **Base Branch**: ${{ github.event.pull_request.base.ref }}
+
+          ### Version Information (Test)
+          - **Old Version**: $OLD_VERSION
+          - **New Version**: v$NEW_VERSION
+          - **Bump Type**: ${{ steps.bump_type.outputs.bump_type }}
+          - **Reason**: ${{ steps.bump_type.outputs.bump_reason }}
+
+          ### Status
+          ✅ **Test version bump PR created** - labeled with \`test\` and \`do-not-merge\`
+
+          ### What This Tests
+          - ✅ Version bump logic works correctly
+          - ✅ Cargo.toml and Cargo.lock update properly
+          - ✅ Branch and PR creation succeeds
+          - ✅ Labels and metadata are correct
+
+          ### Important
+          ⚠️  **Do NOT merge the test PR** - close it manually after review
+          💡 This validates the release pipeline before merging to main
+
+          ### What happens after merging this PR?
+          When #${{ github.event.pull_request.number }} is merged to main:
+          1. The auto-release job will run again (in production mode)
+          2. A production version bump PR will be created
+          3. That PR will auto-merge (if RELEASE_PAT configured)
+          4. A release tag will be created automatically
+          5. Binaries will be built and published
+          EOF
+            else
+              # Production mode
+              cat >> $GITHUB_STEP_SUMMARY << EOF
           ## 🚀 Version Bump PR Created
 
           ### Version Information
@@ -401,8 +556,8 @@ This PR was automatically created by the CI workflow after all tests passed.
           ### Status
           EOF
 
-            if [ "$HAS_PAT" = "true" ]; then
-              cat >> $GITHUB_STEP_SUMMARY << EOF
+              if [ "$HAS_PAT" = "true" ]; then
+                cat >> $GITHUB_STEP_SUMMARY << EOF
           ✅ **Auto-merge enabled** - PR will merge automatically when checks pass
 
           ### What happens next?
@@ -414,8 +569,8 @@ This PR was automatically created by the CI workflow after all tests passed.
 
           **Timeline**: Full release process takes ~15-20 minutes
           EOF
-            else
-              cat >> $GITHUB_STEP_SUMMARY << EOF
+              else
+                cat >> $GITHUB_STEP_SUMMARY << EOF
           ⚠️  **Auto-merge NOT enabled** - RELEASE_PAT secret not configured
 
           ### What happens next?
@@ -426,12 +581,13 @@ This PR was automatically created by the CI workflow after all tests passed.
           💡 **Tip**: Configure RELEASE_PAT secret for fully automated releases.
           See [RELEASE_PAT_SETUP.md](docs/RELEASE_PAT_SETUP.md) for instructions.
           EOF
-            fi
+              fi
 
-            cat >> $GITHUB_STEP_SUMMARY << EOF
+              cat >> $GITHUB_STEP_SUMMARY << EOF
 
           ### 🔗 Links
           - [All PRs](https://github.com/${{ github.repository }}/pulls?q=is%3Apr+label%3Arelease)
           - [All Releases](https://github.com/${{ github.repository }}/releases)
           EOF
+            fi
           fi

@@ -22,6 +22,25 @@ The system automatically:
 6. **Builds binaries** for 6 targets (Linux, macOS, Windows)
 7. **Creates a GitHub release** with all artifacts and checksums
 
+### Pre-Merge Release Testing (New!)
+
+🧪 **The release pipeline now runs as a test on PRs before merging!**
+
+When you create a PR to main/master:
+- All CI checks run as normal (tests, linting, etc.)
+- **Auto-release job runs as final validation step**
+- Creates a **test version bump PR** (marked `[TEST]` and `do-not-merge`)
+- Validates version bump logic, Cargo.toml updates, branch creation
+- **Does NOT publish any releases** - just tests the pipeline
+
+Benefits:
+- ✅ Catch version bump issues before merging
+- ✅ Verify release pipeline works with your changes
+- ✅ See what version bump will happen (major/minor/patch)
+- ✅ No risk - test PRs clearly marked and won't be merged
+
+**Important**: Test PRs are for validation only - **do not merge them**. After you merge your actual PR, the production release process will run automatically.
+
 ## Why PR-Based Approach?
 
 The PR-based approach is the **industry standard for 2024** and provides:
@@ -32,6 +51,7 @@ The PR-based approach is the **industry standard for 2024** and provides:
 ✅ **Transparency**: Easy to see what version is on master vs what's released
 ✅ **Rollback Safety**: Version bumps can be reverted like any other PR
 ✅ **Standard Practice**: Used by semantic-release, changesets, release-please, and major open source projects
+✅ **Pre-Merge Testing**: Validate release pipeline before merging (new feature!)
 
 ## Setup Requirements
 
@@ -278,6 +298,160 @@ git push origin :refs/tags/v0.2.0
 git tag v0.2.0
 git push origin v0.2.0
 ```
+
+## PR-Based Release Testing
+
+🧪 **New Feature**: The release pipeline now runs as a test on every PR!
+
+### How It Works
+
+When you create a PR to `main` or `master`:
+
+1. **All normal CI checks run** (tests, linting, coverage, shell tests)
+2. **Auto-release job runs as final validation step**
+   - Analyzes PR title and labels to determine version bump type
+   - Bumps version in Cargo.toml and Cargo.lock
+   - Creates a **test version bump PR** (not merged)
+3. **Test PR is created** with special markers:
+   - Title: `[TEST] chore: release vX.Y.Z`
+   - Labels: `test`, `do-not-merge`, `automated`
+   - Body explains this is a pre-merge validation
+
+### What Gets Tested
+
+- ✅ Version bump type determination (major/minor/patch)
+- ✅ Cargo.toml version update
+- ✅ Cargo.lock synchronization
+- ✅ Git branch creation
+- ✅ PR creation with correct metadata
+- ✅ All version bump logic and error handling
+
+### What Doesn't Happen (Test Mode)
+
+- ❌ Test PR is **NOT** merged automatically
+- ❌ No release tag is created
+- ❌ No binaries are built
+- ❌ No GitHub release is published
+- ❌ Fork PRs don't run auto-release (security safeguard)
+
+### Benefits
+
+**Early Feedback**: See what version bump will happen before merging your PR.
+
+**Catch Issues Early**: Identify problems with version bumping before they reach main:
+- Incorrect bump type logic
+- Cargo.toml/Cargo.lock conflicts
+- Branch creation failures
+
+**Confidence**: Know the release pipeline will work after merge.
+
+**Transparency**: Version bump decisions are visible in PR checks, not hidden post-merge.
+
+**Zero Risk**: Test PRs are clearly marked and won't be merged.
+
+### Example Workflow
+
+1. You create PR: `feat: add new command`
+2. CI runs all checks (tests pass ✅)
+3. Auto-release runs and creates test PR: `[TEST] chore: release v0.2.0`
+4. You review test PR: "Looks good, minor bump is correct"
+5. You merge your actual PR
+6. Post-merge: Production auto-release creates real release PR: `chore: release v0.2.0`
+7. Real release PR auto-merges → tag created → binaries built → release published
+
+### Managing Test PRs
+
+**What to do with test PRs?**
+
+- **Review them**: Check if version bump type is correct
+- **Do NOT merge them**: They're marked `do-not-merge` for a reason
+- **Close them**: After reviewing, close the test PR manually
+- **Ignore them**: They won't affect your workflow
+
+**Filtering test PRs:**
+
+```bash
+# View only test PRs
+gh pr list --label test
+
+# View PRs excluding test PRs  
+gh pr list --label "!test"
+
+# View PRs excluding do-not-merge
+gh pr list --label "!do-not-merge"
+```
+
+### Controlling Version Bump Type
+
+The auto-release job determines version bump from:
+
+**PR Title (analyzed in test mode)**:
+- `feat!: breaking change` → **major** bump
+- `feat: new feature` → **minor** bump  
+- `fix: bug fix` → **patch** bump
+- Any other → **patch** bump (default)
+
+**PR Labels (analyzed in test mode)**:
+- `breaking` or `breaking-change` → **major** bump
+- `feature` or `enhancement` → **minor** bump
+
+**Commit Message (analyzed in production mode after merge)**:
+- `feat!: breaking change` → **major** bump
+- `feat: new feature` → **minor** bump
+- `fix: bug fix` → **patch** bump
+
+### Skipping Release Testing
+
+To skip the auto-release test on your PR, add to PR title:
+
+```
+feat: add new feature [skip release]
+```
+
+Or:
+
+```
+docs: update README [no release]
+```
+
+The auto-release job will still run but will skip all version bump logic.
+
+### Fork Safety
+
+**Fork PRs are blocked from running auto-release** for security:
+
+- Prevents unauthorized release PRs
+- Avoids secret access errors
+- Reduces noise from external contributions
+
+Condition: `github.event.pull_request.head.repo.full_name == github.repository`
+
+### Troubleshooting PR-Based Testing
+
+**Test PR not created?**
+
+Check:
+1. Is this a fork PR? (Fork PRs don't run auto-release)
+2. Does PR title contain `[skip release]`?
+3. Did previous CI jobs fail? (Auto-release needs them to pass)
+4. Check GitHub Actions tab → CI workflow → auto-release job
+
+**Wrong version bump type?**
+
+- Review your PR title format
+- Check if conventional commit format is used correctly
+- Add appropriate labels (`feature`, `breaking`, etc.)
+- Test locally with `cargo set-version --bump <type>`
+
+**Test PR labeled incorrectly?**
+
+This is a bug - test PRs should have:
+- `test` label
+- `do-not-merge` label  
+- `automated` label
+- `[TEST]` prefix in title
+
+Please report if test PRs are missing these markers.
 
 ## Troubleshooting
 
