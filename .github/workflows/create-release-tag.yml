@@ -12,16 +12,64 @@ permissions:
   contents: write  # Required for creating and pushing tags
 
 jobs:
+  # Guard job to prevent workflow failure when triggered on wrong event type
+  event-guard:
+    name: Event Type Check
+    runs-on: ubuntu-latest
+    outputs:
+      # Note: Multi-line expressions not supported in job outputs
+      # Checks: event_name == 'pull_request' && merged == true && has 'release' label && title starts with 'chore: release'
+      # Unicode \u003a used for ':' to avoid YAML parsing issues
+      should-run: ${{ github.event_name == 'pull_request' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release') && startsWith(github.event.pull_request.title, 'chore\u003a release') }}
+    steps:
+      - name: Check event and PR status
+        run: |
+          echo "🔍 Event Analysis"
+          echo "─────────────────────────────────────"
+          echo "Event type: ${{ github.event_name }}"
+          echo "PR merged: ${{ github.event.pull_request.merged }}"
+          echo "Has 'release' label: ${{ contains(github.event.pull_request.labels.*.name, 'release') }}"
+          echo "Title starts with 'chore: release': ${{ startsWith(github.event.pull_request.title, 'chore: release') }}"
+          echo "─────────────────────────────────────"
+          
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo ""
+            echo "ℹ️  This workflow is designed for pull_request events"
+            echo "Current trigger: ${{ github.event_name }}"
+            echo ""
+            echo "💡 This is normal when workflow files are modified"
+            echo "Skipping tag creation workflow execution"
+            exit 0
+          fi
+          
+          if [ "${{ github.event.pull_request.merged }}" != "true" ]; then
+            echo ""
+            echo "ℹ️  Pull request was closed without merging"
+            echo "Skipping tag creation workflow execution"
+            exit 0
+          fi
+          
+          if [ "${{ contains(github.event.pull_request.labels.*.name, 'release') }}" != "true" ]; then
+            echo ""
+            echo "ℹ️  Pull request does not have 'release' label"
+            echo "Skipping tag creation workflow execution"
+            exit 0
+          fi
+          
+          if [ "${{ startsWith(github.event.pull_request.title, 'chore: release') }}" != "true" ]; then
+            echo ""
+            echo "ℹ️  Pull request title does not start with 'chore: release'"
+            echo "Skipping tag creation workflow execution"
+            exit 0
+          fi
+          
+          echo ""
+          echo "✅ All conditions met - proceeding with tag creation"
+
   create-tag:
     name: Create Release Tag
-    # Only run if:
-    # 1. PR was actually merged (not just closed)
-    # 2. PR has the "release" label (set by auto-release workflow)
-    # 3. PR title starts with "chore: release"
-    if: |
-      github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.labels.*.name, 'release') &&
-      startsWith(github.event.pull_request.title, 'chore: release')
+    needs: event-guard
+    if: needs.event-guard.outputs.should-run == 'true'
     runs-on: ubuntu-latest
 
     steps:

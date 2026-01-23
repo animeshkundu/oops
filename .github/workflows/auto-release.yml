@@ -14,12 +14,48 @@ permissions:
   contents: read  # Default read-only
 
 jobs:
+  # Guard job to prevent workflow failure when triggered on wrong event type
+  event-guard:
+    name: Event Type Check
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ github.event_name == 'pull_request' && github.event.pull_request.merged == true }}
+    steps:
+      - name: Check event and PR status
+        run: |
+          echo "🔍 Event Analysis"
+          echo "─────────────────────────────────────"
+          echo "Event type: ${{ github.event_name }}"
+          echo "PR merged: ${{ github.event.pull_request.merged }}"
+          echo "─────────────────────────────────────"
+          
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo ""
+            echo "ℹ️  This workflow is designed for pull_request events"
+            echo "Current trigger: ${{ github.event_name }}"
+            echo ""
+            echo "💡 This is normal when workflow files are modified"
+            echo "Skipping auto-release workflow execution"
+            exit 0
+          fi
+          
+          if [ "${{ github.event.pull_request.merged }}" != "true" ]; then
+            echo ""
+            echo "ℹ️  Pull request was closed without merging"
+            echo "Skipping auto-release workflow execution"
+            exit 0
+          fi
+          
+          echo ""
+          echo "✅ Pull request was merged - proceeding with auto-release"
+
   # Run comprehensive tests before releasing
   test:
     name: Pre-release Tests
+    needs: event-guard
+    if: needs.event-guard.outputs.should-run == 'true'
     permissions:
       contents: read
-    if: github.event.pull_request.merged == true
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false  # See all platform failures for better diagnostics
@@ -55,10 +91,11 @@ jobs:
 
   create-version-bump-pr:
     name: Create Version Bump PR
+    needs: [event-guard, test]
+    if: needs.event-guard.outputs.should-run == 'true'
     permissions:
       contents: write  # Required for creating branches and PRs
       pull-requests: write  # Required for creating PRs
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
