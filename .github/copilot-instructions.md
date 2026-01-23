@@ -762,7 +762,7 @@ You have access to specialized agents via the `task` tool:
 
 ### Delegation Strategy
 
-**When to delegate:**
+**When to delegate:** If there are path-specific instructions under `.github/instructions/**/*.instructions.md`, follow them for files you touch. New paths added: `**/*.rs` and `**/tests/**/*.rs`.
 - The task matches a specialist's domain
 - The task is complex and would benefit from focused attention
 - You need research or exploration (use `explore` agent)
