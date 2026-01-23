@@ -401,10 +401,21 @@ fn extract_rule_names(path: &Path, rules: &mut HashSet<String>) -> Result<()> {
 }
 
 /// Extract a string literal from a line of code
+/// Note: This is a simple parser that handles basic string literals.
+/// It doesn't handle escaped quotes or complex cases, which is acceptable
+/// for our use case since rule names in oops are simple identifiers.
 fn extract_string_literal(line: &str) -> Option<String> {
-    if let Some(start) = line.find('"') {
-        if let Some(end) = line[start + 1..].find('"') {
-            return Some(line[start + 1..start + 1 + end].to_string());
+    // Find the first unescaped quote
+    let trimmed = line.trim();
+    if let Some(start) = trimmed.find('"') {
+        // Skip the opening quote and find the closing quote
+        let after_start = &trimmed[start + 1..];
+        if let Some(end) = after_start.find('"') {
+            // Basic check: if there's a backslash right before the quote, it's escaped
+            if end > 0 && after_start.chars().nth(end - 1) == Some('\\') {
+                return None; // Escaped quote, skip this
+            }
+            return Some(after_start[..end].to_string());
         }
     }
     None
@@ -464,7 +475,9 @@ fn generate_report(
     let coverage_percentage = if total_thefuck > 0 {
         (total_oops as f64 / total_thefuck as f64) * 100.0
     } else {
-        100.0
+        // If there are no thefuck rules, return 0% instead of 100%
+        // This edge case shouldn't happen in practice, but is more accurate
+        0.0
     };
 
     Ok(ParityReport {
@@ -480,15 +493,10 @@ fn generate_report(
 
 /// Build a mapping from thefuck rule names to oops rule names
 fn build_name_mapping() -> HashMap<String, String> {
-    let mut mapping = HashMap::new();
-
-    // Add known mappings where names differ
-    mapping.insert("ag_literal".to_string(), "ag_literal".to_string());
-    mapping.insert("sl_ls".to_string(), "sl_ls".to_string());
-    mapping.insert("python_command".to_string(), "python_command".to_string());
-
-    // Most rules have the same name in both projects
-    mapping
+    // Add known mappings where names differ between thefuck and oops
+    // Example: mapping.insert("thefuck_name".to_string(), "oops_name".to_string());
+    // Currently, all rule names are identical between projects
+    HashMap::new()
 }
 
 /// Print the report in human-readable format
