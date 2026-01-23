@@ -98,7 +98,7 @@ The auto-release workflow had a fundamental architectural flaw:
 6. Comment on PR with release status
 
 #### 3. Documentation Updates
-- **`RELEASE_WORKFLOW_FIX.md`**: Complete explanation of problem and solution
+- **`docs/summaries/RELEASE_WORKFLOW_FIX.md`**: Complete explanation of problem and solution
 - **`docs/RELEASE_PAT_SETUP.md`**: Updated for PR-based workflow
 - **`docs/releases/AUTOMATED_RELEASES.md`**: Comprehensive guide to new flow
 
@@ -189,7 +189,7 @@ The auto-release workflow had a fundamental architectural flaw:
 
 ### Files Modified
 - `.github/workflows/auto-release.yml` (245 lines changed)
-- `RELEASE_WORKFLOW_FIX.md` (412 lines changed)
+- `docs/summaries/RELEASE_WORKFLOW_FIX.md` (412 lines changed)
 - `docs/RELEASE_PAT_SETUP.md` (166 lines changed)
 - `docs/releases/AUTOMATED_RELEASES.md` (401 lines changed)
 
