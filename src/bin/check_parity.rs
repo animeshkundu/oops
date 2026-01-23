@@ -401,19 +401,20 @@ fn extract_rule_names(path: &Path, rules: &mut HashSet<String>) -> Result<()> {
 }
 
 /// Extract a string literal from a line of code
-/// Note: This is a simple parser that handles basic string literals.
-/// It doesn't handle escaped quotes or complex cases, which is acceptable
-/// for our use case since rule names in oops are simple identifiers.
+/// Note: This is a simple parser for extracting rule names from Rust source.
+/// It handles basic string literals and attempts to skip escaped quotes.
+/// For our use case (rule names which are simple identifiers), this is sufficient.
 fn extract_string_literal(line: &str) -> Option<String> {
-    // Find the first unescaped quote
     let trimmed = line.trim();
     if let Some(start) = trimmed.find('"') {
         // Skip the opening quote and find the closing quote
         let after_start = &trimmed[start + 1..];
         if let Some(end) = after_start.find('"') {
-            // Basic check: if there's a backslash right before the quote, it's escaped
+            // Simple heuristic: skip if the quote appears to be escaped
+            // Note: This doesn't handle all edge cases (e.g., \\"), but works
+            // for our use case since rule names don't contain special characters
             if end > 0 && after_start.chars().nth(end - 1) == Some('\\') {
-                return None; // Escaped quote, skip this
+                return None;
             }
             return Some(after_start[..end].to_string());
         }
@@ -475,8 +476,9 @@ fn generate_report(
     let coverage_percentage = if total_thefuck > 0 {
         (total_oops as f64 / total_thefuck as f64) * 100.0
     } else {
-        // If there are no thefuck rules, return 0% instead of 100%
-        // This edge case shouldn't happen in practice, but is more accurate
+        // Edge case: no thefuck rules to compare against
+        // Return 0.0 to indicate "no baseline" rather than "complete coverage"
+        // In practice, this should never happen since thefuck has 159+ rules
         0.0
     };
 
