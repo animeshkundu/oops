@@ -138,7 +138,7 @@ jobs:
             # For push events, use branch name as tag (sanitized)
             BRANCH_NAME="${{ github.ref_name }}"
             # Replace / with - for valid tag names
-            TAG_NAME="branch-${BRANCH_NAME//\//-}"
+            TAG_NAME="branch-$(echo "$BRANCH_NAME" | sed 's/\//-/g')"
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "Using tag: $TAG_NAME"
