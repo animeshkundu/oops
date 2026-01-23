@@ -30,3 +30,6 @@ coverage/
 
 # Benchmarks
 criterion/
+
+# JS tooling
+node_modules/
