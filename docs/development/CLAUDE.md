@@ -180,6 +180,30 @@ Rules are organized by category:
 - `shell_utils.rs` - grep, sed, history
 - `misc.rs` - Everything else
 
+## Parity Checking
+
+Check which thefuck rules are missing from oops:
+
+```bash
+# Check parity with default 7-day activity window
+cargo run --bin check_parity
+
+# Check with custom time window
+cargo run --bin check_parity -- --days 30
+
+# Get JSON output for automation
+cargo run --bin check_parity -- --output json
+
+# Or use the convenience script
+./scripts/check-parity.sh
+```
+
+The parity checker:
+- Scans `src/rules/` to find all oops rules
+- Compares against known thefuck rules
+- Reports missing rules and coverage percentage
+- Can detect recently updated rules if a local thefuck clone is available
+
 ## Performance Notes
 
 - Startup target: <50ms
