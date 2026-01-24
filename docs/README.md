@@ -29,6 +29,7 @@ User and developer guides.
 - [Configuration](guides/configuration.md) - All configuration options
 - [Creating Rules](guides/creating-rules.md) - How to add new correction rules
 - [Migration from thefuck](guides/migration-from-thefuck.md) - Migrating from the Python version
+- [Website & Landing Page](guides/website.md) - GitHub Pages landing page and docs
 ### Development
 
 - [CLAUDE.md](development/CLAUDE.md) - LLM context and project overview
@@ -56,5 +57,6 @@ Temporary analysis and summary documents from development work:
 LLM handoff notes for context preservation between sessions:
 - [Handoff Notes Guide](handoffs/README.md) - How to create and use handoff notes
 - [2026-01-22: Documentation Reorganization](handoffs/2026-01-22-documentation-reorganization.md) - This reorganization project
+- [2026-01-24: Website Launch](handoffs/2026-01-24-website-launch.md) - GitHub Pages landing site and docs
 
 See [.github/copilot-instructions.md](../.github/copilot-instructions.md) for the complete handoff note template.

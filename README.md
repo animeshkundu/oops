@@ -165,6 +165,11 @@ setenv TF_ALIAS fuck && eval `oops --alias`
 | PowerShell | `$PROFILE` | `Invoke-Expression (oops --alias \| Out-String)` | `. $PROFILE` |
 | Tcsh | `~/.tcshrc` | `` eval `oops --alias` `` | `source ~/.tcshrc` |
 
+## Website
+
+Visit the landing page and docs hub at https://animeshkundu.github.io/oops/
+for quick installs, migration guidance, and rule coverage.
+
 ## Usage
 
 Just type `oops` after a failed command:

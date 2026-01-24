@@ -17,9 +17,9 @@ if (-not (Test-Path $InstallDir)) {
 # Get download URL
 $BinaryName = "oops-windows-x86_64.exe"
 if ($Version -eq "latest") {
-    $DownloadUrl = "https://github.com/oops-cli/oops/releases/latest/download/$BinaryName"
+    $DownloadUrl = "https://github.com/animeshkundu/oops/releases/latest/download/$BinaryName"
 } else {
-    $DownloadUrl = "https://github.com/oops-cli/oops/releases/download/$Version/$BinaryName"
+    $DownloadUrl = "https://github.com/animeshkundu/oops/releases/download/$Version/$BinaryName"
 }
 
 # Download

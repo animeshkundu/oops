@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>oops configuration</title>
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta
+      name="description"
+      content="Configure oops with TOML and environment variables, including rule filters and confirmation settings." />
+    <meta property="og:title" content="oops configuration" />
+    <meta
+      property="og:description"
+      content="Configure oops with TOML and environment variables." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://animeshkundu.github.io/oops/docs/configuration.html" />
+    <meta property="og:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="oops configuration" />
+    <meta
+      name="twitter:description"
+      content="Configure oops with TOML and environment variables." />
+    <meta name="twitter:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <link rel="stylesheet" href="../assets/webfonts.css" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link rel="manifest" href="../assets/manifest.json" />
+    <link rel="icon" href="../assets/favicon.png" type="image/png" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark">oops</span>
+          <span>oops</span>
+        </a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./installation.html">Install</a>
+          <a href="./rules.html">Rules</a>
+          <a href="https://github.com/animeshkundu/oops">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="docs-layout">
+      <div class="container">
+        <section class="doc-hero">
+          <h1>Configuration overview</h1>
+          <p>
+            oops ships with sane defaults, but power users can control rules,
+            confirmations, and timeouts through a TOML file or env vars.
+          </p>
+        </section>
+
+        <section class="card-grid">
+          <div class="card">
+            <h3>Config file</h3>
+            <p>Create <code>~/.config/oops/config.toml</code> to persist settings.</p>
+            <pre><code>rules = ["ALL"]
+exclude_rules = ["git_push_force"]
+require_confirmation = true</code></pre>
+          </div>
+          <div class="card">
+            <h3>Environment variables</h3>
+            <p>Override settings quickly per-session.</p>
+            <pre><code>export THEFUCK_REQUIRE_CONFIRMATION=false
+export THEFUCK_RULES="sudo:git_push"</code></pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Common settings</h2>
+            <p>Start with these values for a fast, safe setup.</p>
+          </div>
+          <div class="card">
+            <ul>
+              <li><strong>require_confirmation</strong>: keep true for safety.</li>
+              <li><strong>num_close_matches</strong>: raise to 5 for more suggestions.</li>
+              <li><strong>slow_commands</strong>: add tools like <code>gradle</code> or <code>docker</code>.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Full reference</h2>
+            <p>Visit the full configuration guide for every option.</p>
+          </div>
+          <div class="card">
+            <a class="button ghost" href="https://github.com/animeshkundu/oops/blob/master/docs/guides/configuration.md">Configuration guide</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          Questions? Read the <a href="./quickstart.html">quickstart</a> or <a href="./migration.html">migration guide</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

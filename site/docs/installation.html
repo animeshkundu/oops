@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Install oops — one-liners for every OS</title>
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta
+      name="description"
+      content="Install oops with a single command on macOS, Linux, or Windows. Includes package manager and shell setup steps."
+    />
+    <meta property="og:title" content="Install oops" />
+    <meta
+      property="og:description"
+      content="One-line installs for macOS, Linux, and Windows plus shell setup." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://animeshkundu.github.io/oops/docs/installation.html" />
+    <meta property="og:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Install oops" />
+    <meta
+      name="twitter:description"
+      content="One-line installs for macOS, Linux, and Windows plus shell setup." />
+    <meta name="twitter:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <link rel="stylesheet" href="../assets/webfonts.css" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link rel="manifest" href="../assets/manifest.json" />
+    <link rel="icon" href="../assets/favicon.png" type="image/png" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark">oops</span>
+          <span>oops</span>
+        </a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./migration.html">Migration</a>
+          <a href="./rules.html">Rules</a>
+          <a href="https://github.com/animeshkundu/oops">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="docs-layout">
+      <div class="container">
+        <section class="doc-hero">
+          <h1>Install in one command</h1>
+          <p>
+            These scripts download the latest release binary and place it on
+            your PATH. Choose the command for your platform and run it once.
+          </p>
+        </section>
+
+        <section class="card-grid">
+          <div class="card">
+            <h3>macOS</h3>
+            <p>Runs on Intel and Apple Silicon.</p>
+            <div class="code-block">
+              <button class="copy-button" data-copy="install-macos">Copy</button>
+              <pre id="install-macos"><code>curl -fsSL https://raw.githubusercontent.com/animeshkundu/oops/master/scripts/install.sh | bash</code></pre>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Linux</h3>
+            <p>Supports x86_64 and aarch64.</p>
+            <div class="code-block">
+              <button class="copy-button" data-copy="install-linux">Copy</button>
+              <pre id="install-linux"><code>curl -fsSL https://raw.githubusercontent.com/animeshkundu/oops/master/scripts/install.sh | bash</code></pre>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Windows</h3>
+            <p>PowerShell will install and update your PATH.</p>
+            <div class="code-block">
+              <button class="copy-button" data-copy="install-windows">Copy</button>
+              <pre id="install-windows"><code>iwr -useb https://raw.githubusercontent.com/animeshkundu/oops/master/scripts/install.ps1 | iex</code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Prefer package managers?</h2>
+            <p>Use your preferred ecosystem instead of the scripts.</p>
+          </div>
+          <div class="card">
+            <ul>
+              <li><strong>Homebrew:</strong> <code>brew install animeshkundu/tap/oops</code></li>
+              <li><strong>Cargo:</strong> <code>cargo install oops</code></li>
+              <li><strong>Scoop:</strong> <code>scoop install oops</code></li>
+              <li><strong>Arch (AUR):</strong> <code>yay -S oops</code></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Shell integration</h2>
+            <p>Add oops to your shell once so it can re-run fixes.</p>
+          </div>
+          <div class="card">
+            <p><strong>Bash / Zsh</strong></p>
+            <pre><code>eval "$(oops --alias)"</code></pre>
+            <p><strong>Fish</strong></p>
+            <pre><code>oops --alias | source</code></pre>
+            <p><strong>PowerShell</strong></p>
+            <pre><code>Invoke-Expression (oops --alias | Out-String)</code></pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Verify the install</h2>
+            <p>Confirm the binary is available and shell alias loads.</p>
+          </div>
+          <div class="card">
+            <pre><code>oops --version
+# then try a typo
+ls -lahh
+
+oops</code></pre>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          Need more? See the <a href="https://github.com/animeshkundu/oops/blob/master/docs/guides/installation.md">full installation guide</a>.
+        </p>
+      </div>
+    </footer>
+
+    <script src="../assets/copy.js"></script>
+  </body>
+</html>

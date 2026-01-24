@@ -42,9 +42,9 @@ echo "Installing oops for ${OS}/${ARCH}..."
 
 # Get download URL
 if [ "$VERSION" = "latest" ]; then
-    DOWNLOAD_URL="https://github.com/oops-cli/oops/releases/latest/download/${BINARY_NAME}"
+    DOWNLOAD_URL="https://github.com/animeshkundu/oops/releases/latest/download/${BINARY_NAME}"
 else
-    DOWNLOAD_URL="https://github.com/oops-cli/oops/releases/download/${VERSION}/${BINARY_NAME}"
+    DOWNLOAD_URL="https://github.com/animeshkundu/oops/releases/download/${VERSION}/${BINARY_NAME}"
 fi
 
 # Create temp directory

@@ -2,23 +2,37 @@
 
 ## Quick Install
 
+### One-line Scripts
+
+Use the installer scripts to download the latest release and place it on your PATH.
+
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/animeshkundu/oops/master/scripts/install.sh | bash
+```
+
+```powershell
+# Windows (PowerShell)
+iwr -useb https://raw.githubusercontent.com/animeshkundu/oops/master/scripts/install.ps1 | iex
+```
+
 ### Pre-built Binaries
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/oops-cli/oops/releases).
+Download the latest release for your platform from [GitHub Releases](https://github.com/animeshkundu/oops/releases).
 
 ```bash
 # Linux (x86_64)
-curl -LO https://github.com/oops-cli/oops/releases/latest/download/oops-linux-x86_64
+curl -LO https://github.com/animeshkundu/oops/releases/latest/download/oops-linux-x86_64
 chmod +x oops-linux-x86_64
 sudo mv oops-linux-x86_64 /usr/local/bin/oops
 
 # macOS (Intel)
-curl -LO https://github.com/oops-cli/oops/releases/latest/download/oops-darwin-x86_64
+curl -LO https://github.com/animeshkundu/oops/releases/latest/download/oops-darwin-x86_64
 chmod +x oops-darwin-x86_64
 sudo mv oops-darwin-x86_64 /usr/local/bin/oops
 
 # macOS (Apple Silicon)
-curl -LO https://github.com/oops-cli/oops/releases/latest/download/oops-darwin-aarch64
+curl -LO https://github.com/animeshkundu/oops/releases/latest/download/oops-darwin-aarch64
 chmod +x oops-darwin-aarch64
 sudo mv oops-darwin-aarch64 /usr/local/bin/oops
 ```
@@ -38,7 +52,7 @@ cargo install oops
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew install oops-cli/tap/oops
+brew install animeshkundu/tap/oops
 ```
 
 ### Arch Linux (AUR)
@@ -72,7 +86,7 @@ choco install oops
 
 ```bash
 # Clone the repository
-git clone https://github.com/oops-cli/oops.git
+git clone https://github.com/animeshkundu/oops.git
 cd oops
 
 # Build release binary

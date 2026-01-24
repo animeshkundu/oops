@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://animeshkundu.github.io/oops/sitemap.xml
+
+# Docs
+Sitemap: https://animeshkundu.github.io/oops/sitemap.xml
