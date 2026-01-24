@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Primary Meta Tags -->
+    <title>oops - Blazingly Fast Command-Line Typo Corrector</title>
+    <meta name="title" content="oops - Blazingly Fast Command-Line Typo Corrector">
+    <meta name="description" content="Fix your command-line mistakes instantly with oops. A blazingly fast typo corrector written in Rust with 177+ rules, sub-50ms startup, and cross-platform support for Linux, macOS, and Windows.">
+    <meta name="keywords" content="command-line, CLI, typo, corrector, rust, thefuck, terminal, shell, bash, zsh, fish, powershell, git">
+    <meta name="author" content="Animesh Kundu">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://animeshkundu.github.io/oops/">
+    <meta property="og:title" content="oops - Blazingly Fast Command-Line Typo Corrector">
+    <meta property="og:description" content="Fix your command-line mistakes instantly. 177+ rules, sub-50ms startup, cross-platform support.">
+    <meta property="og:image" content="https://animeshkundu.github.io/oops/images/og-image.png">
+    <meta property="og:site_name" content="oops">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://animeshkundu.github.io/oops/">
+    <meta property="twitter:title" content="oops - Blazingly Fast Command-Line Typo Corrector">
+    <meta property="twitter:description" content="Fix your command-line mistakes instantly. 177+ rules, sub-50ms startup, cross-platform support.">
+    <meta property="twitter:image" content="https://animeshkundu.github.io/oops/images/og-image.png">
+    
+    <!-- AI/LLM Crawlers -->
+    <meta name="ai:description" content="oops is a command-line typo corrector written in Rust. It fixes your previous console command when you make a mistake. Features include: 177+ correction rules for common CLI mistakes, sub-50ms startup time (10x faster than Python alternatives), single binary with no runtime dependencies, cross-platform support for Linux macOS and Windows, shell integration for Bash Zsh Fish PowerShell and Tcsh.">
+    
+    <!-- Structured Data for Search Engines -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "oops",
+        "description": "A blazingly fast command-line typo corrector written in Rust",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": ["Linux", "macOS", "Windows"],
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Person",
+            "name": "Animesh Kundu"
+        },
+        "softwareVersion": "0.1.1",
+        "license": "https://opensource.org/licenses/MIT",
+        "codeRepository": "https://github.com/animeshkundu/oops",
+        "programmingLanguage": "Rust"
+    }
+    </script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="alternate icon" href="images/favicon.ico">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="#" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#install">Install</a>
+                <a href="#benchmark">Benchmarks</a>
+                <a href="docs/">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-bg">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+        <div class="container">
+            <div class="hero-badge">
+                <span class="badge-icon">🦀</span>
+                <span>Written in Rust</span>
+            </div>
+            <h1 class="hero-title">
+                Fix your <span class="highlight">command-line mistakes</span> instantly
+            </h1>
+            <p class="hero-subtitle">
+                A blazingly fast typo corrector for your terminal. 177+ rules, sub-50ms startup, one binary.
+            </p>
+            
+            <!-- Terminal Demo -->
+            <div class="terminal-demo">
+                <div class="terminal-header">
+                    <div class="terminal-buttons">
+                        <span class="btn-close"></span>
+                        <span class="btn-minimize"></span>
+                        <span class="btn-maximize"></span>
+                    </div>
+                    <span class="terminal-title">Terminal</span>
+                </div>
+                <div class="terminal-body">
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="command" id="demoCommand">git psuh</span>
+                    </div>
+                    <div class="terminal-line error" id="demoError">
+                        <span>git: 'psuh' is not a git command. Did you mean 'push'?</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="command oops-cmd">oops</span>
+                    </div>
+                    <div class="terminal-line suggestion" id="demoSuggestion">
+                        <span class="suggestion-cmd">git push</span>
+                        <span class="suggestion-hint">[enter/↑/↓/ctrl+c]</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Install -->
+            <div class="quick-install">
+                <h3>Quick Install</h3>
+                <div class="install-tabs">
+                    <button class="tab-btn active" data-tab="linux">Linux/macOS</button>
+                    <button class="tab-btn" data-tab="windows">Windows</button>
+                    <button class="tab-btn" data-tab="homebrew">Homebrew</button>
+                    <button class="tab-btn" data-tab="cargo">Cargo</button>
+                </div>
+                <div class="install-content">
+                    <div class="tab-panel active" id="linux">
+                        <div class="code-block">
+                            <code>curl -fsSL https://animeshkundu.github.io/oops/install.sh | bash</code>
+                            <button class="copy-btn" data-copy="curl -fsSL https://animeshkundu.github.io/oops/install.sh | bash" aria-label="Copy to clipboard">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="windows">
+                        <div class="code-block">
+                            <code>irm https://animeshkundu.github.io/oops/install.ps1 | iex</code>
+                            <button class="copy-btn" data-copy="irm https://animeshkundu.github.io/oops/install.ps1 | iex" aria-label="Copy to clipboard">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="homebrew">
+                        <div class="code-block">
+                            <code>brew install animeshkundu/tap/oops</code>
+                            <button class="copy-btn" data-copy="brew install animeshkundu/tap/oops" aria-label="Copy to clipboard">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="cargo">
+                        <div class="code-block">
+                            <code>cargo install --git https://github.com/animeshkundu/oops</code>
+                            <button class="copy-btn" data-copy="cargo install --git https://github.com/animeshkundu/oops" aria-label="Copy to clipboard">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <p class="install-note">Then add <code>eval "$(oops --alias)"</code> to your shell config. <a href="docs/installation.html">Full instructions →</a></p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why developers love <span class="highlight">oops</span></h2>
+                <p>Built for speed, designed for convenience</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Blazingly Fast</h3>
+                    <p>Sub-50ms startup time means instant corrections. No more waiting for your typo fixer to load.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>Single Binary</h3>
+                    <p>No runtime dependencies, no Python interpreter, no virtual environments. Just one executable.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>177+ Rules</h3>
+                    <p>Comprehensive coverage for Git, package managers, system commands, cloud CLIs, and more.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🖥️</div>
+                    <h3>Cross-Platform</h3>
+                    <p>Works on Linux, macOS, and Windows. Native binaries for x86_64 and ARM64.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🐚</div>
+                    <h3>Shell Integration</h3>
+                    <p>First-class support for Bash, Zsh, Fish, PowerShell, and Tcsh. One command setup.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>thefuck Compatible</h3>
+                    <p>Environment variables work identically. Easy migration from the Python original.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benchmark Section -->
+    <section class="benchmark" id="benchmark">
+        <div class="container">
+            <div class="section-header">
+                <h2>Performance that <span class="highlight">matters</span></h2>
+                <p>10x faster than Python alternatives</p>
+            </div>
+            
+            <div class="benchmark-comparison">
+                <div class="benchmark-card oops-benchmark">
+                    <div class="benchmark-label">oops <span class="badge">Rust</span></div>
+                    <div class="benchmark-bars">
+                        <div class="benchmark-item">
+                            <span class="metric-label">Startup Time</span>
+                            <div class="bar-container">
+                                <div class="bar oops-bar" style="width: 10%"></div>
+                                <span class="bar-value">~30ms</span>
+                            </div>
+                        </div>
+                        <div class="benchmark-item">
+                            <span class="metric-label">Binary Size</span>
+                            <div class="bar-container">
+                                <div class="bar oops-bar" style="width: 10%"></div>
+                                <span class="bar-value">~5MB</span>
+                            </div>
+                        </div>
+                        <div class="benchmark-item">
+                            <span class="metric-label">Memory Usage</span>
+                            <div class="bar-container">
+                                <div class="bar oops-bar" style="width: 20%"></div>
+                                <span class="bar-value">~10MB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="vs-divider">vs</div>
+                
+                <div class="benchmark-card thefuck-benchmark">
+                    <div class="benchmark-label">thefuck <span class="badge python">Python</span></div>
+                    <div class="benchmark-bars">
+                        <div class="benchmark-item">
+                            <span class="metric-label">Startup Time</span>
+                            <div class="bar-container">
+                                <div class="bar thefuck-bar" style="width: 100%"></div>
+                                <span class="bar-value">~300ms</span>
+                            </div>
+                        </div>
+                        <div class="benchmark-item">
+                            <span class="metric-label">Binary Size</span>
+                            <div class="bar-container">
+                                <div class="bar thefuck-bar" style="width: 100%"></div>
+                                <span class="bar-value">N/A (requires Python)</span>
+                            </div>
+                        </div>
+                        <div class="benchmark-item">
+                            <span class="metric-label">Memory Usage</span>
+                            <div class="bar-container">
+                                <div class="bar thefuck-bar" style="width: 100%"></div>
+                                <span class="bar-value">~50MB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="benchmark-summary">
+                <div class="stat">
+                    <span class="stat-value">10x</span>
+                    <span class="stat-label">Faster Startup</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">5x</span>
+                    <span class="stat-label">Less Memory</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">0</span>
+                    <span class="stat-label">Dependencies</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rules Section -->
+    <section class="rules" id="rules">
+        <div class="container">
+            <div class="section-header">
+                <h2>Comprehensive <span class="highlight">rule coverage</span></h2>
+                <p>177+ rules for all your command-line needs</p>
+            </div>
+            
+            <div class="rules-grid">
+                <div class="rule-category">
+                    <div class="rule-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>
+                    </div>
+                    <h4>Git</h4>
+                    <p>Push, checkout, branch, add, commit, rebase, stash, and 40+ more git corrections</p>
+                </div>
+                
+                <div class="rule-category">
+                    <div class="rule-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </div>
+                    <h4>Package Managers</h4>
+                    <p>apt, brew, cargo, npm, pip, pacman, dnf, yum, conda, gem, choco, and more</p>
+                </div>
+                
+                <div class="rule-category">
+                    <div class="rule-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                    </div>
+                    <h4>Docker & Containers</h4>
+                    <p>Docker, docker-compose, kubectl, and container orchestration commands</p>
+                </div>
+                
+                <div class="rule-category">
+                    <div class="rule-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <h4>System Commands</h4>
+                    <p>sudo, chmod, mkdir, cp, mv, rm, and file operation corrections</p>
+                </div>
+                
+                <div class="rule-category">
+                    <div class="rule-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    </div>
+                    <h4>Cloud CLIs</h4>
+                    <p>AWS CLI, Azure CLI, gcloud, Heroku, Terraform, and cloud platform commands</p>
+                </div>
+                
+                <div class="rule-category">
+                    <div class="rule-icon">
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    </div>
+                    <h4>Dev Tools</h4>
+                    <p>Go, Java, Maven, Gradle, Python, Rails, React Native, and more</p>
+                </div>
+            </div>
+            
+            <div class="rules-cta">
+                <a href="docs/rules.html" class="btn btn-outline">View All Rules →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Migration Section -->
+    <section class="migration" id="migration">
+        <div class="container">
+            <div class="migration-content">
+                <div class="migration-text">
+                    <h2>Migrating from <span class="strikethrough">thefuck</span>?</h2>
+                    <p class="migration-subtitle">Switching is easy. Your muscle memory stays intact.</p>
+                    
+                    <ul class="migration-list">
+                        <li>
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span>Same environment variables — full compatibility</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span>Use <code>TF_ALIAS=fuck</code> to keep your alias</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span>TOML config instead of Python — simpler, faster</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span>175+ of the same rules you know and love</span>
+                        </li>
+                    </ul>
+                    
+                    <a href="docs/migration.html" class="btn btn-primary">Migration Guide →</a>
+                </div>
+                
+                <div class="migration-code">
+                    <div class="code-comparison">
+                        <div class="code-before">
+                            <span class="code-label">Before</span>
+                            <pre><code># Your old shell config
+eval "$(thefuck --alias)"</code></pre>
+                        </div>
+                        <div class="code-arrow">→</div>
+                        <div class="code-after">
+                            <span class="code-label">After</span>
+                            <pre><code># Your new shell config
+eval "$(oops --alias)"</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section (Detailed) -->
+    <section class="install-detailed" id="install">
+        <div class="container">
+            <div class="section-header">
+                <h2>Get started in <span class="highlight">seconds</span></h2>
+                <p>One-liner install for every platform</p>
+            </div>
+            
+            <div class="install-grid">
+                <div class="install-card">
+                    <div class="platform-icon">🐧</div>
+                    <h3>Linux</h3>
+                    <div class="code-block">
+                        <code>curl -fsSL https://animeshkundu.github.io/oops/install.sh | bash</code>
+                        <button class="copy-btn" data-copy="curl -fsSL https://animeshkundu.github.io/oops/install.sh | bash">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        </button>
+                    </div>
+                    <p class="platform-note">Supports x86_64 and ARM64</p>
+                </div>
+                
+                <div class="install-card">
+                    <div class="platform-icon">🍎</div>
+                    <h3>macOS</h3>
+                    <div class="code-block">
+                        <code>brew install animeshkundu/tap/oops</code>
+                        <button class="copy-btn" data-copy="brew install animeshkundu/tap/oops">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        </button>
+                    </div>
+                    <p class="platform-note">Intel and Apple Silicon</p>
+                </div>
+                
+                <div class="install-card">
+                    <div class="platform-icon">🪟</div>
+                    <h3>Windows</h3>
+                    <div class="code-block">
+                        <code>irm https://animeshkundu.github.io/oops/install.ps1 | iex</code>
+                        <button class="copy-btn" data-copy="irm https://animeshkundu.github.io/oops/install.ps1 | iex">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        </button>
+                    </div>
+                    <p class="platform-note">PowerShell 5.1+</p>
+                </div>
+            </div>
+            
+            <div class="shell-setup">
+                <h3>Shell Integration</h3>
+                <p>After installing, add oops to your shell config:</p>
+                
+                <div class="shell-tabs">
+                    <button class="shell-tab active" data-shell="bash">Bash</button>
+                    <button class="shell-tab" data-shell="zsh">Zsh</button>
+                    <button class="shell-tab" data-shell="fish">Fish</button>
+                    <button class="shell-tab" data-shell="powershell">PowerShell</button>
+                </div>
+                
+                <div class="shell-content">
+                    <div class="shell-panel active" id="bash-panel">
+                        <p>Add to <code>~/.bashrc</code>:</p>
+                        <div class="code-block">
+                            <code>eval "$(oops --alias)"</code>
+                            <button class="copy-btn" data-copy='eval "$(oops --alias)"'>
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            </button>
+                        </div>
+                        <p class="shell-note">Then run: <code>source ~/.bashrc</code></p>
+                    </div>
+                    <div class="shell-panel" id="zsh-panel">
+                        <p>Add to <code>~/.zshrc</code>:</p>
+                        <div class="code-block">
+                            <code>eval "$(oops --alias)"</code>
+                            <button class="copy-btn" data-copy='eval "$(oops --alias)"'>
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            </button>
+                        </div>
+                        <p class="shell-note">Then run: <code>source ~/.zshrc</code></p>
+                    </div>
+                    <div class="shell-panel" id="fish-panel">
+                        <p>Add to <code>~/.config/fish/config.fish</code>:</p>
+                        <div class="code-block">
+                            <code>oops --alias | source</code>
+                            <button class="copy-btn" data-copy="oops --alias | source">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            </button>
+                        </div>
+                        <p class="shell-note">Then run: <code>source ~/.config/fish/config.fish</code></p>
+                    </div>
+                    <div class="shell-panel" id="powershell-panel">
+                        <p>Add to your PowerShell profile (<code>$PROFILE</code>):</p>
+                        <div class="code-block">
+                            <code>Invoke-Expression (oops --alias | Out-String)</code>
+                            <button class="copy-btn" data-copy="Invoke-Expression (oops --alias | Out-String)">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            </button>
+                        </div>
+                        <p class="shell-note">Then run: <code>. $PROFILE</code></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to fix your typos?</h2>
+            <p>Join developers who type faster and fix mistakes instantly.</p>
+            <div class="cta-buttons">
+                <a href="#install" class="btn btn-primary btn-lg">Install oops</a>
+                <a href="https://github.com/animeshkundu/oops" class="btn btn-outline btn-lg" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    View on GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <span class="logo-icon">⚡</span>
+                        <span class="logo-text">oops</span>
+                    </a>
+                    <p>A blazingly fast command-line typo corrector.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Documentation</h4>
+                        <ul>
+                            <li><a href="docs/installation.html">Installation</a></li>
+                            <li><a href="docs/configuration.html">Configuration</a></li>
+                            <li><a href="docs/rules.html">Rules</a></li>
+                            <li><a href="docs/shells.html">Shell Integration</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="docs/migration.html">Migration Guide</a></li>
+                            <li><a href="docs/contributing.html">Contributing</a></li>
+                            <li><a href="docs/creating-rules.html">Creating Rules</a></li>
+                            <li><a href="https://github.com/animeshkundu/oops/releases" target="_blank" rel="noopener">Releases</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Community</h4>
+                        <ul>
+                            <li><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">GitHub</a></li>
+                            <li><a href="https://github.com/animeshkundu/oops/issues" target="_blank" rel="noopener">Issues</a></li>
+                            <li><a href="https://github.com/animeshkundu/oops/discussions" target="_blank" rel="noopener">Discussions</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>Released under the MIT License.</p>
+                <p>Inspired by <a href="https://github.com/nvbn/thefuck" target="_blank" rel="noopener">thefuck</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+</body>
+</html>

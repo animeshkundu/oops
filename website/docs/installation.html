@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation - oops Documentation</title>
+    <meta name="description" content="Install oops on Linux, macOS, or Windows. One-liner install scripts, package managers, and building from source.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/installation.html">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html" class="active">Installation</a></li>
+                        <li><a href="shells.html">Shell Integration</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html">All Rules</a></li>
+                        <li><a href="environment.html">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html">How to Contribute</a></li>
+                        <li><a href="creating-rules.html">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <article class="docs-article">
+                <h1>Installation</h1>
+                
+                <p>oops is available for Linux, macOS, and Windows. Choose the installation method that works best for you.</p>
+
+                <h2 id="quick-install">Quick Install (One-Liner)</h2>
+                
+                <p>The fastest way to get started is using our install scripts:</p>
+
+                <h3 id="linux-macos">Linux / macOS</h3>
+                
+                <pre><code>curl -fsSL https://animeshkundu.github.io/oops/install.sh | bash</code></pre>
+                
+                <p>This script will:</p>
+                <ul>
+                    <li>Detect your OS and architecture automatically</li>
+                    <li>Download the correct binary from GitHub releases</li>
+                    <li>Install to <code>/usr/local/bin</code> (or ask for sudo)</li>
+                    <li>Print shell integration instructions</li>
+                </ul>
+
+                <h3 id="windows">Windows (PowerShell)</h3>
+                
+                <pre><code>irm https://animeshkundu.github.io/oops/install.ps1 | iex</code></pre>
+                
+                <p>This script will:</p>
+                <ul>
+                    <li>Download the Windows binary</li>
+                    <li>Install to <code>%LOCALAPPDATA%\oops</code></li>
+                    <li>Add the installation directory to your PATH</li>
+                </ul>
+
+                <h2 id="package-managers">Package Managers</h2>
+
+                <h3 id="homebrew">Homebrew (macOS/Linux)</h3>
+                
+                <pre><code>brew install animeshkundu/tap/oops</code></pre>
+
+                <h3 id="cargo">Cargo (Rust)</h3>
+                
+                <p>If you have Rust installed:</p>
+                
+                <pre><code>cargo install --git https://github.com/animeshkundu/oops</code></pre>
+                
+                <div class="callout callout-info">
+                    <div class="callout-title">Note</div>
+                    <p>Building from source requires Rust 1.88 or newer.</p>
+                </div>
+
+                <h2 id="pre-built">Pre-built Binaries</h2>
+                
+                <p>Download pre-built binaries from <a href="https://github.com/animeshkundu/oops/releases/latest" target="_blank" rel="noopener">GitHub Releases</a>:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th>Architecture</th>
+                            <th>Binary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Linux</td>
+                            <td>x86_64</td>
+                            <td><code>oops-linux-x86_64</code></td>
+                        </tr>
+                        <tr>
+                            <td>Linux</td>
+                            <td>x86_64 (static)</td>
+                            <td><code>oops-linux-x86_64-musl</code></td>
+                        </tr>
+                        <tr>
+                            <td>Linux</td>
+                            <td>ARM64</td>
+                            <td><code>oops-linux-aarch64</code></td>
+                        </tr>
+                        <tr>
+                            <td>macOS</td>
+                            <td>Intel</td>
+                            <td><code>oops-darwin-x86_64</code></td>
+                        </tr>
+                        <tr>
+                            <td>macOS</td>
+                            <td>Apple Silicon</td>
+                            <td><code>oops-darwin-aarch64</code></td>
+                        </tr>
+                        <tr>
+                            <td>Windows</td>
+                            <td>x86_64</td>
+                            <td><code>oops-windows-x86_64.exe</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 id="manual-linux">Manual Install (Linux/macOS)</h3>
+                
+                <pre><code># Download (example for Linux x86_64)
+curl -LO https://github.com/animeshkundu/oops/releases/latest/download/oops-linux-x86_64
+
+# Make executable
+chmod +x oops-linux-x86_64
+
+# Move to PATH
+sudo mv oops-linux-x86_64 /usr/local/bin/oops
+
+# Verify installation
+oops --version</code></pre>
+
+                <h3 id="manual-windows">Manual Install (Windows)</h3>
+                
+                <pre><code># Download using PowerShell
+Invoke-WebRequest -Uri "https://github.com/animeshkundu/oops/releases/latest/download/oops-windows-x86_64.exe" -OutFile "oops.exe"
+
+# Create directory and move
+mkdir -Force "$env:USERPROFILE\bin"
+Move-Item oops.exe "$env:USERPROFILE\bin\oops.exe"
+
+# Add to PATH (run once)
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\bin", "User")</code></pre>
+
+                <h2 id="verify">Verify Installation</h2>
+                
+                <p>After installation, verify oops is working:</p>
+                
+                <pre><code>oops --version</code></pre>
+                
+                <p>You should see output like:</p>
+                
+                <pre><code>oops 0.1.1</code></pre>
+
+                <h2 id="next-steps">Next Steps</h2>
+                
+                <p>After installing the binary, you need to set up shell integration:</p>
+                
+                <p><a href="shells.html" class="btn btn-primary">Shell Integration Guide →</a></p>
+
+                <h2 id="uninstall">Uninstalling</h2>
+                
+                <p>To uninstall oops:</p>
+                
+                <ol>
+                    <li>Remove the shell integration line from your shell config file</li>
+                    <li>Delete the binary:
+                        <ul>
+                            <li>Linux/macOS: <code>sudo rm /usr/local/bin/oops</code></li>
+                            <li>Windows: <code>Remove-Item "$env:LOCALAPPDATA\oops" -Recurse</code></li>
+                        </ul>
+                    </li>
+                    <li>Optionally, remove configuration: <code>rm -rf ~/.config/oops</code></li>
+                </ol>
+            </article>
+        </main>
+    </div>
+
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

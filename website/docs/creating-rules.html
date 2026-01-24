@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Rules - oops Documentation</title>
+    <meta name="description" content="Learn how to create new correction rules for oops. Complete guide with examples and best practices.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/creating-rules.html">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="shells.html">Shell Integration</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html">All Rules</a></li>
+                        <li><a href="environment.html">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html">How to Contribute</a></li>
+                        <li><a href="creating-rules.html" class="active">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <article class="docs-article">
+                <h1>Creating Rules</h1>
+                
+                <p>This guide explains how to add new correction rules to oops.</p>
+
+                <h2 id="rule-basics">Rule Basics</h2>
+                
+                <p>A rule is a Rust struct that implements the <code>Rule</code> trait:</p>
+                
+                <pre><code>use crate::core::{Command, Rule};
+use anyhow::Result;
+
+pub struct MyRule;
+
+impl Rule for MyRule {
+    fn name(&self) -> &str {
+        "my_rule"
+    }
+
+    fn is_match(&self, cmd: &Command) -> bool {
+        // Return true if this rule applies
+        cmd.output.contains("some error")
+    }
+
+    fn get_new_command(&self, cmd: &Command) -> Vec&lt;String&gt; {
+        // Return corrected command(s)
+        vec![format!("fixed {}", cmd.script)]
+    }
+}</code></pre>
+
+                <h2 id="step-by-step">Step-by-Step Guide</h2>
+
+                <h3>1. Choose the Right Module</h3>
+                
+                <p>Rules are organized by category in <code>src/rules/</code>:</p>
+                
+                <ul>
+                    <li><code>git/</code> — Git commands</li>
+                    <li><code>package_managers/</code> — apt, brew, npm, etc.</li>
+                    <li><code>system.rs</code> — File operations</li>
+                    <li><code>cloud.rs</code> — AWS, Azure, etc.</li>
+                    <li><code>devtools.rs</code> — Go, Java, etc.</li>
+                    <li><code>misc.rs</code> — Everything else</li>
+                </ul>
+
+                <h3>2. Create the Rule</h3>
+                
+                <p>Add to the appropriate file:</p>
+                
+                <pre><code>/// Fixes the common typo of typing 'sl' instead of 'ls'
+pub struct SlLs;
+
+impl Rule for SlLs {
+    fn name(&self) -> &str {
+        "sl_ls"
+    }
+
+    fn is_match(&self, cmd: &Command) -> bool {
+        cmd.script.starts_with("sl ")
+            || cmd.script == "sl"
+    }
+
+    fn get_new_command(&self, cmd: &Command) -> Vec&lt;String&gt; {
+        vec![cmd.script.replacen("sl", "ls", 1)]
+    }
+
+    // This rule doesn't need command output
+    fn requires_output(&self) -> bool {
+        false
+    }
+}</code></pre>
+
+                <h3>3. Register the Rule</h3>
+                
+                <p>Add to <code>src/rules/mod.rs</code>:</p>
+                
+                <pre><code>pub fn get_all_rules() -> Vec&lt;Box&lt;dyn Rule&gt;&gt; {
+    vec![
+        // ... existing rules ...
+        Box::new(misc::SlLs),
+    ]
+}</code></pre>
+
+                <h3>4. Write Tests</h3>
+                
+                <pre><code>#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::Command;
+
+    #[test]
+    fn test_sl_ls_matches() {
+        let rule = SlLs;
+
+        // Should match
+        assert!(rule.is_match(&Command::new("sl", "")));
+        assert!(rule.is_match(&Command::new("sl -la", "")));
+
+        // Should not match
+        assert!(!rule.is_match(&Command::new("ls", "")));
+        assert!(!rule.is_match(&Command::new("sleep 5", "")));
+    }
+
+    #[test]
+    fn test_sl_ls_correction() {
+        let rule = SlLs;
+        let cmd = Command::new("sl -la", "");
+        let fixes = rule.get_new_command(&cmd);
+
+        assert_eq!(fixes, vec!["ls -la"]);
+    }
+}</code></pre>
+
+                <h3>5. Build and Test</h3>
+                
+                <pre><code>cargo build
+cargo test</code></pre>
+
+                <h2 id="rule-trait">Rule Trait Methods</h2>
+
+                <h3>Required Methods</h3>
+                
+                <pre><code>fn name(&self) -> &str;
+fn is_match(&self, cmd: &Command) -> bool;
+fn get_new_command(&self, cmd: &Command) -> Vec&lt;String&gt;;</code></pre>
+
+                <h3>Optional Methods</h3>
+                
+                <pre><code>// Priority (lower = higher priority, default: 1000)
+fn priority(&self) -> i32 { 1000 }
+
+// Whether rule is enabled by default
+fn enabled_by_default(&self) -> bool { true }
+
+// Whether rule needs command output
+fn requires_output(&self) -> bool { true }
+
+// Side effect after correction runs
+fn side_effect(&self, old_cmd: &Command, new_script: &str) -> Result&lt;()&gt; {
+    Ok(())
+}</code></pre>
+
+                <h2 id="common-patterns">Common Patterns</h2>
+
+                <h3>Regex Matching</h3>
+                
+                <pre><code>use regex::Regex;
+use once_cell::sync::Lazy;
+
+static ERROR_PATTERN: Lazy&lt;Regex&gt; = Lazy::new(|| {
+    Regex::new(r"command not found: (\w+)").unwrap()
+});
+
+impl Rule for MyRule {
+    fn is_match(&self, cmd: &Command) -> bool {
+        ERROR_PATTERN.is_match(&cmd.output)
+    }
+
+    fn get_new_command(&self, cmd: &Command) -> Vec&lt;String&gt; {
+        if let Some(caps) = ERROR_PATTERN.captures(&cmd.output) {
+            let typo = &caps[1];
+            // ... generate correction
+        }
+        vec![]
+    }
+}</code></pre>
+
+                <h3>Fuzzy Matching</h3>
+                
+                <pre><code>use crate::utils::fuzzy::get_close_matches;
+
+impl Rule for MyRule {
+    fn get_new_command(&self, cmd: &Command) -> Vec&lt;String&gt; {
+        let typo = extract_typo(&cmd.script);
+        let valid_commands = get_valid_commands();
+
+        get_close_matches(&typo, &valid_commands, 3, 0.6)
+            .into_iter()
+            .map(|match_| cmd.script.replace(&typo, &match_))
+            .collect()
+    }
+}</code></pre>
+
+                <h3>Application-Specific Rules</h3>
+                
+                <pre><code>use crate::rules::is_app;
+
+impl Rule for GitPush {
+    fn is_match(&self, cmd: &Command) -> bool {
+        is_app(cmd, &["git"])
+            && cmd.script.contains("push")
+            && cmd.output.contains("no upstream")
+    }
+}</code></pre>
+
+                <h2 id="best-practices">Best Practices</h2>
+
+                <h3>1. Be Specific</h3>
+                
+                <p>Match precisely to avoid false positives:</p>
+                
+                <pre><code>// Good - specific pattern
+fn is_match(&self, cmd: &Command) -> bool {
+    cmd.output.contains("Permission denied")
+        && !cmd.script.starts_with("sudo")
+}
+
+// Bad - too broad
+fn is_match(&self, cmd: &Command) -> bool {
+    cmd.output.contains("denied")
+}</code></pre>
+
+                <h3>2. Handle Edge Cases</h3>
+                
+                <pre><code>fn get_new_command(&self, cmd: &Command) -> Vec&lt;String&gt; {
+    let parts = cmd.script_parts();
+
+    // Check for empty or single-element commands
+    if parts.len() < 2 {
+        return vec![];
+    }
+
+    // ... rest of logic
+}</code></pre>
+
+                <h3>3. Document the Rule</h3>
+                
+                <pre><code>/// Fixes permission denied errors by prepending sudo.
+///
+/// # Examples
+///
+/// ```text
+/// $ apt install vim
+/// E: Could not open lock file - Permission denied
+///
+/// $ oops
+/// sudo apt install vim
+/// ```
+pub struct Sudo;</code></pre>
+
+                <h3>4. Consider Priority</h3>
+                
+                <pre><code>impl Rule for MyRule {
+    fn priority(&self) -> i32 {
+        // High priority (runs early): 1-99
+        // Normal priority: 1000 (default)
+        // Low priority (runs late): 2000+
+        100
+    }
+}</code></pre>
+
+                <h2 id="testing">Testing Guidelines</h2>
+                
+                <p>Each rule should have at least these tests:</p>
+                
+                <ul>
+                    <li><strong>Match test</strong> — Rule matches expected errors</li>
+                    <li><strong>No-match test</strong> — Rule doesn't match success or other tools</li>
+                    <li><strong>Correction test</strong> — Generates expected fix</li>
+                    <li><strong>Edge case tests</strong> — Empty input, special characters</li>
+                </ul>
+
+                <h2 id="submitting">Submitting Your Rule</h2>
+                
+                <ol>
+                    <li>Fork the repository</li>
+                    <li>Create a branch: <code>git checkout -b feature/my-new-rule</code></li>
+                    <li>Add your rule with tests</li>
+                    <li>Run <code>cargo fmt</code> and <code>cargo clippy</code></li>
+                    <li>Submit a pull request</li>
+                </ol>
+
+                <p>Include in your PR:</p>
+                <ul>
+                    <li>Description of what the rule fixes</li>
+                    <li>Example of the error and correction</li>
+                    <li>Any edge cases considered</li>
+                </ul>
+
+            </article>
+        </main>
+    </div>
+
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

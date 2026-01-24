@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Rules - oops Documentation</title>
+    <meta name="description" content="Complete list of 177+ correction rules in oops. Git, package managers, Docker, cloud CLIs, and more.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/rules.html">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="shells.html">Shell Integration</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html" class="active">All Rules</a></li>
+                        <li><a href="environment.html">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html">How to Contribute</a></li>
+                        <li><a href="creating-rules.html">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <article class="docs-article">
+                <h1>All Rules</h1>
+                
+                <p>oops includes <strong>177+ correction rules</strong> organized by category. All rules are enabled by default.</p>
+
+                <div class="callout callout-info">
+                    <div class="callout-title">Disabling Rules</div>
+                    <p>To disable specific rules, add them to <code>exclude_rules</code> in your config or set <code>THEFUCK_EXCLUDE_RULES</code> environment variable.</p>
+                </div>
+
+                <h2 id="git">Git</h2>
+                
+                <p>Comprehensive Git corrections for common mistakes.</p>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>git_add</code></td><td>Suggest <code>git add</code> for untracked files</td></tr>
+                        <tr><td><code>git_add_force</code></td><td>Add <code>-f</code> flag for ignored files</td></tr>
+                        <tr><td><code>git_bisect_usage</code></td><td>Fix git bisect command usage</td></tr>
+                        <tr><td><code>git_branch_0flag</code></td><td>Fix branch flag typos</td></tr>
+                        <tr><td><code>git_branch_delete</code></td><td>Fix branch deletion syntax</td></tr>
+                        <tr><td><code>git_branch_delete_checked_out</code></td><td>Handle deleting current branch</td></tr>
+                        <tr><td><code>git_branch_exists</code></td><td>Handle existing branch names</td></tr>
+                        <tr><td><code>git_branch_list</code></td><td>Fix <code>git branch list</code> to <code>git branch</code></td></tr>
+                        <tr><td><code>git_checkout</code></td><td>Fix branch name typos in checkout</td></tr>
+                        <tr><td><code>git_clone_missing</code></td><td>Suggest cloning missing repositories</td></tr>
+                        <tr><td><code>git_commit_add</code></td><td>Stage files before commit</td></tr>
+                        <tr><td><code>git_commit_amend</code></td><td>Amend commits properly</td></tr>
+                        <tr><td><code>git_commit_message_editor</code></td><td>Fix commit message issues</td></tr>
+                        <tr><td><code>git_commit_reset</code></td><td>Reset last commit</td></tr>
+                        <tr><td><code>git_diff_staged</code></td><td>Show staged changes with <code>--staged</code></td></tr>
+                        <tr><td><code>git_fix_stash</code></td><td>Fix stash command syntax</td></tr>
+                        <tr><td><code>git_flag_after_filename</code></td><td>Move flags before filenames</td></tr>
+                        <tr><td><code>git_help_aliased</code></td><td>Handle aliased command help</td></tr>
+                        <tr><td><code>git_hook_bypass</code></td><td>Bypass hooks with <code>--no-verify</code></td></tr>
+                        <tr><td><code>git_lfs_mistype</code></td><td>Fix Git LFS typos</td></tr>
+                        <tr><td><code>git_main_master</code></td><td>Switch between main/master branches</td></tr>
+                        <tr><td><code>git_merge_unrelated</code></td><td>Allow unrelated histories</td></tr>
+                        <tr><td><code>git_not_command</code></td><td>Fix git command typos</td></tr>
+                        <tr><td><code>git_pull</code></td><td>Fix pull configuration issues</td></tr>
+                        <tr><td><code>git_pull_clone</code></td><td>Clone instead of pull for new repos</td></tr>
+                        <tr><td><code>git_pull_uncommitted_changes</code></td><td>Stash before pull</td></tr>
+                        <tr><td><code>git_push</code></td><td>Set upstream branch</td></tr>
+                        <tr><td><code>git_push_different_branch</code></td><td>Push to different branch names</td></tr>
+                        <tr><td><code>git_push_force</code></td><td>Force push when needed</td></tr>
+                        <tr><td><code>git_push_pull</code></td><td>Pull before push</td></tr>
+                        <tr><td><code>git_push_without_commits</code></td><td>Handle empty push</td></tr>
+                        <tr><td><code>git_rebase_merge_dir</code></td><td>Continue/abort rebase</td></tr>
+                        <tr><td><code>git_rebase_no_resolve</code></td><td>Fix rebase conflicts</td></tr>
+                        <tr><td><code>git_remote_delete</code></td><td>Delete remote properly</td></tr>
+                        <tr><td><code>git_remote_seturl</code></td><td>Fix remote URL syntax</td></tr>
+                        <tr><td><code>git_rm_local_modifications</code></td><td>Force remove modified files</td></tr>
+                        <tr><td><code>git_rm_recursive</code></td><td>Remove directories recursively</td></tr>
+                        <tr><td><code>git_rm_staged</code></td><td>Remove staged files</td></tr>
+                        <tr><td><code>git_stash</code></td><td>Fix stash operations</td></tr>
+                        <tr><td><code>git_stash_pop</code></td><td>Pop stash correctly</td></tr>
+                        <tr><td><code>git_tag_force</code></td><td>Force create existing tags</td></tr>
+                        <tr><td><code>git_tag_list</code></td><td>List tags properly</td></tr>
+                        <tr><td><code>git_two_dashes</code></td><td>Fix single-dash options</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="package-managers">Package Managers</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>apt_get</code></td><td>Fix apt/apt-get commands</td></tr>
+                        <tr><td><code>apt_invalid_operation</code></td><td>Fix invalid apt operations</td></tr>
+                        <tr><td><code>apt_list_upgradable</code></td><td>Show upgradable packages</td></tr>
+                        <tr><td><code>apt_upgrade</code></td><td>Run apt upgrade properly</td></tr>
+                        <tr><td><code>brew_cask_dependency</code></td><td>Fix Homebrew cask deps</td></tr>
+                        <tr><td><code>brew_install</code></td><td>Fix brew install</td></tr>
+                        <tr><td><code>brew_reinstall</code></td><td>Reinstall existing packages</td></tr>
+                        <tr><td><code>brew_uninstall</code></td><td>Fix uninstall commands</td></tr>
+                        <tr><td><code>brew_unknown_command</code></td><td>Fix brew command typos</td></tr>
+                        <tr><td><code>brew_update_formula</code></td><td>Update formulas</td></tr>
+                        <tr><td><code>cargo</code></td><td>Fix cargo command typos</td></tr>
+                        <tr><td><code>cargo_no_command</code></td><td>Fix unknown cargo commands</td></tr>
+                        <tr><td><code>choco_install</code></td><td>Fix Chocolatey install</td></tr>
+                        <tr><td><code>composer_not_command</code></td><td>Fix Composer commands</td></tr>
+                        <tr><td><code>conda_mistype</code></td><td>Fix conda typos</td></tr>
+                        <tr><td><code>cpan_not_installed</code></td><td>Install CPAN modules</td></tr>
+                        <tr><td><code>dnf_no_such_command</code></td><td>Fix dnf command typos</td></tr>
+                        <tr><td><code>gem_unknown_command</code></td><td>Fix gem commands</td></tr>
+                        <tr><td><code>npm</code></td><td>Fix npm commands</td></tr>
+                        <tr><td><code>npm_missing_script</code></td><td>Fix npm script names</td></tr>
+                        <tr><td><code>npm_run_script</code></td><td>Add <code>run</code> for scripts</td></tr>
+                        <tr><td><code>npm_wrong_command</code></td><td>Fix npm command typos</td></tr>
+                        <tr><td><code>pacman</code></td><td>Fix pacman commands</td></tr>
+                        <tr><td><code>pacman_not_found</code></td><td>Suggest package installs</td></tr>
+                        <tr><td><code>pip_install</code></td><td>Fix pip install</td></tr>
+                        <tr><td><code>pip_unknown_command</code></td><td>Fix pip commands</td></tr>
+                        <tr><td><code>yarn_command_not_found</code></td><td>Fix yarn commands</td></tr>
+                        <tr><td><code>yarn_command_replaced</code></td><td>Handle deprecated yarn commands</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="docker">Docker & Containers</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>docker_image_being_used</code></td><td>Handle images in use</td></tr>
+                        <tr><td><code>docker_login</code></td><td>Fix docker login</td></tr>
+                        <tr><td><code>docker_not_command</code></td><td>Fix docker command typos</td></tr>
+                        <tr><td><code>docker_compose_not_command</code></td><td>Fix docker-compose typos</td></tr>
+                        <tr><td><code>kubectl_not_command</code></td><td>Fix kubectl typos</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="system">System Commands</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>sudo</code></td><td>Add sudo for permission errors</td></tr>
+                        <tr><td><code>cd_correction</code></td><td>Fix directory name typos</td></tr>
+                        <tr><td><code>cd_cs</code></td><td>Fix <code>cs</code> to <code>cd</code></td></tr>
+                        <tr><td><code>cd_mkdir</code></td><td>Create directory then cd</td></tr>
+                        <tr><td><code>cd_parent</code></td><td>Fix <code>cd..</code> to <code>cd ..</code></td></tr>
+                        <tr><td><code>chmod_x</code></td><td>Make scripts executable</td></tr>
+                        <tr><td><code>cp_create_destination</code></td><td>Create missing directories</td></tr>
+                        <tr><td><code>cp_omitting_directory</code></td><td>Add <code>-r</code> for directories</td></tr>
+                        <tr><td><code>dirty_untar</code></td><td>Fix tar extraction</td></tr>
+                        <tr><td><code>dry</code></td><td>Remove duplicate commands</td></tr>
+                        <tr><td><code>ln_no_hard_link</code></td><td>Fix hard link errors</td></tr>
+                        <tr><td><code>ln_s_order</code></td><td>Fix symlink argument order</td></tr>
+                        <tr><td><code>ls_lah</code></td><td>Fix ls flag typos</td></tr>
+                        <tr><td><code>mkdir_p</code></td><td>Add <code>-p</code> for nested dirs</td></tr>
+                        <tr><td><code>mv_force</code></td><td>Force move files</td></tr>
+                        <tr><td><code>mv_no_target</code></td><td>Fix missing target</td></tr>
+                        <tr><td><code>rm_dir</code></td><td>Remove directories with <code>-r</code></td></tr>
+                        <tr><td><code>rm_root</code></td><td>Prevent accidental root deletion</td></tr>
+                        <tr><td><code>switch_lang</code></td><td>Fix keyboard layout issues</td></tr>
+                        <tr><td><code>touch</code></td><td>Fix touch command</td></tr>
+                        <tr><td><code>unknown_command</code></td><td>Suggest similar commands</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="cloud">Cloud CLIs</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>aws_cli</code></td><td>Fix AWS CLI commands</td></tr>
+                        <tr><td><code>az_cli</code></td><td>Fix Azure CLI commands</td></tr>
+                        <tr><td><code>gcloud_cli</code></td><td>Fix gcloud commands</td></tr>
+                        <tr><td><code>heroku_multiple_apps</code></td><td>Specify Heroku app</td></tr>
+                        <tr><td><code>heroku_not_command</code></td><td>Fix Heroku command typos</td></tr>
+                        <tr><td><code>terraform_init</code></td><td>Run terraform init first</td></tr>
+                        <tr><td><code>terraform_not_command</code></td><td>Fix terraform typos</td></tr>
+                        <tr><td><code>vagrant_up</code></td><td>Start Vagrant VM first</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="devtools">Development Tools</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>go_run</code></td><td>Fix go run commands</td></tr>
+                        <tr><td><code>go_not_command</code></td><td>Fix go command typos</td></tr>
+                        <tr><td><code>gradle_wrapper</code></td><td>Use gradlew instead</td></tr>
+                        <tr><td><code>gradle_no_task</code></td><td>Fix Gradle task names</td></tr>
+                        <tr><td><code>java_classpath</code></td><td>Fix Java classpath</td></tr>
+                        <tr><td><code>javac</code></td><td>Fix javac commands</td></tr>
+                        <tr><td><code>maven_no_project</code></td><td>Run in project directory</td></tr>
+                        <tr><td><code>maven_not_command</code></td><td>Fix mvn command typos</td></tr>
+                        <tr><td><code>python_command</code></td><td>Fix python command issues</td></tr>
+                        <tr><td><code>python_execute</code></td><td>Run python scripts</td></tr>
+                        <tr><td><code>python_module_error</code></td><td>Install missing modules</td></tr>
+                        <tr><td><code>sl_ls</code></td><td>Fix <code>sl</code> to <code>ls</code></td></tr>
+                        <tr><td><code>systemctl</code></td><td>Fix systemctl commands</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="shell">Shell Utilities</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>grep_arguments</code></td><td>Fix grep argument order</td></tr>
+                        <tr><td><code>grep_recursive</code></td><td>Add <code>-r</code> for directories</td></tr>
+                        <tr><td><code>history</code></td><td>Fix history commands</td></tr>
+                        <tr><td><code>man</code></td><td>Fix man page lookups</td></tr>
+                        <tr><td><code>man_no_space</code></td><td>Add space in man command</td></tr>
+                        <tr><td><code>sed_unterminated</code></td><td>Fix sed expressions</td></tr>
+                        <tr><td><code>ssh_known_hosts</code></td><td>Clear known_hosts entries</td></tr>
+                        <tr><td><code>quotation_marks</code></td><td>Fix quote issues</td></tr>
+                        <tr><td><code>no_command</code></td><td>Generic command not found</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="frameworks">Frameworks</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>django_south_ghost</code></td><td>Fix Django migrations</td></tr>
+                        <tr><td><code>django_south_merge</code></td><td>Handle migration conflicts</td></tr>
+                        <tr><td><code>flask_run</code></td><td>Fix flask run commands</td></tr>
+                        <tr><td><code>rails_migrations_pending</code></td><td>Run pending migrations</td></tr>
+                        <tr><td><code>react_native_command</code></td><td>Fix React Native commands</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="misc">Miscellaneous</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Rule</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>adb_unknown_command</code></td><td>Fix ADB commands</td></tr>
+                        <tr><td><code>fab_command_not_found</code></td><td>Fix Fabric commands</td></tr>
+                        <tr><td><code>fix_file</code></td><td>Fix file operations</td></tr>
+                        <tr><td><code>lein_not_task</code></td><td>Fix Leiningen tasks</td></tr>
+                        <tr><td><code>open</code></td><td>Fix open command</td></tr>
+                        <tr><td><code>prove_recursively</code></td><td>Add <code>-r</code> to prove</td></tr>
+                        <tr><td><code>tmux</code></td><td>Fix tmux commands</td></tr>
+                        <tr><td><code>tsuru_not_command</code></td><td>Fix tsuru commands</td></tr>
+                        <tr><td><code>whois</code></td><td>Fix whois lookups</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="callout callout-success">
+                    <div class="callout-title">Want to add a rule?</div>
+                    <p>See the <a href="creating-rules.html">Creating Rules guide</a> to contribute new corrections!</p>
+                </div>
+
+            </article>
+        </main>
+    </div>
+
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

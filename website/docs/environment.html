@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Variables - oops Documentation</title>
+    <meta name="description" content="Complete reference for oops environment variables. Compatible with thefuck for easy migration.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/environment.html">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="shells.html">Shell Integration</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html">All Rules</a></li>
+                        <li><a href="environment.html" class="active">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html">How to Contribute</a></li>
+                        <li><a href="creating-rules.html">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <article class="docs-article">
+                <h1>Environment Variables</h1>
+                
+                <p>oops uses the same environment variables as thefuck for full compatibility. All settings can be overridden via environment variables.</p>
+
+                <div class="callout callout-success">
+                    <div class="callout-title">thefuck Compatible</div>
+                    <p>These variables work identically in both oops and thefuck, making migration seamless.</p>
+                </div>
+
+                <h2 id="reference">Complete Reference</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>THEFUCK_RULES</code></td>
+                            <td>String</td>
+                            <td><code>ALL</code></td>
+                            <td>Colon-separated list of enabled rules</td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_EXCLUDE_RULES</code></td>
+                            <td>String</td>
+                            <td><em>none</em></td>
+                            <td>Colon-separated list of rules to disable</td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_REQUIRE_CONFIRMATION</code></td>
+                            <td>Boolean</td>
+                            <td><code>true</code></td>
+                            <td>Require confirmation before executing</td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_WAIT_COMMAND</code></td>
+                            <td>Number</td>
+                            <td><code>3</code></td>
+                            <td>Command timeout in seconds</td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_WAIT_SLOW_COMMAND</code></td>
+                            <td>Number</td>
+                            <td><code>15</code></td>
+                            <td>Timeout for slow commands</td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_NO_COLORS</code></td>
+                            <td>Boolean</td>
+                            <td><code>false</code></td>
+                            <td>Disable colored output</td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_DEBUG</code></td>
+                            <td>Boolean</td>
+                            <td><code>false</code></td>
+                            <td>Enable debug output</td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_NUM_CLOSE_MATCHES</code></td>
+                            <td>Number</td>
+                            <td><code>3</code></td>
+                            <td>Max suggestions to show</td>
+                        </tr>
+                        <tr>
+                            <td><code>TF_SHELL</code></td>
+                            <td>String</td>
+                            <td><em>auto</em></td>
+                            <td>Override detected shell</td>
+                        </tr>
+                        <tr>
+                            <td><code>TF_ALIAS</code></td>
+                            <td>String</td>
+                            <td><code>oops</code></td>
+                            <td>Custom alias name</td>
+                        </tr>
+                        <tr>
+                            <td><code>TF_HISTORY</code></td>
+                            <td>String</td>
+                            <td><em>auto</em></td>
+                            <td>Recent command history</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 id="rules">Rule Configuration</h2>
+
+                <h3>THEFUCK_RULES</h3>
+                
+                <p>Enable specific rules (colon-separated):</p>
+                
+                <pre><code># Enable only these rules
+export THEFUCK_RULES="sudo:git_push:git_checkout"
+
+# Enable all rules (default)
+export THEFUCK_RULES="ALL"</code></pre>
+
+                <h3>THEFUCK_EXCLUDE_RULES</h3>
+                
+                <p>Disable specific rules:</p>
+                
+                <pre><code># Disable dangerous or unwanted rules
+export THEFUCK_EXCLUDE_RULES="rm_root:git_push_force"</code></pre>
+
+                <h2 id="behavior">Behavior Settings</h2>
+
+                <h3>THEFUCK_REQUIRE_CONFIRMATION</h3>
+                
+                <pre><code># Require confirmation (default)
+export THEFUCK_REQUIRE_CONFIRMATION=true
+
+# Auto-execute first suggestion
+export THEFUCK_REQUIRE_CONFIRMATION=false</code></pre>
+
+                <h3>THEFUCK_WAIT_COMMAND</h3>
+                
+                <pre><code># Wait 5 seconds for command output
+export THEFUCK_WAIT_COMMAND=5</code></pre>
+
+                <h3>THEFUCK_NO_COLORS</h3>
+                
+                <pre><code># Disable colored output
+export THEFUCK_NO_COLORS=true</code></pre>
+
+                <h3>THEFUCK_DEBUG</h3>
+                
+                <pre><code># Enable debug output
+export THEFUCK_DEBUG=true</code></pre>
+
+                <h2 id="shell">Shell Settings</h2>
+
+                <h3>TF_SHELL</h3>
+                
+                <p>Override automatic shell detection:</p>
+                
+                <pre><code>export TF_SHELL=zsh</code></pre>
+                
+                <p>Valid values: <code>bash</code>, <code>zsh</code>, <code>fish</code>, <code>powershell</code>, <code>tcsh</code></p>
+
+                <h3>TF_ALIAS</h3>
+                
+                <p>Use a custom alias instead of <code>oops</code>:</p>
+                
+                <pre><code># Use 'fuck' as the command (thefuck compatibility)
+export TF_ALIAS=fuck
+
+# Then in your shell config:
+eval "$(oops --alias)"
+
+# Now you can use:
+$ fuck</code></pre>
+
+                <h2 id="examples">Examples</h2>
+
+                <h3>Minimal Config (Bash/Zsh)</h3>
+                
+                <pre><code># ~/.bashrc or ~/.zshrc
+export THEFUCK_REQUIRE_CONFIRMATION=false
+eval "$(oops --alias)"</code></pre>
+
+                <h3>Full Config</h3>
+                
+                <pre><code># ~/.bashrc or ~/.zshrc
+export THEFUCK_RULES="ALL"
+export THEFUCK_EXCLUDE_RULES="rm_root"
+export THEFUCK_REQUIRE_CONFIRMATION=true
+export THEFUCK_WAIT_COMMAND=3
+export THEFUCK_NO_COLORS=false
+export TF_ALIAS=oops
+eval "$(oops --alias)"</code></pre>
+
+                <h3>thefuck Compatibility</h3>
+                
+                <pre><code># Keep using 'fuck' command
+export TF_ALIAS=fuck
+eval "$(oops --alias)"
+
+# Your existing environment variables work!
+# export THEFUCK_RULES=... (already set? it works!)</code></pre>
+
+                <h2 id="precedence">Precedence</h2>
+                
+                <p>Settings are applied in this order (later overrides earlier):</p>
+                
+                <ol>
+                    <li>Built-in defaults</li>
+                    <li>Config file (<code>~/.config/oops/config.toml</code>)</li>
+                    <li>Environment variables</li>
+                </ol>
+
+            </article>
+        </main>
+    </div>
+
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>
