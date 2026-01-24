@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Port and create oops rules</title>
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta
+      name="description"
+      content="How to port thefuck rules or create new oops rules, with test guidance and parity tooling." />
+    <meta property="og:title" content="Port and create oops rules" />
+    <meta
+      property="og:description"
+      content="How to port thefuck rules or create new oops rules, with test guidance and parity tooling." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://animeshkundu.github.io/oops/docs/porting-rules.html" />
+    <meta property="og:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Port and create oops rules" />
+    <meta
+      name="twitter:description"
+      content="How to port thefuck rules or create new oops rules, with test guidance and parity tooling." />
+    <meta name="twitter:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <link rel="stylesheet" href="../assets/webfonts.css" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link rel="manifest" href="../assets/manifest.json" />
+    <link rel="icon" href="../assets/favicon.png" type="image/png" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark">oops</span>
+          <span>oops</span>
+        </a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./rules.html">Rules</a>
+          <a href="https://github.com/animeshkundu/oops">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="docs-layout">
+      <div class="container">
+        <section class="doc-hero">
+          <h1>Port or create new rules</h1>
+          <p>
+            oops rules are compiled for speed. Use the parity checker to find
+            missing coverage, then follow the Rust rule template to add fixes.
+          </p>
+        </section>
+
+        <section class="card-grid">
+          <div class="card">
+            <h3>Find gaps with parity checker</h3>
+            <pre><code>cargo run --bin check_parity</code></pre>
+            <p class="note">See missing thefuck rules and coverage percentage.</p>
+          </div>
+          <div class="card">
+            <h3>Rule checklist</h3>
+            <ul>
+              <li>Use <code>is_app()</code> for tool detection.</li>
+              <li>Match on real error output, not guesses.</li>
+              <li>Add 4+ tests per rule with edge cases.</li>
+              <li>Document the behavior in the rule file.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Rule skeleton</h2>
+            <p>Start with this template when adding a new rule.</p>
+          </div>
+          <div class="card">
+            <pre><code>#[derive(Debug, Clone, Copy, Default)]
+pub struct MyRule;
+
+impl Rule for MyRule {
+    fn name(&self) -> &str {
+        "my_rule"
+    }
+
+    fn is_match(&self, cmd: &Command) -> bool {
+        is_app(cmd, &["tool", "tool.exe"]) && cmd.output.contains("error")
+    }
+
+    fn get_new_command(&self, cmd: &Command) -> Vec<String> {
+        vec![cmd.script.replace("bad", "good")]
+    }
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Documentation &amp; guides</h2>
+            <p>Full how-to guides live in the repo documentation.</p>
+          </div>
+          <div class="docs-grid">
+            <a href="https://github.com/animeshkundu/oops/blob/master/docs/guides/creating-rules.md">
+              <h3>Creating rules guide</h3>
+              <p>Step-by-step process for adding a new correction.</p>
+            </a>
+            <a href="https://github.com/animeshkundu/oops/blob/master/docs/guides/contributing-rules.md">
+              <h3>Contributing rules</h3>
+              <p>Port rules from thefuck with parity tooling.</p>
+            </a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          Want to help? <a href="https://github.com/animeshkundu/oops/blob/master/docs/development/CONTRIBUTING.md">Read the contributing guide</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

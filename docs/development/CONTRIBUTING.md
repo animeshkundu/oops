@@ -17,7 +17,7 @@ Please be respectful and constructive in all interactions. We welcome contributo
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/oops-cli/oops.git
+   git clone https://github.com/animeshkundu/oops.git
    cd oops
    ```
 

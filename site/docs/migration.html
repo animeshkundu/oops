@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Migrate from thefuck to oops</title>
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta
+      name="description"
+      content="Move from thefuck to oops with compatible env vars, faster startup, and a single Rust binary." />
+    <meta property="og:title" content="Migrate from thefuck" />
+    <meta
+      property="og:description"
+      content="Swap to oops with compatible aliases, configs, and a 10x faster runtime." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://animeshkundu.github.io/oops/docs/migration.html" />
+    <meta property="og:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Migrate from thefuck" />
+    <meta
+      name="twitter:description"
+      content="Swap to oops with compatible aliases, configs, and a 10x faster runtime." />
+    <meta name="twitter:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <link rel="stylesheet" href="../assets/webfonts.css" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link rel="manifest" href="../assets/manifest.json" />
+    <link rel="icon" href="../assets/favicon.png" type="image/png" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark">oops</span>
+          <span>oops</span>
+        </a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./installation.html">Install</a>
+          <a href="./rules.html">Rules</a>
+          <a href="https://github.com/animeshkundu/oops">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="docs-layout">
+      <div class="container">
+        <section class="doc-hero">
+          <h1>Migration guide</h1>
+          <p>
+            oops is designed for drop-in adoption. Keep your shell habits, reuse
+            your env vars, and enjoy 10x faster corrections.
+          </p>
+        </section>
+
+        <section class="card-grid">
+          <div class="card">
+            <h3>Why switch?</h3>
+            <ul>
+              <li>~30ms startup vs ~300ms for Python.</li>
+              <li>Single Rust binary, no runtime dependency.</li>
+              <li>Compatible env vars and alias names.</li>
+              <li>Built-in parity checker for rule coverage.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Quick swap (2 minutes)</h3>
+            <ol>
+              <li>Install oops using the one-liners.</li>
+              <li>Replace <code>thefuck</code> alias with <code>oops</code>.</li>
+              <li>Convert config from Python to TOML.</li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Shell alias mapping</h2>
+            <p>Keep muscle memory by setting a compatible alias.</p>
+          </div>
+          <div class="card">
+            <pre><code>TF_ALIAS=fuck oops --alias</code></pre>
+            <p class="note">This makes <code>fuck</code> call oops instead.</p>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Config migration</h2>
+            <p>Oops uses TOML instead of Python, but env vars stay the same.</p>
+          </div>
+          <div class="card">
+            <pre><code># Before (settings.py)
+rules = ['ALL']
+require_confirmation = True
+
+# After (config.toml)
+rules = ["ALL"]
+require_confirmation = true</code></pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Parity &amp; coverage</h2>
+            <p>Check your missing rules compared to thefuck.</p>
+          </div>
+          <div class="card">
+            <pre><code>cargo run --bin check_parity</code></pre>
+            <p class="note">
+              Read the full migration notes in the
+              <a href="https://github.com/animeshkundu/oops/blob/master/docs/guides/migration-from-thefuck.md">repo guide</a>.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          Ready to move? Start with <a href="./installation.html">installation</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

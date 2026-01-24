@@ -9,7 +9,7 @@ updates:
     labels:
       - "dependencies"
     reviewers:
-      - "oops-cli/maintainers"
+      - "animeshkundu/maintainers"
 
   - package-ecosystem: "github-actions"
     directory: "/"

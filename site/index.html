@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>oops — the blazingly fast CLI typo corrector</title>
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta
+      name="description"
+      content="oops fixes your last command in under 50ms. Install with one command on macOS, Linux, or Windows and migrate from thefuck seamlessly."
+    />
+    <meta
+      name="keywords"
+      content="oops, thefuck alternative, CLI typo corrector, rust command fixer"
+    />
+    <meta name="author" content="animeshkundu" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="oops — fast CLI typo correction" />
+    <meta
+      property="og:description"
+      content="Fix your last command instantly. One-line install, cross-platform, 175+ rules."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://animeshkundu.github.io/oops/" />
+    <meta
+      property="og:image"
+      content="https://animeshkundu.github.io/oops/assets/og-image.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="oops — fast CLI typo correction" />
+    <meta
+      name="twitter:description"
+      content="Fix your last command instantly. One-line install, cross-platform, 175+ rules."
+    />
+    <meta
+      name="twitter:image"
+      content="https://animeshkundu.github.io/oops/assets/og-image.png"
+    />
+    <link rel="icon" href="./assets/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="./assets/webfonts.css" />
+    <link rel="stylesheet" href="./assets/styles.css" />
+    <link rel="manifest" href="./assets/manifest.json" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "oops",
+        "url": "https://animeshkundu.github.io/oops/",
+        "description": "Blazingly fast CLI typo corrector written in Rust.",
+        "publisher": {
+          "@type": "Organization",
+          "name": "oops"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="logo" href="#top">
+          <span class="logo-mark">oops</span>
+          <span>oops</span>
+        </a>
+        <nav class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#install">Install</a>
+          <a href="#benchmarks">Benchmarks</a>
+          <a href="./docs/index.html">Docs</a>
+          <a href="https://github.com/animeshkundu/oops">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <span class="badge">Rust-powered · <strong>&lt;50ms</strong> startup</span>
+            <h1>Fix your last command in under 50ms.</h1>
+            <p>
+              oops is the fast, modern alternative to thefuck. One binary,
+              cross-platform, 175+ rules, and instant onboarding so your team
+              keeps shipping without retyping.
+            </p>
+            <div class="hero-actions">
+              <a class="button primary" href="#install">Install now</a>
+              <a class="button ghost" href="./docs/quickstart.html">60s quickstart</a>
+            </div>
+            <div class="hero-stats">
+              <div>
+                <strong>175+</strong>
+                <div>Rules shipped</div>
+              </div>
+              <div>
+                <strong>6</strong>
+                <div>Shells supported</div>
+              </div>
+              <div>
+                <strong>~30ms</strong>
+                <div>Median startup</div>
+              </div>
+            </div>
+            <p class="note">
+              Prefer thefuck? <a href="./docs/migration.html">Switch in minutes</a>.
+            </p>
+          </div>
+          <div class="terminal">
+            <div class="terminal-header">
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+            </div>
+            <pre><code>$ git psuh
+fatal: 'psuh' is not a git command. Did you mean 'push'?
+
+$ oops
+✅ git push [enter]
+
+$ oops -y
+↻ ran: git push</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section alt">
+        <div class="container">
+          <div class="section-header">
+            <h2>Why teams switch from thefuck</h2>
+            <p>
+              oops is built for speed, portability, and zero-runtime dependency
+              installs. It feels native on every platform and makes onboarding
+              effortless.
+            </p>
+          </div>
+          <div class="card-grid">
+            <div class="card">
+              <h3>10× faster startup</h3>
+              <p>
+                Rust binary starts in ~30ms vs ~300ms for Python-based
+                alternatives. That means instant fixes during live demos.
+              </p>
+            </div>
+            <div class="card">
+              <h3>One binary, no runtime</h3>
+              <p>
+                No Python, pip, or venv required. Download once, add your alias,
+                and every shell gets corrections.
+              </p>
+            </div>
+            <div class="card">
+              <h3>Cross-platform by default</h3>
+              <p>
+                Linux, macOS, and Windows are all first-class. Same commands,
+                same experience, same fixes.
+              </p>
+            </div>
+            <div class="card">
+              <h3>thefuck-compatible config</h3>
+              <p>
+                Environment variables and alias behaviour match what your team
+                already uses, so migration is painless.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="install">
+        <div class="container">
+          <div class="section-header">
+            <h2>Install in one line</h2>
+            <p>
+              Use the installer scripts for each platform. They download the
+              latest release and set up your path automatically.
+            </p>
+          </div>
+          <div class="card-grid">
+            <div class="card">
+              <h3>macOS</h3>
+              <p>Intel + Apple Silicon. Installs to /usr/local/bin.</p>
+              <div class="code-block">
+                <button class="copy-button" data-copy="install-macos">Copy</button>
+                <pre id="install-macos"><code>curl -fsSL https://raw.githubusercontent.com/animeshkundu/oops/master/scripts/install.sh | bash</code></pre>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Linux</h3>
+              <p>Supports x86_64 and ARM64 binaries.</p>
+              <div class="code-block">
+                <button class="copy-button" data-copy="install-linux">Copy</button>
+                <pre id="install-linux"><code>curl -fsSL https://raw.githubusercontent.com/animeshkundu/oops/master/scripts/install.sh | bash</code></pre>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Windows (PowerShell)</h3>
+              <p>Downloads the latest release and updates PATH.</p>
+              <div class="code-block">
+                <button class="copy-button" data-copy="install-windows">Copy</button>
+                <pre id="install-windows"><code>iwr -useb https://raw.githubusercontent.com/animeshkundu/oops/master/scripts/install.ps1 | iex</code></pre>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top: 1.5rem;">
+            <h3>Prefer package managers?</h3>
+            <p>
+              Homebrew, Cargo, Scoop, and other package managers are supported.
+              See the full installation guide for every option.
+            </p>
+            <div class="hero-actions">
+              <a class="button ghost" href="./docs/installation.html">Full installation guide</a>
+              <a class="button primary" href="./docs/quickstart.html">Quickstart</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="onboarding">
+        <div class="container">
+          <div class="section-header">
+            <h2>Onboard in 60 seconds</h2>
+            <p>New users can get to their first fix with four steps.</p>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div>
+                <h3>Install the binary</h3>
+                <p>Use the one-line script above or your package manager.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div>
+                <h3>Add the shell alias</h3>
+                <p>Run <code>eval "$(oops --alias)"</code> once in your shell config.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div>
+                <h3>Trigger a typo</h3>
+                <p>Type <code>git statsu</code> and see oops suggest the fix.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div>
+                <h3>Ship confidently</h3>
+                <p>Use <code>oops -y</code> to auto-run the top fix.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="benchmarks">
+        <div class="container">
+          <div class="section-header">
+            <h2>Benchmarks &amp; performance</h2>
+            <p>Oops stays fast with a compact binary and low memory footprint.</p>
+          </div>
+          <div class="card">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>oops (Rust)</th>
+                  <th>thefuck (Python)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Median startup time</td>
+                  <td>~30ms</td>
+                  <td>~300ms</td>
+                </tr>
+                <tr>
+                  <td>Binary/runtime size</td>
+                  <td>~5MB single binary</td>
+                  <td>Python runtime + packages</td>
+                </tr>
+                <tr>
+                  <td>Memory footprint</td>
+                  <td>~10MB</td>
+                  <td>~50MB</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="note">
+              Benchmarks from repo docs and internal profiling. See
+              <a href="./docs/migration.html">migration notes</a> for details.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="docs">
+        <div class="container">
+          <div class="section-header">
+            <h2>Docs beyond the homepage</h2>
+            <p>
+              Deep dives live in the documentation hub: rule lists, migration
+              guidance, and contribution workflows.
+            </p>
+          </div>
+          <div class="docs-grid">
+            <a href="./docs/rules.html">
+              <h3>Rules catalog</h3>
+              <p>What oops corrects today across git, package managers, and more.</p>
+            </a>
+            <a href="./docs/migration.html">
+              <h3>Migration guide</h3>
+              <p>Move from thefuck in minutes with compatible env vars.</p>
+            </a>
+            <a href="./docs/porting-rules.html">
+              <h3>Rule authoring</h3>
+              <p>How to port, test, and ship new corrections.</p>
+            </a>
+            <a href="./docs/configuration.html">
+              <h3>Configuration</h3>
+              <p>TOML config, env overrides, and recommended defaults.</p>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          Fast fixes, confident shells. <a href="https://github.com/animeshkundu/oops">GitHub</a>
+          · <a href="./docs/index.html">Docs</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="./assets/copy.js"></script>
+  </body>
+</html>

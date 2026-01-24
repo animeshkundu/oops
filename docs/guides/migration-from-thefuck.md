@@ -204,5 +204,5 @@ If a thefuck rule isn't in oops:
 
 ## Getting Help
 
-- [GitHub Issues](https://github.com/oops-cli/oops/issues)
+- [GitHub Issues](https://github.com/animeshkundu/oops/issues)
 - [Documentation](../README.md)

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>oops quickstart — fix your first command</title>
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta
+      name="description"
+      content="Get your first oops fix in under 60 seconds. Install, add the alias, and run your first correction."
+    />
+    <meta property="og:title" content="oops quickstart" />
+    <meta
+      property="og:description"
+      content="Install, add your shell alias, and run oops in under a minute." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://animeshkundu.github.io/oops/docs/quickstart.html" />
+    <meta property="og:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="oops quickstart" />
+    <meta
+      name="twitter:description"
+      content="Install, add your shell alias, and run oops in under a minute." />
+    <meta name="twitter:image" content="https://animeshkundu.github.io/oops/assets/og-image.png" />
+    <link rel="stylesheet" href="../assets/webfonts.css" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link rel="manifest" href="../assets/manifest.json" />
+    <link rel="icon" href="../assets/favicon.png" type="image/png" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="logo" href="../index.html">
+          <span class="logo-mark">oops</span>
+          <span>oops</span>
+        </a>
+        <nav class="nav-links">
+          <a href="../index.html">Home</a>
+          <a href="./index.html">Docs</a>
+          <a href="./installation.html">Install</a>
+          <a href="./migration.html">Migration</a>
+          <a href="https://github.com/animeshkundu/oops">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="docs-layout">
+      <div class="container">
+        <section class="doc-hero">
+          <h1>Quickstart</h1>
+          <p>
+            Follow these four steps to see your first oops correction. This is
+            perfect for onboarding new teammates.
+          </p>
+        </section>
+
+        <section class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div>
+              <h3>Install the binary</h3>
+              <p>Use the one-line installer from the <a href="./installation.html">installation page</a>.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div>
+              <h3>Add the alias</h3>
+              <pre><code>eval "$(oops --alias)"</code></pre>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div>
+              <h3>Trigger a typo</h3>
+              <pre><code>git statsu</code></pre>
+              <p>Oops will catch the typo and suggest <code>git status</code>.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <div>
+              <h3>Run oops</h3>
+              <pre><code>oops</code></pre>
+              <p>The suggestion list will appear instantly.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Pro tip: auto-run the top fix</h2>
+            <p>Skip the selection UI by adding -y.</p>
+          </div>
+          <div class="card">
+            <pre><code>oops -y</code></pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <h2>Next steps</h2>
+            <p>Explore the docs for config and rule coverage.</p>
+          </div>
+          <div class="docs-grid">
+            <a href="./configuration.html">
+              <h3>Configuration</h3>
+              <p>Set default behaviors, timeouts, and rule filters.</p>
+            </a>
+            <a href="./rules.html">
+              <h3>Rules catalog</h3>
+              <p>See which commands are corrected today.</p>
+            </a>
+            <a href="./migration.html">
+              <h3>Migration guide</h3>
+              <p>Move from thefuck with compatible env vars.</p>
+            </a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          Questions? <a href="https://github.com/animeshkundu/oops/issues">Open an issue</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
