@@ -1207,8 +1207,8 @@ code {
     }
     
     .terminal-demo {
-        margin-left: -var(--spacing-md);
-        margin-right: -var(--spacing-md);
+        margin-left: calc(-1 * var(--spacing-md));
+        margin-right: calc(-1 * var(--spacing-md));
         border-radius: 0;
     }
     
