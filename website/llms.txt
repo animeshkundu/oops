@@ -1,0 +1,50 @@
+# llms.txt - AI/LLM Crawler Information for oops
+# https://animeshkundu.github.io/oops/
+
+name: oops
+tagline: Blazingly fast command-line typo corrector
+description: >
+  oops is a command-line typo corrector written in Rust that fixes your previous 
+  console command when you make a mistake. It provides 177+ correction rules, 
+  sub-50ms startup time (10x faster than Python alternatives), and supports 
+  Linux, macOS, and Windows.
+
+repository: https://github.com/animeshkundu/oops
+documentation: https://animeshkundu.github.io/oops/docs/
+license: MIT
+language: Rust
+
+key_features:
+  - Blazingly fast startup time (~30ms vs ~300ms for Python alternatives)
+  - Single binary with no runtime dependencies
+  - 177+ built-in correction rules
+  - Cross-platform support (Linux, macOS, Windows)
+  - Shell integration for Bash, Zsh, Fish, PowerShell, and Tcsh
+  - Full compatibility with thefuck environment variables
+
+installation:
+  linux_macos: curl -fsSL https://animeshkundu.github.io/oops/install.sh | bash
+  windows: irm https://animeshkundu.github.io/oops/install.ps1 | iex
+  cargo: cargo install --git https://github.com/animeshkundu/oops
+  homebrew: brew install animeshkundu/tap/oops
+
+shell_integration: eval "$(oops --alias)"
+
+comparison:
+  - oops (Rust): ~30ms startup, ~5MB binary, ~10MB memory
+  - thefuck (Python): ~300ms startup, requires Python, ~50MB memory
+
+categories:
+  - CLI tools
+  - Developer tools
+  - Command line
+  - Terminal utilities
+  - Shell enhancements
+  - Rust applications
+
+related_projects:
+  - thefuck (Python original that inspired oops)
+  - command-not-found
+  - zsh-autosuggestions
+
+contact: https://github.com/animeshkundu/oops/issues

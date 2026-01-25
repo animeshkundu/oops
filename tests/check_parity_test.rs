@@ -1,8 +1,15 @@
 //! Tests for the parity checker tool
+//!
+//! Note: These tests require network access to fetch rules from GitHub API.
+//! Tests that require network are marked with #[ignore] to avoid CI failures
+//! when network is unavailable. Run with `cargo test -- --ignored` to include them.
 
 use std::process::Command;
 
+/// Test that check_parity binary runs successfully.
+/// Note: This test requires network access to GitHub API.
 #[test]
+#[ignore = "requires network access to GitHub API"]
 fn test_check_parity_runs() {
     let output = Command::new("cargo")
         .args(&["run", "--bin", "check_parity"])
@@ -18,7 +25,10 @@ fn test_check_parity_runs() {
     assert!(stderr.contains("Checking parity between oops and thefuck"));
 }
 
+/// Test that check_parity can output JSON format.
+/// Note: This test requires network access to GitHub API.
 #[test]
+#[ignore = "requires network access to GitHub API"]
 fn test_check_parity_json_output() {
     let output = Command::new("cargo")
         .args(&["run", "--bin", "check_parity", "--", "--output", "json"])
@@ -57,7 +67,10 @@ fn test_check_parity_json_output() {
     assert!(oops_count > 0, "Should have found oops rules");
 }
 
+/// Test that check_parity finds and reports rules.
+/// Note: This test requires network access to GitHub API.
 #[test]
+#[ignore = "requires network access to GitHub API"]
 fn test_check_parity_finds_rules() {
     let output = Command::new("cargo")
         .args(&["run", "--bin", "check_parity"])
@@ -75,7 +88,10 @@ fn test_check_parity_finds_rules() {
     assert!(stdout.contains("Missing:"));
 }
 
+/// Test verbose output mode.
+/// Note: This test requires network access to GitHub API.
 #[test]
+#[ignore = "requires network access to GitHub API"]
 fn test_check_parity_verbose_output() {
     let output = Command::new("cargo")
         .args(&["run", "--bin", "check_parity", "--", "--verbose"])
@@ -93,7 +109,10 @@ fn test_check_parity_verbose_output() {
     assert!(stdout.contains("Implemented Rules"));
 }
 
+/// Test that we use get_all_rules() from library.
+/// Note: This test requires network access to GitHub API.
 #[test]
+#[ignore = "requires network access to GitHub API"]
 fn test_uses_get_all_rules_function() {
     // This test verifies that we're using get_all_rules() from the library
     // rather than scanning source files
@@ -113,7 +132,10 @@ fn test_uses_get_all_rules_function() {
     );
 }
 
+/// Test that we fetch from GitHub API.
+/// Note: This test requires network access to GitHub API.
 #[test]
+#[ignore = "requires network access to GitHub API"]
 fn test_fetches_from_github() {
     // This test verifies that we fetch thefuck rules from GitHub API
     let output = Command::new("cargo")
@@ -136,7 +158,10 @@ fn test_fetches_from_github() {
     );
 }
 
+/// Test that missing rules are categorized.
+/// Note: This test requires network access to GitHub API.
 #[test]
+#[ignore = "requires network access to GitHub API"]
 fn test_categorizes_missing_rules() {
     let output = Command::new("cargo")
         .args(&["run", "--bin", "check_parity"])

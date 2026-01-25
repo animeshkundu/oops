@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - oops Documentation</title>
+    <meta name="description" content="Configure oops with TOML config files. Enable/disable rules, set timeouts, and customize behavior.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/configuration.html">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="shells.html">Shell Integration</a></li>
+                        <li><a href="configuration.html" class="active">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html">All Rules</a></li>
+                        <li><a href="environment.html">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html">How to Contribute</a></li>
+                        <li><a href="creating-rules.html">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <article class="docs-article">
+                <h1>Configuration</h1>
+                
+                <p>oops can be configured via a TOML config file or environment variables. Configuration is optional—oops works out of the box with sensible defaults.</p>
+
+                <h2 id="config-file">Config File</h2>
+                
+                <p>Create a configuration file at <code>~/.config/oops/config.toml</code>:</p>
+                
+                <pre><code># ~/.config/oops/config.toml
+
+# Enable all rules (default)
+rules = ["ALL"]
+
+# Disable specific rules
+exclude_rules = []
+
+# Require confirmation before executing (default: true)
+require_confirmation = true
+
+# Command timeout in seconds
+wait_command = 3
+wait_slow_command = 15
+
+# Disable colored output
+no_colors = false
+
+# Number of suggestions to show
+num_close_matches = 3
+
+# Commands that take longer to run
+slow_commands = ["lein", "react-native", "gradle", "vagrant"]</code></pre>
+
+                <h2 id="options">Configuration Options</h2>
+
+                <h3>rules</h3>
+                
+                <p>List of enabled rules. Use <code>["ALL"]</code> to enable all rules, or specify individual rules:</p>
+                
+                <pre><code># Enable all rules
+rules = ["ALL"]
+
+# Or enable specific rules only
+rules = ["git_push", "sudo", "cd_mkdir"]</code></pre>
+
+                <h3>exclude_rules</h3>
+                
+                <p>List of rules to disable, even if they would otherwise be enabled:</p>
+                
+                <pre><code>exclude_rules = ["git_push_force", "rm_root"]</code></pre>
+
+                <h3>require_confirmation</h3>
+                
+                <p>Whether to show a confirmation prompt before executing corrections:</p>
+                
+                <pre><code># Ask before running (default)
+require_confirmation = true
+
+# Auto-execute first suggestion
+require_confirmation = false</code></pre>
+
+                <h3>wait_command</h3>
+                
+                <p>Timeout in seconds for commands to complete before capturing output:</p>
+                
+                <pre><code>wait_command = 3</code></pre>
+
+                <h3>wait_slow_command</h3>
+                
+                <p>Timeout for commands in the <code>slow_commands</code> list:</p>
+                
+                <pre><code>wait_slow_command = 15</code></pre>
+
+                <h3>no_colors</h3>
+                
+                <p>Disable colored terminal output:</p>
+                
+                <pre><code>no_colors = false</code></pre>
+
+                <h3>num_close_matches</h3>
+                
+                <p>Maximum number of suggestions to show:</p>
+                
+                <pre><code>num_close_matches = 3</code></pre>
+
+                <h3>slow_commands</h3>
+                
+                <p>Commands that need more time to execute:</p>
+                
+                <pre><code>slow_commands = ["lein", "react-native", "gradle", "vagrant", "docker-compose"]</code></pre>
+
+                <h2 id="environment">Environment Variables</h2>
+                
+                <p>All settings can be overridden with environment variables (same names as thefuck for compatibility):</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>THEFUCK_RULES</code></td>
+                            <td>Colon-separated list of enabled rules</td>
+                            <td><code>sudo:git_push</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_EXCLUDE_RULES</code></td>
+                            <td>Rules to disable</td>
+                            <td><code>rm_root:git_push_force</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_REQUIRE_CONFIRMATION</code></td>
+                            <td>Require confirmation</td>
+                            <td><code>true</code> or <code>false</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_WAIT_COMMAND</code></td>
+                            <td>Command timeout</td>
+                            <td><code>5</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_NO_COLORS</code></td>
+                            <td>Disable colors</td>
+                            <td><code>true</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>THEFUCK_DEBUG</code></td>
+                            <td>Enable debug output</td>
+                            <td><code>true</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>TF_SHELL</code></td>
+                            <td>Override detected shell</td>
+                            <td><code>zsh</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>TF_ALIAS</code></td>
+                            <td>Custom alias name</td>
+                            <td><code>fuck</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Example</h3>
+                
+                <pre><code># Disable confirmation and specific rules
+export THEFUCK_REQUIRE_CONFIRMATION=false
+export THEFUCK_EXCLUDE_RULES="rm_root:git_push_force"</code></pre>
+
+                <h2 id="priority">Configuration Priority</h2>
+                
+                <p>Settings are loaded in this order (later overrides earlier):</p>
+                
+                <ol>
+                    <li>Built-in defaults</li>
+                    <li>Config file (<code>~/.config/oops/config.toml</code>)</li>
+                    <li>Environment variables</li>
+                </ol>
+
+                <h2 id="debugging">Debugging</h2>
+                
+                <p>Enable debug mode to see which rules are matching:</p>
+                
+                <pre><code>export THEFUCK_DEBUG=true
+oops</code></pre>
+                
+                <p>Or use the debug flag directly:</p>
+                
+                <pre><code>oops --debug</code></pre>
+
+            </article>
+        </main>
+    </div>
+
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

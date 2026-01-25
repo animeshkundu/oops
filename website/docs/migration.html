@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration from thefuck - oops Documentation</title>
+    <meta name="description" content="Migrate from Python thefuck to oops. Step-by-step guide for configuration and environment variable compatibility.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/migration.html">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="shells.html">Shell Integration</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html">All Rules</a></li>
+                        <li><a href="environment.html">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html" class="active">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html">How to Contribute</a></li>
+                        <li><a href="creating-rules.html">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <article class="docs-article">
+                <h1>Migration from thefuck</h1>
+                
+                <p>oops is designed as a faster, simpler replacement for <a href="https://github.com/nvbn/thefuck" target="_blank" rel="noopener">thefuck</a>. Migration is straightforward and your muscle memory will carry over.</p>
+
+                <h2 id="why-migrate">Why Migrate?</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Metric</th><th>oops (Rust)</th><th>thefuck (Python)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Startup time</td><td><strong>~30ms</strong></td><td>~300ms</td></tr>
+                        <tr><td>Binary size</td><td><strong>~5MB</strong></td><td>N/A (requires Python)</td></tr>
+                        <tr><td>Memory usage</td><td><strong>~10MB</strong></td><td>~50MB</td></tr>
+                        <tr><td>Dependencies</td><td><strong>None</strong></td><td>Python + pip packages</td></tr>
+                        <tr><td>Rules</td><td>177+</td><td>170</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="quick-migration">Quick Migration</h2>
+
+                <h3>Step 1: Install oops</h3>
+                
+                <pre><code># Linux/macOS
+curl -fsSL https://animeshkundu.github.io/oops/install.sh | bash
+
+# macOS with Homebrew
+brew install animeshkundu/tap/oops
+
+# Windows (PowerShell)
+irm https://animeshkundu.github.io/oops/install.ps1 | iex</code></pre>
+
+                <h3>Step 2: Update Shell Config</h3>
+                
+                <p>Replace your thefuck initialization:</p>
+                
+                <pre><code># Before
+eval "$(thefuck --alias)"
+
+# After
+eval "$(oops --alias)"</code></pre>
+
+                <h3>Step 3: (Optional) Convert Config</h3>
+                
+                <p>If you have custom settings, convert <code>~/.config/thefuck/settings.py</code> to <code>~/.config/oops/config.toml</code>.</p>
+
+                <h2 id="config-conversion">Configuration Conversion</h2>
+
+                <h3>Python to TOML</h3>
+                
+                <p><strong>Before</strong> (<code>~/.config/thefuck/settings.py</code>):</p>
+                
+                <pre><code>rules = ['ALL']
+exclude_rules = ['git_push_force']
+require_confirmation = True
+wait_command = 3
+no_colors = False
+priority = {'sudo': 10}
+slow_commands = ['lein', 'gradle']</code></pre>
+
+                <p><strong>After</strong> (<code>~/.config/oops/config.toml</code>):</p>
+                
+                <pre><code>rules = ["ALL"]
+exclude_rules = ["git_push_force"]
+require_confirmation = true
+wait_command = 3
+no_colors = false
+slow_commands = ["lein", "gradle"]
+
+[priority]
+sudo = 10</code></pre>
+
+                <h3>Key Syntax Differences</h3>
+                
+                <table>
+                    <thead>
+                        <tr><th>Python</th><th>TOML</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>True</code> / <code>False</code></td><td><code>true</code> / <code>false</code></td></tr>
+                        <tr><td><code>['item']</code></td><td><code>["item"]</code></td></tr>
+                        <tr><td><code>{'key': value}</code></td><td><code>[section]</code> + <code>key = value</code></td></tr>
+                        <tr><td><code>None</code></td><td>Omit the key</td></tr>
+                        <tr><td><code># comment</code></td><td><code># comment</code></td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="env-vars">Environment Variables</h2>
+                
+                <p><strong>Great news:</strong> Environment variables work identically!</p>
+                
+                <pre><code># These work the same in both tools
+export THEFUCK_RULES="sudo:git_push"
+export THEFUCK_REQUIRE_CONFIRMATION=false
+export THEFUCK_WAIT_COMMAND=5
+export THEFUCK_EXCLUDE_RULES="rm_root"</code></pre>
+
+                <h2 id="keep-alias">Keep Your Alias</h2>
+                
+                <p>If you prefer the <code>fuck</code> alias, use <code>TF_ALIAS</code>:</p>
+                
+                <pre><code># Bash/Zsh
+eval "$(TF_ALIAS=fuck oops --alias)"
+
+# Fish
+TF_ALIAS=fuck oops --alias | source
+
+# PowerShell
+$env:TF_ALIAS="fuck"; Invoke-Expression (oops --alias | Out-String)</code></pre>
+
+                <h2 id="differences">Key Differences</h2>
+
+                <h3>No Dynamic Rules</h3>
+                
+                <p>oops doesn't support loading custom Python rules from <code>~/.config/oops/rules/</code>. All rules are compiled in.</p>
+                
+                <p><strong>Workarounds:</strong></p>
+                <ul>
+                    <li>Open an issue to add your rule upstream</li>
+                    <li>Fork and compile your own version</li>
+                    <li>Use environment-based workarounds</li>
+                </ul>
+
+                <h3>No Plugin Support</h3>
+                
+                <p>Third-party <code>thefuck_contrib_*</code> packages don't work with oops. Most popular plugin functionality is built-in.</p>
+
+                <h3>TOML vs Python Config</h3>
+                
+                <p>Python expressions don't work in TOML:</p>
+                
+                <pre><code># This won't work in TOML
+rules = [r for r in ALL if 'git' in r]</code></pre>
+                
+                <p>Use explicit lists or environment variables instead.</p>
+
+                <h2 id="feature-comparison">Feature Comparison</h2>
+                
+                <table>
+                    <thead>
+                        <tr><th>Feature</th><th>thefuck</th><th>oops</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Built-in rules</td><td>170</td><td>177+</td></tr>
+                        <tr><td>Shell support</td><td>6</td><td>6</td></tr>
+                        <tr><td>Config format</td><td>Python</td><td>TOML</td></tr>
+                        <tr><td>Custom rules</td><td>Yes (.py)</td><td>No</td></tr>
+                        <tr><td>Plugins</td><td>Yes</td><td>No</td></tr>
+                        <tr><td>Instant mode</td><td>Yes</td><td>Partial</td></tr>
+                        <tr><td>Startup time</td><td>~300ms</td><td>~30ms</td></tr>
+                        <tr><td>Memory</td><td>~50MB</td><td>~10MB</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="run-both">Running Both</h2>
+                
+                <p>You can run both tools side-by-side during migration:</p>
+                
+                <pre><code># Use different aliases
+eval "$(thefuck --alias fuck)"   # Python version as 'fuck'
+eval "$(oops --alias)"           # Rust version as 'oops'</code></pre>
+
+                <h2 id="rollback">Rollback</h2>
+                
+                <p>If you need to go back to thefuck:</p>
+                
+                <ol>
+                    <li>Uninstall oops</li>
+                    <li>Restore your shell config to use <code>thefuck --alias</code></li>
+                    <li>Your Python thefuck installation should still work</li>
+                </ol>
+
+                <h2 id="troubleshooting">Troubleshooting</h2>
+
+                <h3>Rules Not Matching</h3>
+                
+                <p>Enable debug mode to see what's happening:</p>
+                
+                <pre><code>oops --debug</code></pre>
+
+                <h3>Wrong Shell Detected</h3>
+                
+                <p>Set explicitly:</p>
+                
+                <pre><code>export TF_SHELL=zsh</code></pre>
+
+                <h3>Config Not Loading</h3>
+                
+                <p>Check the file location:</p>
+                
+                <pre><code># Should be at:
+~/.config/oops/config.toml
+
+# Not:
+~/.config/thefuck/settings.toml  # Wrong location!</code></pre>
+
+                <h3>Missing Rule</h3>
+                
+                <p>If a thefuck rule isn't in oops:</p>
+                <ol>
+                    <li>Check if it has a different name</li>
+                    <li>Check the <a href="rules.html">full rules list</a></li>
+                    <li><a href="https://github.com/animeshkundu/oops/issues" target="_blank" rel="noopener">Open an issue</a> on GitHub</li>
+                </ol>
+
+                <div class="callout callout-success">
+                    <div class="callout-title">Need Help?</div>
+                    <p>If you run into issues, check our <a href="https://github.com/animeshkundu/oops/issues" target="_blank" rel="noopener">GitHub Issues</a> or start a <a href="https://github.com/animeshkundu/oops/discussions" target="_blank" rel="noopener">Discussion</a>.</p>
+                </div>
+
+            </article>
+        </main>
+    </div>
+
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

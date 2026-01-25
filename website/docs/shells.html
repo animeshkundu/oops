@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shell Integration - oops Documentation</title>
+    <meta name="description" content="Set up oops with Bash, Zsh, Fish, PowerShell, or Tcsh. Complete shell integration guide.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/shells.html">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="shells.html" class="active">Shell Integration</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html">All Rules</a></li>
+                        <li><a href="environment.html">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html">How to Contribute</a></li>
+                        <li><a href="creating-rules.html">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <article class="docs-article">
+                <h1>Shell Integration</h1>
+                
+                <p>After installing oops, you need to add shell integration to make the <code>oops</code> command available. This sets up an alias that captures your previous command when something goes wrong.</p>
+
+                <h2 id="quick-reference">Quick Reference</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Shell</th>
+                            <th>Config File</th>
+                            <th>Command</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Bash</td>
+                            <td><code>~/.bashrc</code></td>
+                            <td><code>eval "$(oops --alias)"</code></td>
+                        </tr>
+                        <tr>
+                            <td>Zsh</td>
+                            <td><code>~/.zshrc</code></td>
+                            <td><code>eval "$(oops --alias)"</code></td>
+                        </tr>
+                        <tr>
+                            <td>Fish</td>
+                            <td><code>~/.config/fish/config.fish</code></td>
+                            <td><code>oops --alias | source</code></td>
+                        </tr>
+                        <tr>
+                            <td>PowerShell</td>
+                            <td><code>$PROFILE</code></td>
+                            <td><code>Invoke-Expression (oops --alias | Out-String)</code></td>
+                        </tr>
+                        <tr>
+                            <td>Tcsh</td>
+                            <td><code>~/.tcshrc</code></td>
+                            <td><code>eval `oops --alias`</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2 id="bash">Bash</h2>
+                
+                <p>Add the following line to your <code>~/.bashrc</code>:</p>
+                
+                <pre><code>eval "$(oops --alias)"</code></pre>
+                
+                <p>Then reload your configuration:</p>
+                
+                <pre><code>source ~/.bashrc</code></pre>
+
+                <h2 id="zsh">Zsh</h2>
+                
+                <p>Add the following line to your <code>~/.zshrc</code>:</p>
+                
+                <pre><code>eval "$(oops --alias)"</code></pre>
+                
+                <p>Then reload your configuration:</p>
+                
+                <pre><code>source ~/.zshrc</code></pre>
+
+                <div class="callout callout-info">
+                    <div class="callout-title">Oh My Zsh Users</div>
+                    <p>If you use Oh My Zsh, add the line after the <code>source $ZSH/oh-my-zsh.sh</code> line.</p>
+                </div>
+
+                <h2 id="fish">Fish</h2>
+                
+                <p>Add the following line to your <code>~/.config/fish/config.fish</code>:</p>
+                
+                <pre><code>oops --alias | source</code></pre>
+                
+                <p>Then reload your configuration:</p>
+                
+                <pre><code>source ~/.config/fish/config.fish</code></pre>
+
+                <h2 id="powershell">PowerShell</h2>
+                
+                <p>Add the following line to your PowerShell profile (<code>$PROFILE</code>):</p>
+                
+                <pre><code>Invoke-Expression (oops --alias | Out-String)</code></pre>
+                
+                <p>To find your profile location:</p>
+                
+                <pre><code>echo $PROFILE</code></pre>
+                
+                <p>Then reload your profile:</p>
+                
+                <pre><code>. $PROFILE</code></pre>
+
+                <div class="callout callout-info">
+                    <div class="callout-title">Creating a Profile</div>
+                    <p>If your profile doesn't exist, create it with: <code>New-Item -Path $PROFILE -ItemType File -Force</code></p>
+                </div>
+
+                <h2 id="tcsh">Tcsh</h2>
+                
+                <p>Add the following line to your <code>~/.tcshrc</code>:</p>
+                
+                <pre><code>eval `oops --alias`</code></pre>
+                
+                <p>Then reload your configuration:</p>
+                
+                <pre><code>source ~/.tcshrc</code></pre>
+
+                <h2 id="custom-alias">Custom Alias Name</h2>
+                
+                <p>By default, the alias is named <code>oops</code>. You can use a different name by setting the <code>TF_ALIAS</code> environment variable:</p>
+
+                <h3>Bash/Zsh</h3>
+                
+                <pre><code>eval "$(TF_ALIAS=fuck oops --alias)"</code></pre>
+                
+                <p>This creates a <code>fuck</code> command instead of <code>oops</code>.</p>
+
+                <h3>Fish</h3>
+                
+                <pre><code>TF_ALIAS=fuck oops --alias | source</code></pre>
+
+                <h3>PowerShell</h3>
+                
+                <pre><code>$env:TF_ALIAS="fuck"; Invoke-Expression (oops --alias | Out-String)</code></pre>
+
+                <h3>Tcsh</h3>
+                
+                <pre><code>setenv TF_ALIAS fuck && eval `oops --alias`</code></pre>
+
+                <div class="callout callout-success">
+                    <div class="callout-title">thefuck Compatibility</div>
+                    <p>Using <code>TF_ALIAS=fuck</code> makes oops fully compatible with your muscle memory from thefuck!</p>
+                </div>
+
+                <h2 id="usage">Usage</h2>
+                
+                <p>Once set up, simply type <code>oops</code> after a failed command:</p>
+                
+                <pre><code>$ git psuh
+git: 'psuh' is not a git command. Did you mean 'push'?
+
+$ oops
+git push [enter/↑/↓/ctrl+c]</code></pre>
+
+                <h3>Keyboard Shortcuts</h3>
+                
+                <ul>
+                    <li><strong>Enter</strong> — Execute the selected correction</li>
+                    <li><strong>↑/↓ or j/k</strong> — Navigate between suggestions</li>
+                    <li><strong>Ctrl+C</strong> — Cancel</li>
+                </ul>
+
+                <h3>Auto-Execute</h3>
+                
+                <p>Use <code>-y</code> to automatically execute the first suggestion:</p>
+                
+                <pre><code>$ oops -y</code></pre>
+
+                <h2 id="troubleshooting">Troubleshooting</h2>
+
+                <h3>Command not found</h3>
+                
+                <p>If you see "command not found: oops", ensure the binary is in your PATH:</p>
+                
+                <pre><code># Check if oops is accessible
+which oops
+
+# If not, add the installation directory to your PATH
+export PATH="/usr/local/bin:$PATH"</code></pre>
+
+                <h3>Shell not detected</h3>
+                
+                <p>If oops doesn't detect your shell correctly, set it explicitly:</p>
+                
+                <pre><code>export TF_SHELL=zsh</code></pre>
+
+                <h3>Alias not working</h3>
+                
+                <p>Make sure you've reloaded your shell configuration or opened a new terminal window after adding the integration line.</p>
+
+            </article>
+        </main>
+    </div>
+
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

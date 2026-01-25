@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - oops</title>
+    <meta name="description" content="Complete documentation for oops, the blazingly fast command-line typo corrector. Installation, configuration, rules, and more.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Documentation - oops">
+    <meta property="og:description" content="Complete documentation for oops. Installation, configuration, rules, and shell integration.">
+    <meta property="og:url" content="https://animeshkundu.github.io/oops/docs/">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <!-- Sidebar -->
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="shells.html">Shell Integration</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html">All Rules</a></li>
+                        <li><a href="environment.html">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html">How to Contribute</a></li>
+                        <li><a href="creating-rules.html">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="docs-content">
+            <div class="docs-header">
+                <h1>Documentation</h1>
+                <p class="docs-intro">
+                    Everything you need to install, configure, and use oops effectively.
+                </p>
+            </div>
+
+            <div class="docs-cards">
+                <a href="installation.html" class="docs-card">
+                    <div class="card-icon">📦</div>
+                    <h3>Installation</h3>
+                    <p>Get oops installed on Linux, macOS, or Windows in seconds.</p>
+                </a>
+
+                <a href="shells.html" class="docs-card">
+                    <div class="card-icon">🐚</div>
+                    <h3>Shell Integration</h3>
+                    <p>Set up oops with Bash, Zsh, Fish, PowerShell, or Tcsh.</p>
+                </a>
+
+                <a href="configuration.html" class="docs-card">
+                    <div class="card-icon">⚙️</div>
+                    <h3>Configuration</h3>
+                    <p>Customize oops behavior with config files and environment variables.</p>
+                </a>
+
+                <a href="rules.html" class="docs-card">
+                    <div class="card-icon">📋</div>
+                    <h3>All Rules</h3>
+                    <p>Browse 177+ correction rules organized by category.</p>
+                </a>
+
+                <a href="migration.html" class="docs-card">
+                    <div class="card-icon">🔄</div>
+                    <h3>Migration Guide</h3>
+                    <p>Switching from thefuck? Here's everything you need to know.</p>
+                </a>
+
+                <a href="creating-rules.html" class="docs-card">
+                    <div class="card-icon">🛠️</div>
+                    <h3>Creating Rules</h3>
+                    <p>Learn how to contribute new correction rules to oops.</p>
+                </a>
+            </div>
+
+            <div class="quick-links">
+                <h2>Quick Links</h2>
+                <div class="quick-links-grid">
+                    <a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                        GitHub Repository
+                    </a>
+                    <a href="https://github.com/animeshkundu/oops/releases" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download Releases
+                    </a>
+                    <a href="https://github.com/animeshkundu/oops/issues" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Report an Issue
+                    </a>
+                    <a href="https://github.com/animeshkundu/oops/discussions" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        Discussions
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>

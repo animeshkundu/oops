@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributing - oops Documentation</title>
+    <meta name="description" content="How to contribute to oops. Guidelines for code contributions, bug reports, and feature requests.">
+    <link rel="canonical" href="https://animeshkundu.github.io/oops/docs/contributing.html">
+    
+    <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/docs.css">
+</head>
+<body class="docs-page">
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="../" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">oops</span>
+            </a>
+            <div class="nav-links">
+                <a href="../#features">Features</a>
+                <a href="../#install">Install</a>
+                <a href="../#benchmark">Benchmarks</a>
+                <a href="./" class="active">Docs</a>
+                <a href="https://github.com/animeshkundu/oops" class="github-link" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="nav-section">
+                    <h4>Getting Started</h4>
+                    <ul>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="shells.html">Shell Integration</a></li>
+                        <li><a href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Reference</h4>
+                    <ul>
+                        <li><a href="rules.html">All Rules</a></li>
+                        <li><a href="environment.html">Environment Variables</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Migration</h4>
+                    <ul>
+                        <li><a href="migration.html">From thefuck</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h4>Contributing</h4>
+                    <ul>
+                        <li><a href="contributing.html" class="active">How to Contribute</a></li>
+                        <li><a href="creating-rules.html">Creating Rules</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <article class="docs-article">
+                <h1>Contributing</h1>
+                
+                <p>Thank you for your interest in contributing to oops! We welcome contributions of all kinds.</p>
+
+                <h2 id="ways-to-contribute">Ways to Contribute</h2>
+                
+                <ul>
+                    <li><strong>Report bugs</strong> — Found a bug? Open an issue</li>
+                    <li><strong>Add rules</strong> — Create new correction rules</li>
+                    <li><strong>Improve docs</strong> — Fix typos, clarify explanations</li>
+                    <li><strong>Write tests</strong> — Increase test coverage</li>
+                    <li><strong>Fix issues</strong> — Tackle open issues on GitHub</li>
+                </ul>
+
+                <h2 id="getting-started">Getting Started</h2>
+
+                <h3>Prerequisites</h3>
+                
+                <ul>
+                    <li>Rust 1.88 or newer</li>
+                    <li>Git</li>
+                </ul>
+
+                <h3>Setup</h3>
+                
+                <pre><code># Clone the repository
+git clone https://github.com/animeshkundu/oops.git
+cd oops
+
+# Build
+cargo build
+
+# Run tests
+cargo test
+
+# Run lints
+cargo clippy -- -D warnings
+
+# Format code
+cargo fmt</code></pre>
+
+                <h2 id="code-style">Code Style</h2>
+
+                <h3>General Guidelines</h3>
+                
+                <ul>
+                    <li>Follow existing code patterns</li>
+                    <li>Use <code>cargo fmt</code> before committing</li>
+                    <li>Ensure <code>cargo clippy</code> passes with no warnings</li>
+                    <li>Add tests for new functionality</li>
+                    <li>Document public APIs</li>
+                </ul>
+
+                <h3>Rust Conventions</h3>
+                
+                <ul>
+                    <li>Use <code>&str</code> over <code>String</code> in function parameters</li>
+                    <li>Use <code>Result&lt;T&gt;</code> with <code>anyhow</code> for error handling</li>
+                    <li>Add <code>#[derive(Debug, Clone)]</code> to structs</li>
+                    <li>Use <code>tracing</code> macros for logging</li>
+                </ul>
+
+                <h2 id="pull-requests">Pull Requests</h2>
+
+                <h3>Before Submitting</h3>
+                
+                <ol>
+                    <li><strong>Tests pass:</strong> <code>cargo test</code></li>
+                    <li><strong>No lint warnings:</strong> <code>cargo clippy -- -D warnings</code></li>
+                    <li><strong>Formatted:</strong> <code>cargo fmt --check</code></li>
+                    <li><strong>Builds cleanly:</strong> <code>cargo build</code></li>
+                </ol>
+
+                <h3>PR Description</h3>
+                
+                <p>Include in your PR:</p>
+                <ul>
+                    <li>Description of changes</li>
+                    <li>Why the changes are needed</li>
+                    <li>Any breaking changes</li>
+                    <li>Test results</li>
+                </ul>
+
+                <h2 id="reporting-bugs">Reporting Bugs</h2>
+                
+                <p>When filing a bug report, include:</p>
+                
+                <ul>
+                    <li>oops version (<code>oops --version</code>)</li>
+                    <li>Operating system and version</li>
+                    <li>Shell being used</li>
+                    <li>Steps to reproduce</li>
+                    <li>Expected behavior</li>
+                    <li>Actual behavior</li>
+                    <li>Debug output if applicable (<code>oops --debug</code>)</li>
+                </ul>
+
+                <h2 id="feature-requests">Feature Requests</h2>
+                
+                <p>We welcome feature requests! Please:</p>
+                
+                <ul>
+                    <li>Check existing issues first</li>
+                    <li>Describe the use case clearly</li>
+                    <li>Explain why existing features don't work</li>
+                    <li>Consider submitting a PR if you can implement it</li>
+                </ul>
+
+                <h2 id="project-structure">Project Structure</h2>
+                
+                <pre><code>src/
+├── main.rs           # Entry point, CLI dispatch
+├── cli.rs            # Argument parsing (clap)
+├── config/           # Settings and config file loading
+├── core/             # Command, Rule trait, Corrector engine
+├── rules/            # 177+ correction rules
+│   ├── git/          # Git-related rules
+│   ├── package_managers/  # Package manager rules
+│   └── ...
+├── shells/           # Shell integrations (bash, zsh, etc.)
+├── output/           # Command execution
+├── ui/               # Terminal UI, colors
+└── utils/            # Caching, fuzzy matching</code></pre>
+
+                <h2 id="adding-rules">Adding Rules</h2>
+                
+                <p>Adding new correction rules is one of the most valuable contributions! See the <a href="creating-rules.html">Creating Rules</a> guide for detailed instructions.</p>
+
+                <h2 id="code-of-conduct">Code of Conduct</h2>
+                
+                <p>Please be respectful and inclusive. We aim to maintain a welcoming environment for all contributors.</p>
+
+                <h2 id="getting-help">Getting Help</h2>
+                
+                <ul>
+                    <li><a href="https://github.com/animeshkundu/oops/discussions" target="_blank" rel="noopener">GitHub Discussions</a> — Ask questions</li>
+                    <li><a href="https://github.com/animeshkundu/oops/issues" target="_blank" rel="noopener">GitHub Issues</a> — Report bugs</li>
+                </ul>
+
+            </article>
+        </main>
+    </div>
+
+    <footer class="docs-footer">
+        <div class="container">
+            <p>oops is released under the MIT License.</p>
+            <p><a href="https://github.com/animeshkundu/oops" target="_blank" rel="noopener">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/docs.js"></script>
+</body>
+</html>
