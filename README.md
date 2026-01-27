@@ -1,37 +1,241 @@
-# oops
+<div align="center">
 
-A blazingly fast command-line typo corrector written in Rust.
+<!-- Logo/Banner Area -->
+<h1>
+  <br>
+  🔧 oops
+  <br>
+</h1>
+
+<h4>A blazingly fast command-line typo corrector written in Rust</h4>
+
+<p>
+  <em>Made a typo? Just say "oops" and fix it instantly.</em>
+</p>
+
+<!-- Badges -->
+<p>
+  <a href="https://github.com/animeshkundu/oops/actions/workflows/ci.yml">
+    <img src="https://github.com/animeshkundu/oops/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+  </a>
+  <a href="https://github.com/animeshkundu/oops/releases/latest">
+    <img src="https://img.shields.io/github/v/release/animeshkundu/oops?color=success&label=version" alt="Release">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT">
+  </a>
+  <a href="https://github.com/animeshkundu/oops">
+    <img src="https://img.shields.io/badge/rust-1.88+-orange.svg" alt="Rust: 1.88+">
+  </a>
+  <a href="https://github.com/animeshkundu/oops/releases">
+    <img src="https://img.shields.io/github/downloads/animeshkundu/oops/total?color=brightgreen" alt="Downloads">
+  </a>
+</p>
+
+<!-- Quick Links -->
+<p>
+  <a href="#-features">Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-installation">Installation</a> •
+  <a href="#%EF%B8%8F-configuration">Configuration</a> •
+  <a href="#-performance">Performance</a>
+</p>
+
+<!-- Demo GIF Area -->
+<br>
 
 ```bash
 $ git psuh
 git: 'psuh' is not a git command. Did you mean 'push'?
 
 $ oops
-git push [enter/up/down/ctrl+c]
+git push [enter/↑/↓/ctrl+c]
 ```
 
-## Features
+</div>
 
-- **175+ correction rules** for common CLI mistakes
-- **Sub-50ms startup time** - 10x faster than Python alternatives
-- **Single binary** - no runtime dependencies
-- **Cross-platform** - Linux, macOS, Windows
-- **Shell integration** - Bash, Zsh, Fish, PowerShell, Tcsh
+---
 
-## Installation
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 🚀 Lightning Fast
+**Sub-50ms startup** — 10x faster than Python alternatives. No waiting, just fixing.
+
+### 📦 Zero Dependencies  
+**Single static binary** — download and run. No Python, no Node, no runtime.
+
+### 🌍 Cross-Platform
+**Native support** for Linux, macOS, and Windows with shell integration for all major shells.
+
+</td>
+<td width="50%">
+
+### 🧠 177+ Smart Rules
+Intelligent corrections for Git, package managers, Docker, AWS, and more.
+
+### 🔄 thefuck Compatible
+**Drop-in replacement** — same environment variables, easy migration path.
+
+### ⚡ Instant Mode Ready
+Execute corrections automatically or navigate through suggestions.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🎬 Examples
+
+<details open>
+<summary><strong>Git Commands</strong></summary>
+
+```bash
+$ git psuh
+git: 'psuh' is not a git command. Did you mean 'push'?
+
+$ oops
+git push [enter/↑/↓/ctrl+c]
+```
+
+```bash
+$ git statis
+git: 'statis' is not a git command. Did you mean 'status'?
+
+$ oops
+git status
+```
+
+```bash
+$ git push
+fatal: The current branch feature has no upstream branch.
+
+$ oops
+git push --set-upstream origin feature
+```
+
+</details>
+
+<details>
+<summary><strong>Permission Errors</strong></summary>
+
+```bash
+$ apt-get install vim
+E: Could not open lock file /var/lib/dpkg/lock - open (13: Permission denied)
+
+$ oops
+sudo apt-get install vim
+```
+
+</details>
+
+<details>
+<summary><strong>Typos & Misspellings</strong></summary>
+
+```bash
+$ pyhton --version
+command not found: pyhton
+
+$ oops
+python --version
+```
+
+```bash
+$ sl
+command not found: sl
+
+$ oops
+ls
+```
+
+</details>
+
+<details>
+<summary><strong>Package Managers</strong></summary>
+
+```bash
+$ cargo run
+error: could not find `Cargo.toml` in `/home/user` or any parent directory
+
+$ oops
+# Suggests: cd to project directory or cargo init
+```
+
+```bash
+$ npm instal express
+Unknown command: "instal"
+
+$ oops
+npm install express
+```
+
+</details>
+
+---
+
+## 🚀 Quick Start
+
+### 1️⃣ Install
+
+```bash
+# macOS/Linux (Homebrew)
+brew install animeshkundu/tap/oops
+
+# Or download binary directly
+curl -LO https://github.com/animeshkundu/oops/releases/latest/download/oops-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)
+chmod +x oops-* && sudo mv oops-* /usr/local/bin/oops
+```
+
+### 2️⃣ Setup Shell Integration
+
+Add to your shell config (`.bashrc`, `.zshrc`, etc.):
+
+```bash
+eval "$(oops --alias)"
+```
+
+### 3️⃣ Use It!
+
+```bash
+$ git comit -m "fix"
+git: 'comit' is not a git command. Did you mean 'commit'?
+
+$ oops    # Just type oops!
+git commit -m "fix"
+```
+
+---
+
+## 📥 Installation
+
+### Package Managers
+
+| Manager | Command |
+|---------|---------|
+| **Homebrew** (macOS/Linux) | `brew install animeshkundu/tap/oops` |
+| **Cargo** | `cargo install oops` |
+| **AUR** (Arch Linux) | `yay -S oops` |
+| **Scoop** (Windows) | `scoop install oops` |
 
 ### Pre-built Binaries
 
-Download the appropriate binary for your system from [GitHub Releases](https://github.com/animeshkundu/oops/releases/latest):
+Download from [GitHub Releases](https://github.com/animeshkundu/oops/releases/latest):
 
-| Platform | Architecture | Binary |
-|----------|--------------|--------|
-| Linux | x86_64 | `oops-linux-x86_64` |
-| Linux | x86_64 (static) | `oops-linux-x86_64-musl` |
-| Linux | ARM64 | `oops-linux-aarch64` |
-| macOS | Intel | `oops-darwin-x86_64` |
-| macOS | Apple Silicon | `oops-darwin-aarch64` |
-| Windows | x86_64 | `oops-windows-x86_64.exe` |
+| Platform | Architecture | Download |
+|----------|--------------|----------|
+| 🐧 Linux | x86_64 | [`oops-linux-x86_64`](https://github.com/animeshkundu/oops/releases/latest/download/oops-linux-x86_64) |
+| 🐧 Linux | x86_64 (static) | [`oops-linux-x86_64-musl`](https://github.com/animeshkundu/oops/releases/latest/download/oops-linux-x86_64-musl) |
+| 🐧 Linux | ARM64 | [`oops-linux-aarch64`](https://github.com/animeshkundu/oops/releases/latest/download/oops-linux-aarch64) |
+| 🍎 macOS | Intel | [`oops-darwin-x86_64`](https://github.com/animeshkundu/oops/releases/latest/download/oops-darwin-x86_64) |
+| 🍎 macOS | Apple Silicon | [`oops-darwin-aarch64`](https://github.com/animeshkundu/oops/releases/latest/download/oops-darwin-aarch64) |
+| 🪟 Windows | x86_64 | [`oops-windows-x86_64.exe`](https://github.com/animeshkundu/oops/releases/latest/download/oops-windows-x86_64.exe) |
+
+<details>
+<summary><strong>📋 Manual Installation Instructions</strong></summary>
 
 #### Linux/macOS
 
@@ -55,7 +259,7 @@ oops --version
 # Download using PowerShell
 Invoke-WebRequest -Uri "https://github.com/animeshkundu/oops/releases/latest/download/oops-windows-x86_64.exe" -OutFile "oops.exe"
 
-# Move to a directory in your PATH, or add to PATH
+# Move to a directory in your PATH
 mkdir -Force "$env:USERPROFILE\bin"
 Move-Item oops.exe "$env:USERPROFILE\bin\oops.exe"
 
@@ -63,83 +267,69 @@ Move-Item oops.exe "$env:USERPROFILE\bin\oops.exe"
 [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\bin", "User")
 ```
 
-### From Source
+</details>
+
+<details>
+<summary><strong>🔨 Build from Source</strong></summary>
+
+Requires Rust 1.88 or newer:
 
 ```bash
+# From GitHub
 cargo install --git https://github.com/animeshkundu/oops
+
+# Or clone and build
+git clone https://github.com/animeshkundu/oops
+cd oops
+cargo build --release
 ```
 
-### Package Managers
+</details>
 
-```bash
-# Homebrew (macOS/Linux)
-brew install animeshkundu/tap/oops
+---
 
-# Cargo (from crates.io when published)
-cargo install oops
+## 🐚 Shell Integration
 
-# Arch Linux (AUR)
-yay -S oops
+Add the integration to your shell configuration file:
 
-# Windows (Scoop)
-scoop bucket add extras
-scoop install oops
-```
+<table>
+<tr>
+<th>Shell</th>
+<th>Config File</th>
+<th>Add This Line</th>
+</tr>
+<tr>
+<td><strong>Bash</strong></td>
+<td><code>~/.bashrc</code></td>
+<td><code>eval "$(oops --alias)"</code></td>
+</tr>
+<tr>
+<td><strong>Zsh</strong></td>
+<td><code>~/.zshrc</code></td>
+<td><code>eval "$(oops --alias)"</code></td>
+</tr>
+<tr>
+<td><strong>Fish</strong></td>
+<td><code>~/.config/fish/config.fish</code></td>
+<td><code>oops --alias | source</code></td>
+</tr>
+<tr>
+<td><strong>PowerShell</strong></td>
+<td><code>$PROFILE</code></td>
+<td><code>Invoke-Expression (oops --alias | Out-String)</code></td>
+</tr>
+<tr>
+<td><strong>Tcsh</strong></td>
+<td><code>~/.tcshrc</code></td>
+<td><code>eval `oops --alias`</code></td>
+</tr>
+</table>
 
-## Shell Integration
+> 💡 **Tip:** Reload your shell config after adding: `source ~/.bashrc` (or your config file)
 
-After installing `oops`, add the shell integration to your config file:
+### Custom Alias
 
-### Bash
-
-Add to `~/.bashrc`:
-```bash
-eval "$(oops --alias)"
-```
-
-Reload: `source ~/.bashrc`
-
-### Zsh
-
-Add to `~/.zshrc`:
-```zsh
-eval "$(oops --alias)"
-```
-
-Reload: `source ~/.zshrc`
-
-### Fish
-
-Add to `~/.config/fish/config.fish`:
-```fish
-oops --alias | source
-```
-
-Reload: `source ~/.config/fish/config.fish`
-
-### PowerShell
-
-Add to your PowerShell profile (`$PROFILE`):
-```powershell
-Invoke-Expression (oops --alias | Out-String)
-```
-
-To find your profile location: `echo $PROFILE`
-
-Reload: `. $PROFILE`
-
-### Tcsh
-
-Add to `~/.tcshrc`:
-```tcsh
-eval `oops --alias`
-```
-
-Reload: `source ~/.tcshrc`
-
-### Custom Alias Name
-
-To use a different alias (e.g., `fuck` for thefuck compatibility):
+Want to use a different alias? (e.g., `fuck` for thefuck compatibility)
 
 ```bash
 # Bash/Zsh
@@ -150,151 +340,258 @@ TF_ALIAS=fuck oops --alias | source
 
 # PowerShell
 $env:TF_ALIAS="fuck"; Invoke-Expression (oops --alias | Out-String)
-
-# Tcsh
-setenv TF_ALIAS fuck && eval `oops --alias`
 ```
 
-## Shell Reference
+---
 
-| Shell | Config File | Integration Command | Reload Command |
-|-------|-------------|---------------------|----------------|
-| Bash | `~/.bashrc` | `eval "$(oops --alias)"` | `source ~/.bashrc` |
-| Zsh | `~/.zshrc` | `eval "$(oops --alias)"` | `source ~/.zshrc` |
-| Fish | `~/.config/fish/config.fish` | `oops --alias \| source` | `source ~/.config/fish/config.fish` |
-| PowerShell | `$PROFILE` | `Invoke-Expression (oops --alias \| Out-String)` | `. $PROFILE` |
-| Tcsh | `~/.tcshrc` | `` eval `oops --alias` `` | `source ~/.tcshrc` |
+## ⌨️ Usage
 
-## Usage
+### Basic Usage
 
-Just type `oops` after a failed command:
+After a failed command, just type `oops`:
 
 ```bash
-$ git statis
-git: 'statis' is not a git command. Did you mean 'status'?
-
-$ oops
-git status [enter/up/down/ctrl+c]
-```
-
-### Automatic Execution
-
-Use `-y` to automatically execute the first suggestion:
-
-```bash
-$ oops -y
+$ oops              # Show correction with confirmation
+$ oops -y           # Auto-execute first suggestion
+$ oops --help       # Show all options
 ```
 
 ### Navigation
 
 When multiple corrections are available:
-- **Up/Down arrows** or **j/k** - Navigate options
-- **Enter** - Execute selected command
-- **Ctrl+C** - Cancel
 
-## Configuration
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` or `j` / `k` | Navigate options |
+| `Enter` | Execute selected command |
+| `Ctrl+C` | Cancel |
+
+---
+
+## ⚙️ Configuration
 
 Create `~/.config/oops/config.toml`:
 
 ```toml
-# Enable/disable rules
+# Enable all rules except specific ones
 rules = ["ALL"]
-exclude_rules = []
+exclude_rules = ["rm_rf"]
 
-# Require confirmation before execution
+# Require confirmation before execution (default: true)
 require_confirmation = true
 
 # Command timeout in seconds
 wait_command = 3
 wait_slow_command = 15
 
-# Disable colors
+# UI options
 no_colors = false
-
-# Number of suggestions to show
 num_close_matches = 3
 
-# Commands that take longer to run
+# Commands that need more time
 slow_commands = ["lein", "react-native", "gradle", "vagrant"]
 ```
 
 ### Environment Variables
 
-All settings can be overridden via environment variables:
+For thefuck compatibility, all settings can be overridden via environment variables:
 
-| Variable | Description |
-|----------|-------------|
-| `THEFUCK_RULES` | Colon-separated list of enabled rules |
-| `THEFUCK_EXCLUDE_RULES` | Rules to disable |
-| `THEFUCK_REQUIRE_CONFIRMATION` | `true` or `false` |
-| `THEFUCK_WAIT_COMMAND` | Timeout in seconds |
-| `THEFUCK_DEBUG` | Enable debug output |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `THEFUCK_RULES` | Enabled rules (colon-separated) | `ALL` |
+| `THEFUCK_EXCLUDE_RULES` | Disabled rules | - |
+| `THEFUCK_REQUIRE_CONFIRMATION` | Require confirmation | `true` |
+| `THEFUCK_WAIT_COMMAND` | Command timeout (seconds) | `3` |
+| `THEFUCK_DEBUG` | Enable debug output | `false` |
+| `TF_ALIAS` | Custom alias name | `oops` |
 
-### Minimum Supported Rust Version
+---
 
-Oops requires Rust 1.88 or newer to build.
+## 📚 Supported Rules
 
-## Supported Rules
+oops includes **177+ intelligent correction rules** organized by category:
 
-oops includes 175+ rules for common mistakes:
+<details>
+<summary><strong>🔀 Git (50+ rules)</strong></summary>
 
-### Git
-- `git_push` - Set upstream branch
-- `git_checkout` - Fix branch name typos
-- `git_add` - Add untracked files
-- `git_commit_amend` - Amend commits
-- ... and 45+ more git rules
+| Rule | Description |
+|------|-------------|
+| `git_push` | Set upstream branch automatically |
+| `git_checkout` | Fix branch name typos |
+| `git_add` | Add untracked/modified files |
+| `git_commit_amend` | Suggest amending commits |
+| `git_branch_delete` | Change `-d` to `-D` when needed |
+| `git_not_command` | Fix misspelled git commands |
+| `git_stash` | Fix stash subcommand typos |
+| ... | And 40+ more! |
 
-### Package Managers
-- APT, Brew, Cargo, npm, pip, Pacman, dnf, yum, conda, gem, choco
+</details>
 
-### System Commands
-- `sudo` - Add sudo for permission errors
-- `cd_mkdir` - Create directory before cd
-- `chmod_x` - Make scripts executable
-- `mkdir_p` - Add -p flag to mkdir
+<details>
+<summary><strong>📦 Package Managers</strong></summary>
 
-### Development Tools
-- Go, Java, Maven, Gradle, Terraform, Docker, Kubernetes
+- **apt** / **apt-get** — Debian/Ubuntu
+- **brew** — Homebrew (macOS/Linux)
+- **cargo** — Rust
+- **npm** / **yarn** — Node.js
+- **pip** — Python
+- **pacman** / **yay** — Arch Linux
+- **dnf** / **yum** — Fedora/RHEL
+- **conda** — Anaconda
+- **gem** — Ruby
+- **choco** — Windows Chocolatey
 
-### And More
-- Shell utilities, cloud CLIs (AWS, Azure), frameworks (Rails, React Native)
+</details>
 
-See the [full rules list](docs/guides/rules.md) for details.
+<details>
+<summary><strong>🐳 Docker & Cloud</strong></summary>
 
-## Migrating from thefuck
+- Docker commands and container management
+- AWS CLI (`aws`)
+- Azure CLI (`az`)
+- Heroku CLI
+- Kubernetes (`kubectl`)
+- Terraform
 
-If you're coming from the Python `thefuck`:
+</details>
 
-1. **Shell alias**: Change `fuck` to `oops` in your shell config (or use `TF_ALIAS=fuck`)
-2. **Config format**: Use TOML instead of Python (`config.toml` instead of `settings.py`)
-3. **Environment variables**: Same names, fully compatible
+<details>
+<summary><strong>🖥️ System & Shell</strong></summary>
 
-See the [migration guide](docs/guides/migration-from-thefuck.md) for details.
+| Rule | Description |
+|------|-------------|
+| `sudo` | Add sudo for permission errors |
+| `cd_mkdir` | Create directory before cd |
+| `chmod_x` | Make scripts executable |
+| `mkdir_p` | Add `-p` flag to mkdir |
+| `rm_dir` | Use `rm -r` for directories |
+| `cat_dir` | Use `ls` instead of `cat` on directories |
+| `touch` | Create parent directories |
+| `no_command` | Find similar commands |
 
-## Performance
+</details>
 
-| Metric | oops (Rust) | thefuck (Python) |
-|--------|-------------|------------------|
-| Startup time | ~30ms | ~300ms |
-| Binary size | ~5MB | N/A (requires Python) |
-| Memory usage | ~10MB | ~50MB |
+<details>
+<summary><strong>🛠️ Development Tools</strong></summary>
 
-## Contributing
+- Go (`go run`, `go build`)
+- Java / Javac
+- Maven (`mvn`)
+- Gradle
+- Composer (PHP)
+- Ruby/Rails
+- React Native
 
-Contributions are welcome! See [CONTRIBUTING.md](docs/development/CONTRIBUTING.md) for guidelines.
+</details>
+
+📖 [**Full rules documentation →**](docs/guides/rules.md)
+
+---
+
+## ⚡ Performance
+
+oops is built for speed. Here's how it compares:
+
+| Metric | oops (Rust) | thefuck (Python) | Improvement |
+|--------|:-----------:|:----------------:|:-----------:|
+| **Startup Time** | ~30ms | ~300ms | **10x faster** |
+| **Binary Size** | ~5 MB | N/A (requires Python runtime) | **Self-contained** |
+| **Memory Usage** | ~10 MB | ~50 MB | **5x less** |
+| **Dependencies** | None | Python 3.5+ | **Zero deps** |
+
+### Why is oops faster?
+
+- 🦀 **Native Rust** — Compiled to machine code, no interpreter overhead
+- 📦 **Single Binary** — No Python startup, no module imports
+- 🧠 **Lazy Evaluation** — Rules are matched efficiently without unnecessary work
+- ⚡ **Optimized Regex** — Uses Rust's high-performance regex engine
+
+---
+
+## 🔄 Migrating from thefuck
+
+Already using thefuck? Migration is seamless:
+
+| Aspect | thefuck | oops |
+|--------|---------|------|
+| **Shell alias** | `fuck` | `oops` (or `TF_ALIAS=fuck`) |
+| **Config file** | `~/.config/thefuck/settings.py` | `~/.config/oops/config.toml` |
+| **Config format** | Python | TOML |
+| **Env variables** | `THEFUCK_*` | Same! ✅ |
+
+```bash
+# Keep using 'fuck' as the command if you prefer
+eval "$(TF_ALIAS=fuck oops --alias)"
+```
+
+📖 [**Migration guide →**](docs/guides/migration-from-thefuck.md)
+
+---
+
+## 🤝 Contributing
+
+We love contributions! Whether it's:
+
+- 🐛 Bug reports
+- 💡 Feature suggestions  
+- 📝 Documentation improvements
+- 🔧 New correction rules
+
+### Quick Contribution
+
+```bash
+# Clone the repo
+git clone https://github.com/animeshkundu/oops
+cd oops
+
+# Build and test
+cargo build
+cargo test
+
+# Format and lint
+cargo fmt
+cargo clippy
+```
+
+📖 [**Contributing guide →**](docs/development/CONTRIBUTING.md)
 
 ### Adding a New Rule
 
-1. Create a new struct implementing the `Rule` trait
+1. Create a struct implementing the `Rule` trait
 2. Add it to the appropriate module in `src/rules/`
 3. Register it in `src/rules/mod.rs`
-4. Add tests
+4. Add comprehensive tests
+5. Submit a PR!
 
-## License
+📖 [**Rule creation guide →**](docs/guides/creating-rules.md)
 
-MIT License - see [LICENSE](LICENSE) for details.
+---
 
-## Acknowledgments
+## 📄 License
 
-oops is inspired by [thefuck](https://github.com/nvbn/thefuck) by Vladimir Iakovlev. Configuration environment variables are backward compatible for easy migration.
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+## 🙏 Acknowledgments
+
+oops is inspired by the magnificent [**thefuck**](https://github.com/nvbn/thefuck) by Vladimir Iakovlev.
+
+**Key differences:**
+- ⚡ 10x faster (Rust vs Python)
+- 📦 Single binary (no runtime dependencies)
+- 🔄 100% environment variable compatible
+
+---
+
+<div align="center">
+
+**[⬆ Back to Top](#-oops)**
+
+Made with ❤️ by the oops contributors
+
+<a href="https://github.com/animeshkundu/oops/stargazers">
+  <img src="https://img.shields.io/github/stars/animeshkundu/oops?style=social" alt="GitHub stars">
+</a>
+
+</div>
