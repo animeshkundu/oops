@@ -180,7 +180,7 @@ jobs:
           git push --delete origin "$TAG_NAME" || echo "No existing tag to delete"
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag_name }}
           name: Release ${{ steps.tag.outputs.tag_name }}
